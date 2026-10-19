@@ -5,7 +5,12 @@ import { CANALES_IPC, type ApiChef } from '@shared/types/ipc'
 // su función. El contrato vive en src/shared/types/ipc.ts y main lo implementa en src/main/ipc.ts.
 const api: ApiChef = {
   voz: {
-    token: (datos) => ipcRenderer.invoke(CANALES_IPC.vozToken, datos)
+    token: (datos) => ipcRenderer.invoke(CANALES_IPC.vozToken, datos),
+    iniciar: (datos) => ipcRenderer.invoke(CANALES_IPC.vozIniciar, datos),
+    reconocer: (audio) => ipcRenderer.invoke(CANALES_IPC.vozReconocer, audio),
+    reset: (datos) => ipcRenderer.invoke(CANALES_IPC.vozReset, datos),
+    detener: (datos) => ipcRenderer.invoke(CANALES_IPC.vozDetener, datos),
+    repetir: (datos) => ipcRenderer.invoke(CANALES_IPC.vozRepetir, datos)
   },
   catalogo: {
     ingredientes: () => ipcRenderer.invoke(CANALES_IPC.catalogoIngredientes)

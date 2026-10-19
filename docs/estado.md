@@ -4,27 +4,25 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-En curso (Prompt 9): pasos 1–3 terminados; seguir con integración Vosk/Gemini en Cocinar (paso 4). Las tareas 15 y 16 siguen abiertas hasta integrar la voz.
+Roadmap, tarea 21: chat de texto en Cocinar con las nueve herramientas existentes (decisión 0007). Después, herramientas de Preparar/Elegir (22) y su chat (23). Las tareas 15 y 16 están implementadas en los cuatro pasos del Prompt 9.
 
-Roadmap, tareas 15 y 16 (Prompt 9 del paquete): órdenes cortas locales y sesión de voz en tiempo real (ver `docs/ia-chef.md`, "Voz" y "Contexto que recibe el modelo").
+Antes de dar la voz por validada para usuarios: probar una conversación real con Gemini cuando el autor configure su clave en `.env` (no se ha solicitado ni usado para llamar a Google); medir ruido y latencia en cocina (20); ejecutar las pruebas nativas en macOS/Linux y revisar sus instaladores (19). La integración de Gemini tiene tests de transporte simulado, sin llamadas a Google.
 
-**Decisiones ya tomadas (ver `docs/decisiones/0007-voz-gemini-vosk-y-chat.md`):**
-- **Voz en tiempo real:** Gemini Live con el plan gratuito. Hay que crear el adaptador `server/src/proveedores/gemini.ts`, que implementa `ProveedorIA` y se registra en `proveedores/index.ts` con `PROVEEDOR_IA=gemini`. `crearTokenVoz` usa los ephemeral tokens de la Live API.
-- **Motor local:** Vosk, con una gramática cerrada («chef», «siguiente», «atrás», «repite», «pausa», «listo», «para el temporizador»…). Hay que validar el binario nativo y el modelo de español (unos 50 MB) empaquetados en Electron.
-- **Chat de texto en las tres pantallas** (tareas nuevas 21 a 23 del roadmap). Orden recomendado: primero voz (15 y 16), luego chat en Cocinar (21), luego herramientas de Preparar y Elegir (22) y su chat (23).
-- **El autor pondrá la clave de Google AI Studio en `.env`.** Nunca se pide por chat ni se sube al repositorio. Sin clave, todo debe seguir funcionando con `PROVEEDOR_IA=falso`.
+Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app con `npm run dev`. Con `PROVEEDOR_IA=falso` funcionan las órdenes y la repetición locales; al preguntar al modelo informa que es modo de prueba y conserva los botones. «Activar micrófono» solo aparece en Cocinar y empieza apagado.
 
-Primeros pasos, en `src/shared/`, con tests:
-- `interpretarOrden(texto)`: texto reconocido → `LlamadaHerramienta` ("siguiente", "atrás", "repite", "pausa", "para el temporizador"…). «Repite» es local y no usa herramienta. `confirmado` es verdadero cuando el usuario dice «listo» o «siguiente».
-- `contextoCompacto(sesion, ahora)`: el bloque de texto que recibe el modelo en cada turno, tal como lo describe `docs/ia-chef.md`.
-
-Otras notas:
-- Las llamadas al backend deben salir de main (sin CORS, con `CHEF_API_URL`) y llevar un id de instalación que main genere una vez y guarde en la carpeta de datos del usuario.
-- El micrófono solo puede estar activo en la fase `cocinar`.
-- El avatar ya tiene la pose `escuchando` (`poseDe(estado, true)`).
-- Para probar la app sin tocar la semilla (la receta de ejemplo sigue en `borrador`): Cocinar se prueba iniciando la sesión con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` desde las DevTools y recargando.
+La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-10-19 · Prompt 9, paso 4: Vosk nativo y sesión Live (15–16)
+- Vosk oficial por API C con Koffi en un worker de Node, detrás de IPC tipado y con PCM acotado. Gramática cerrada compartida, resultados finales y confianza mínima 0,8; ante duda ofrece botones. Temporizadores ambiguos abren su panel.
+- Captura mono PCM16 a 16 kHz mediante AudioWorklet. Micrófono apagado inicialmente, solo en Cocinar; tracks/socket/worker se cierran al apagar, salir, terminar o cerrar la ventana. El modelo C se libera antes de cerrar el worker.
+- Cliente Gemini Live directo con token efímero, nueve herramientas del contrato, contexto fresco, respuestas de herramientas, audio PCM24k, transcripción en globo e interrupciones. Las llamadas del modelo siempre llevan `confirmado: false`; solo órdenes locales exactas o botones confirman.
+- Activación con «Chef» y escucha abierta ocho segundos tras una pregunta. Para resolver primero las órdenes locales, la app conserva hasta ocho segundos de PCM en memoria y envía a Live solo las consultas abiertas al acabar la frase. No almacena audio en disco. Esto añade el tiempo de fin de frase de Vosk; medirlo en la tarea 20.
+- «Repite» lee el paso con la voz del sistema, sin Web Speech ni modelo: SAPI en Windows, `say` en macOS y `espeak-ng` en Linux (si está instalado). Sin lector, queda el texto y un aviso.
+- Recursos con SHA-256 fijados, caché ignorada y licencia Apache 2.0. `voz:preparar`, `voz:verificar`; extraResources de electron-builder y permiso de audio macOS. Binarios/modelos fuera de Git; `plan/` y `*.lnk` excluidos también del paquete.
+- Validación: 325 tests sin red al proveedor; tipos, lint y formato aprobados. Prueba nativa en Electron Windows con modelo/gramática/PCM y WAV español «siguiente» (confianza 1). Prueba de interfaz por CDP, también sobre `dist/win-unpacked/chef-digital.exe`, con datos aislados y micrófono simulado: apagado inicial, activación, avance sin perder captura y tracks terminados al salir; consola sin errores. Paquete Windows sin instalador generado con electron-builder; comprobada ausencia de `.env`, `plan/` y `.lnk` y presencia de recursos/licencia Vosk.
+- Decisión de implementación 0008, complementa 0007 sin cambiar proveedor ni motor. Pendiente: conversación real con Google, ruido real y ejecución macOS/Linux.
 
 ### 2026-10-19 · Prompt 9, paso 3: instalación y token por IPC
 - UUID persistente en `userData/instalacion-id`, sin regenerarlo si hay corrupción.

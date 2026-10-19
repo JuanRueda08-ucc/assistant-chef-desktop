@@ -79,7 +79,7 @@ class EstadoApp {
    */
   async aplicar(
     nombre: NombreHerramienta,
-    argumentos: Record<string, unknown> = {},
+    argumentos: unknown = {},
     confirmado = true
   ): Promise<ResultadoHerramienta | null> {
     let resultado: ResultadoHerramienta | null = null
@@ -134,6 +134,7 @@ class EstadoApp {
   }
 
   private async tarea(trabajo: () => Promise<void>): Promise<void> {
+    if (this.ocupado) return
     this.ocupado = true
     this.error = null
     try {

@@ -1,5 +1,11 @@
 import { z } from 'zod'
-import { CODIGOS_ERROR_VOZ, type RespuestaTokenVoz, type TokenVoz } from '../types/voz'
+import {
+  CODIGOS_ERROR_VOZ,
+  type RespuestaTokenVoz,
+  type TokenVoz,
+  type ResultadoVosk,
+  type ResultadoVozLocal
+} from '../types/voz'
 import type { Afirmar, Igual } from './coincidencia'
 
 export const esquemaPeticionTokenVoz = z.strictObject({})
@@ -17,4 +23,19 @@ export const esquemaRespuestaTokenVoz = z.discriminatedUnion('ok', [
 export type _ComprobarTokenVoz = Afirmar<Igual<z.output<typeof esquemaTokenVoz>, TokenVoz>>
 export type _ComprobarRespuestaTokenVoz = Afirmar<
   Igual<z.output<typeof esquemaRespuestaTokenVoz>, RespuestaTokenVoz>
+>
+
+export const esquemaResultadoVosk = z.strictObject({
+  texto: z.string(),
+  confianza: z.number().min(0).max(1)
+})
+export const esquemaResultadoVozLocal = z.discriminatedUnion('ok', [
+  z.strictObject({ ok: z.literal(true) }),
+  z.strictObject({ ok: z.literal(false), mensaje: z.string() })
+])
+export type _ComprobarResultadoVosk = Afirmar<
+  Igual<z.output<typeof esquemaResultadoVosk>, ResultadoVosk>
+>
+export type _ComprobarResultadoVozLocal = Afirmar<
+  Igual<z.output<typeof esquemaResultadoVozLocal>, ResultadoVozLocal>
 >

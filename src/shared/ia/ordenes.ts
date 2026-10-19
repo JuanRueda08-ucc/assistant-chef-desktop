@@ -8,7 +8,7 @@ export const FRASES_ORDENES = [
   'chef',
   'siguiente',
   'listo',
-  'atras',
+  'atrás',
   'repite',
   'repetir',
   'pausa',

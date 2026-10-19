@@ -15,3 +15,10 @@ export const CODIGOS_ERROR_VOZ = [
 export type RespuestaTokenVoz =
   | { ok: true; credencial: TokenVoz }
   | { ok: false; error: { codigo: (typeof CODIGOS_ERROR_VOZ)[number]; mensaje: string } }
+
+export interface ResultadoVosk {
+  texto: string
+  confianza: number
+}
+
+export type ResultadoVozLocal = { ok: true } | { ok: false; mensaje: string }

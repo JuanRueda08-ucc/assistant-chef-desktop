@@ -1,6 +1,8 @@
 <script lang="ts" module>
   // Iconos de línea con trazo redondeado, a juego con el dibujo del chef (docs/diseno.md).
   const TRAZOS = {
+    microfono:
+      '<rect x="9" y="3" width="6" height="12" rx="3"/><path d="M6 10v2a6 6 0 0 0 12 0v-2M12 18v3M9 21h6"/>',
     buscar: '<circle cx="11" cy="11" r="6.5"/><path d="M16 16l4.5 4.5"/>',
     verduras:
       '<path d="M4.5 19.5c1.5-6 4.5-10 9-12.5l3.5 3.5c-2.5 4.5-6.5 7.5-12.5 9z"/><path d="M15.5 6.5l1.5-3.5M17.5 8.5l3.5-1.5M16.5 7.5l3-3"/><path d="M9 12.5l1.5 1.5M7.5 16l1 1"/>',

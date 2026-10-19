@@ -10,7 +10,11 @@
     restanteSeg
   } from '@shared/cocina/temporizadores'
   import { PORCIONES_MAX, PORCIONES_MIN } from '@shared/esquemas/sesion'
-  import type { NombreHerramienta, ResultadoHerramienta } from '@shared/ia/herramientas'
+  import {
+    ARGUMENTOS,
+    type NombreHerramienta,
+    type ResultadoHerramienta
+  } from '@shared/ia/herramientas'
   import { cantidadesDelPaso } from '@shared/recetas/escalado'
   import type { OpcionSustitucion } from '@shared/types/busqueda'
   import type { Ingrediente, Tecnica } from '@shared/types/receta'
@@ -22,8 +26,47 @@
   import Panel from '../componentes/Panel.svelte'
   import { app } from '../estado/app.svelte'
   import { describirIngrediente } from '../lib/medidas'
+  import { ControlVoz, type EstadoVoz } from '../voz/control'
 
   const sesion = $derived(app.sesion)
+  const faseVoz = $derived(sesion?.fase)
+  let estadoVoz = $state<EstadoVoz>('apagado')
+  let errorVoz = $state<string | null>(null)
+  let confirmarVoz = $state<string | null>(null)
+  const voz = new ControlVoz(window.api, {
+    sesion: () => app.sesion,
+    disponible: () => app.sesion?.fase === 'cocinar' && !app.ocupado,
+    aplicar: async (llamada) => {
+      const r = await app.aplicar(llamada.nombre, llamada.argumentos, llamada.confirmado)
+      if (r?.ok && r.datos?.tecnica) {
+        tecnica = r.datos.tecnica
+        panel = 'tecnica'
+      }
+      if (r?.ok && r.datos?.opciones) {
+        const argumentos = ARGUMENTOS.sustituir_ingrediente.safeParse(llamada.argumentos)
+        if (argumentos.success)
+          opciones = { ingredienteId: argumentos.data.ingredienteId, lista: r.datos.opciones }
+        panel = 'ingredientes'
+      }
+      return r
+    },
+    decir: (texto) => app.decir(texto),
+    temporizadores: () => abrirTemporizadores(),
+    confirmar: (texto) => {
+      confirmarVoz = texto
+    },
+    estado: (estado) => {
+      estadoVoz = estado
+    },
+    error: (mensaje) => {
+      errorVoz = mensaje
+    }
+  })
+  $effect(() => {
+    // Cerrar tracks, socket, worker y lector también al desmontar o llegar a la pantalla final.
+    if (faseVoz !== 'cocinar') voz.detener()
+    return () => voz.detener()
+  })
   const receta = $derived(sesion?.recetaAdaptada ?? null)
   const total = $derived(receta?.pasos.length ?? 0)
   const paso = $derived(
@@ -100,7 +143,7 @@
   }
 
   function repetir(): void {
-    if (paso) app.decir(paso.textoVoz ?? paso.texto)
+    void voz.repetir()
   }
 
   // --- Paneles bajo demanda --------------------------------------------------------------
@@ -399,7 +442,41 @@
 
       <div class="chef">
         <Globo cola="abajo"><span class="globo-texto">{textoGlobo}</span></Globo>
-        <Avatar estado={app.avatar} tamano={290} />
+        <Avatar estado={app.avatar} escuchando={estadoVoz === 'escuchando'} tamano={230} />
+        <div class="controles-voz">
+          <Chip
+            seleccionado={estadoVoz !== 'apagado'}
+            onclick={() => (estadoVoz === 'apagado' ? voz.iniciar() : voz.detener())}
+          >
+            <Icono nombre="microfono" />{estadoVoz === 'apagado'
+              ? 'Activar micrófono'
+              : 'Apagar micrófono'}
+          </Chip>
+          {#if estadoVoz === 'local'}<Chip onclick={() => voz.activar()}>Hablar al chef</Chip>{/if}
+          <small role="status"
+            >{estadoVoz === 'local'
+              ? 'Di «Chef» para preguntar, o «siguiente», «atrás», «repite»…'
+              : estadoVoz === 'escuchando'
+                ? 'Te escucho · hasta 8 segundos'
+                : estadoVoz === 'iniciando'
+                  ? 'Preparando el micrófono…'
+                  : estadoVoz === 'pensando'
+                    ? 'El chef está pensando…'
+                    : estadoVoz === 'hablando'
+                      ? 'El chef está hablando'
+                      : 'Micrófono apagado'}</small
+          >
+          {#if confirmarVoz}
+            <span>¿Dijiste «{confirmarVoz}»?</span>
+            <Chip onclick={() => voz.confirmarOrden()}>Sí, ejecutar</Chip>
+            <Chip
+              onclick={() => {
+                confirmarVoz = null
+              }}>No</Chip
+            >
+          {/if}
+          {#if errorVoz}<small role="alert">{errorVoz}</small>{/if}
+        </div>
       </div>
     </div>
 
@@ -433,6 +510,20 @@
 {/if}
 
 <style>
+  .controles-voz {
+    display: flex;
+    flex-wrap: wrap;
+    justify-content: center;
+    gap: var(--espacio-2);
+    font-size: var(--texto-s);
+    max-width: 340px;
+  }
+  .controles-voz small {
+    flex-basis: 100%;
+    text-align: center;
+    color: var(--color-tinta-suave);
+    font-size: var(--texto-s);
+  }
   .cocinar {
     display: grid;
     grid-template-rows: auto 1fr auto;
@@ -645,10 +736,13 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-end;
+    justify-content: flex-start;
     gap: var(--espacio-3);
     padding-bottom: var(--espacio-2);
     min-height: 0;
+    overflow-y: auto;
+    overflow-x: hidden;
+    padding-top: var(--espacio-1);
   }
   .chef :global(.globo) {
     align-self: stretch;

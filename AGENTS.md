@@ -37,12 +37,14 @@ src/main/        proceso principal de Electron: ventana, SQLite, IPC
   cocina.ts      sesión de cocina: iniciar, retomar y aplicar herramientas guardando en SQLite
   instalacion.ts UUID persistente en userData/instalacion-id
   backend.ts     cliente HTTP del backend (CHEF_API_URL), token de voz con errores tipados
+  voz/           Vosk por API C/Koffi en worker; lector del sistema para repetir sin IA
 src/preload/     puente seguro (contextBridge) con API tipada
 src/renderer/    interfaz Svelte 5 (App.svelte elige la pantalla según el estado)
   estado/        app.svelte.ts: estado de la interfaz con runas (pantalla, catálogo, preferencias…)
   componentes/   piezas del diseño Mostaza: Boton, Chip, Globo, ChefBlob, Avatar, Panel, Icono, Momentos
   lib/           lógica pura de la interfaz con tests (cómo se muestra un ingrediente)
   pantallas/     Preparar, Elegir y Cocinar (con la pantalla final)
+  voz/           captura AudioWorklet, PCM, ControlVoz y WebSocket Gemini Live
   assets/chef/   poses del chef en PNG
   styles/        tokens.css (único sitio con colores, tipografías y radios)
 src/shared/      tipos y lógica pura compartida (sin dependencias de Electron ni DOM)
@@ -53,9 +55,12 @@ src/shared/      tipos y lógica pura compartida (sin dependencias de Electron n
   recetas/       lógica pura: escalado, unidades caseras, etiquetas, sustituciones, búsqueda, catálogo
   cocina/        reductor aplicarHerramienta, temporizadores por reloj, crear y adaptar la sesión
   ia/            herramientas.ts (contrato de herramientas del chef: argumentos zod y JSON Schema)
+                 ordenes.ts, contexto.ts, vosk.ts y configuración pública gemini.ts
 server/src/      backend: app.ts (manejador Request → Response), rutas, proveedor (ProveedorIA),
                  proveedores/ (falso, gemini), limite.ts, servidor-node.ts y principal.ts (arranque local)
 db/              schema.sql y semillas JSON (db/seed/, ver db/seed/README.md)
+tools/           preparar-voz.mjs, recursos-voz.mjs (URLs/hashes), verificar-voz.cjs y licencia Vosk
+resources/voz/   modelo/bibliotecas descargados (ignorados en Git; extraResources en el paquete)
 docs/            documentación (empieza por docs/README.md)
 ```
 
@@ -101,6 +106,13 @@ Requiere Node 22 o superior y npm.
 | `npm run build:win` / `build:mac` / `build:linux` | instaladores con electron-builder (tarea 19) |
 | `npm run server:dev` | backend local con recarga (`server/src/principal.ts`, puerto `SERVIDOR_PUERTO`, por defecto 8787) |
 | `npm run server:start` | backend local sin recarga |
+| `npm run voz:preparar` | descarga y verifica el modelo español y la biblioteca Vosk del sistema actual; reutiliza `.cache-voz/` sin red |
+| `npm run voz:preparar -- darwin-arm64` | prepara otra plataforma: win32-x64, darwin-x64/arm64 o linux-x64/arm64 |
+| `npm run voz:verificar` | tras compilar, carga modelo y gramática en el worker real de Electron y procesa PCM (sin red) |
+
+Antes del primer uso de voz, ejecuta `npm run voz:preparar`. Los scripts `build:unpack`, `build:win`, `build:mac` y `build:linux` preparan los recursos antes de empaquetar. Windows ARM64 no tiene un binario Vosk fijado; se informa sin sustituir el motor. Repetición local: voz instalada del sistema en Windows/macOS y `espeak-ng` en Linux; si falta, se mantiene el texto y se muestra un aviso.
+
+**Ciclo de voz:** solo Cocinar puede abrir el micrófono y empieza apagado. `ControlVoz` se desmonta al salir y cierra tracks/socket/worker. Las órdenes cortas se ejecutan antes de enviar audio; el modelo solo recibe consultas tras «Chef» o en la ventana de ocho segundos después de una pregunta. Las llamadas del modelo nunca confirman; no copies `confirmado` de sus argumentos/transcripciones. `voz:iniciar/reconocer/reset/detener/repetir` también siguen contrato + zod + preload. PCM por IPC: máximo 6400 bytes, longitud par. No uses Web Speech ni cambies Vosk sin consultar (0007).
 
 Alias de importación: `@shared/*` apunta a `src/shared/*` en main, preload, renderer, server y tests.
 

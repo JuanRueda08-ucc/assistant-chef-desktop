@@ -7,8 +7,13 @@ import { cargarSemilla, leerSemilla } from './db/semillas'
 import { registrarIpc } from './ipc'
 import { obtenerIdInstalacion } from './instalacion'
 import { crearClienteBackend } from './backend'
+import { crearVozLocal } from './voz/local'
+import { crearLectorLocal } from './voz/lector'
+import { obtenerSesionCocinando } from './db/sesiones'
 
 let db: BaseDatos | null = null
+const lector = crearLectorLocal()
+let voz: ReturnType<typeof crearVozLocal> | null = null
 
 function crearVentana(): void {
   const ventana = new BrowserWindow({
@@ -32,6 +37,39 @@ function crearVentana(): void {
 
   ventana.on('ready-to-show', () => {
     ventana.show()
+  })
+  // Solo audio de esta ventana, mientras hay una cocina activa; cámara siempre denegada.
+  ventana.webContents.session.setPermissionRequestHandler(
+    (contenido, permiso, responder, detalles) => {
+      responder(
+        contenido === ventana.webContents &&
+          permiso === 'media' &&
+          detalles.isMainFrame &&
+          'mediaTypes' in detalles &&
+          detalles.mediaTypes?.length === 1 &&
+          detalles.mediaTypes[0] === 'audio' &&
+          db !== null &&
+          obtenerSesionCocinando(db) !== null
+      )
+    }
+  )
+  ventana.webContents.session.setPermissionCheckHandler(
+    (contenido, permiso, _origen, detalles) =>
+      contenido === ventana.webContents &&
+      permiso === 'media' &&
+      detalles.mediaType === 'audio' &&
+      db !== null &&
+      obtenerSesionCocinando(db) !== null
+  )
+  ventana.webContents.on('render-process-gone', () => {
+    voz?.detener()
+    lector.detener()
+  })
+  ventana.webContents.on('did-start-navigation', (_evento, _url, _inPlace, mainFrame) => {
+    if (mainFrame) {
+      voz?.detener()
+      lector.detener()
+    }
   })
 
   // Los enlaces externos se abren en el navegador del sistema, nunca dentro de la app.
@@ -65,7 +103,10 @@ app.whenReady().then(() => {
       process.env.CHEF_API_URL ?? import.meta.env.CHEF_API_URL ?? 'http://localhost:8787',
       instalacion
     )
-    registrarIpc(db, backend)
+    voz = crearVozLocal(
+      app.isPackaged ? join(process.resourcesPath, 'voz') : join(app.getAppPath(), 'resources/voz')
+    )
+    registrarIpc(db, backend, voz, lector)
   } catch (error) {
     dialog.showErrorBox(
       'No se pudo preparar la app',
@@ -83,6 +124,8 @@ app.whenReady().then(() => {
 })
 
 app.on('will-quit', () => {
+  voz?.detener()
+  lector.detener()
   db?.close()
   db = null
 })

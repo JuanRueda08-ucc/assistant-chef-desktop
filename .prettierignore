@@ -2,6 +2,7 @@ out
 dist
 coverage
 plan
+.cache-voz
 build
 resources
 package-lock.json

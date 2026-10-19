@@ -20,6 +20,7 @@ export default defineConfig({
     resolve: { alias }
   },
   renderer: {
+    build: { assetsInlineLimit: 0 },
     resolve: { alias },
     plugins: [svelte()]
   }

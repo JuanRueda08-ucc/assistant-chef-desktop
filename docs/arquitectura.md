@@ -20,6 +20,8 @@
   - `sesion:retomar`, `sesion:iniciar` y `sesion:aplicar`, en `src/main/cocina.ts`. Cargan el contexto de la base, llaman al reductor y guardan.
 - **Preload:** `contextBridge` con una API mínima y tipada; el renderer no ve Node.
 - **Renderer:** interfaz, avatar y audio. La sesión de voz en tiempo real se abre desde aquí con un token efímero del backend.
+  - `voz/`: AudioWorklet de captura, reproducción PCM, controlador de activación local y WebSocket Live. Solo existe captura en Cocinar con el micrófono activado; se destruye al salir. Clasifica primero en Vosk y envía a Live únicamente consultas abiertas tras activación.
+  - Main aloja el reconocimiento Vosk en un worker de Node (`src/main/voz/`) con Koffi y recursos externos a ASAR. El audio cruza IPC validado y acotado; SQLite sigue exclusivamente en main. Un lector local del sistema repite el paso sin modelo ni red. Ver decisión 0008.
 - **Shared:** lógica pura. El reductor `aplicarHerramienta(sesion, llamada, ahora, contexto) → { sesion, resultado, avatar }` (`src/shared/cocina/aplicar.ts`) es el único sitio donde cambia el estado de cocina; lo usan los botones, las órdenes locales y las llamadas del modelo.
 - **Server:** guarda la clave del proveedor, emite tokens de voz, genera y valida recetas, sugiere sustituciones, limita uso. Manejador `Request → Response` en `server/src/app.ts` con el proveedor detrás de `ProveedorIA` (decisión 0006).
 

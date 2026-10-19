@@ -10,9 +10,23 @@ files:
   - '!{.eslintcache,eslint.config.mjs,.prettierignore,.prettierrc.yaml,dev-app-update.yml,CHANGELOG.md,README.md}'
   - '!{.env,.env.*,.npmrc,pnpm-lock.yaml}'
   - '!{tsconfig.json,tsconfig.node.json,tsconfig.web.json}'
+  - '!resources/voz/**'
+  - '!{plan,.cache-voz}/**'
+  - '!**/*.lnk'
 asarUnpack:
   - resources/**
+  - node_modules/koffi/**
+extraResources:
+  - from: resources/voz
+    to: voz
+    filter:
+      - vosk-model-small-es-0.42/**
+      - LICENCIAS.txt
+      - LICENSE-Vosk.txt
 win:
+  extraResources:
+    - from: resources/voz/win32-${arch}
+      to: voz/win32-${arch}
   executableName: chef-digital
 nsis:
   artifactName: ${name}-${version}-setup.${ext}
@@ -20,16 +34,22 @@ nsis:
   uninstallDisplayName: ${productName}
   createDesktopShortcut: always
 mac:
+  extraResources:
+    - from: resources/voz/darwin-${arch}
+      to: voz/darwin-${arch}
   entitlementsInherit: build/entitlements.mac.plist
   extendInfo:
     - NSCameraUsageDescription: Application requests access to the device's camera.
-    - NSMicrophoneUsageDescription: Application requests access to the device's microphone.
+    - NSMicrophoneUsageDescription: El chef escucha tus órdenes solo mientras cocinas y activas el micrófono.
     - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
     - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
 dmg:
   artifactName: ${name}-${version}.${ext}
 linux:
+  extraResources:
+    - from: resources/voz/linux-${arch}
+      to: voz/linux-${arch}
   target:
     - AppImage
     - snap
