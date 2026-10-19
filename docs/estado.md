@@ -4,14 +4,39 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Roadmap, tareas 12 y 13 (Prompt 7 del paquete): pantalla Cocinar y componente `Avatar`, con el diseño «Mostaza» (`docs/diseno.md`, maqueta `docs/diseno/maquetas.html`, pantalla Cocinar).
+Roadmap, tarea 14 (Prompt 8 del paquete): backend mínimo en `server/` (Node + TypeScript) con `POST /voz/token`, `POST /recetas/generar` y `POST /sustituciones/sugerir` (ver `docs/ia-chef.md`, "Backend mínimo").
 
-- Reemplaza `src/renderer/pantallas/CocinarProvisional.svelte`. La sesión está en `app.sesion` (`src/renderer/estado/app.svelte.ts`). Cada botón llama a `window.api.sesion.aplicar({ nombre, argumentos, confirmado: true })` y guarda en el estado la `sesion` y el `avatar` devueltos. Si `resultado.ok` es falso, muestra `resultado.decir` en el globo.
-- Las cantidades del paso salen de `cantidadesDelPaso(sesion.recetaAdaptada, paso)`, en medida casera con `aUnidadCasera` y `formatearMedida`. Los temporizadores se pintan con `restanteSeg(t, Date.now())`, con un tic por segundo solo en la interfaz.
-- `Avatar` recibe un `EstadoAvatar` y elige la pose (correspondencia en `docs/diseno.md`, "Chef"). Antes hay que **normalizar la escala** de `chef_estatico` y `chef_hablando`, que están dibujados más pequeños que el resto.
-- Pendiente de decisión del autor: la receta de la semilla sigue en `borrador`, así que en la app la búsqueda no la muestra. Para probar Elegir y Cocinar sin cambiar nada, edita temporalmente `estadoRevision` a `revisada` en `db/seed/recetas/arroz-con-pollo.json` (la semilla se recarga en cada arranque, así que cambiarlo en la base no sirve) y deshazlo después.
+- El proveedor de IA va detrás de una interfaz `ProveedorIA`; los tests usan un proveedor falso.
+- **Todavía no hay proveedor elegido**: está pendiente fuera del código, así que no hace falta conectar uno real para terminar la tarea.
+- El hosting tampoco está decidido. Conviene escribir los handlers como `Request → Response` (API web estándar), para que sirvan en Node y en cualquier plataforma serverless.
+- `/recetas/generar`:
+  - Valida con `esquemaReceta` de `src/shared/esquemas/`.
+  - Deriva las etiquetas con `conEtiquetas`; las que mande el modelo se ignoran.
+  - Hace un reintento con el error y, si vuelve a fallar, rechaza.
+- `/sustituciones/sugerir`: como máximo 3 sugerencias, filtradas con `destinoPermitido` (`src/shared/recetas/busqueda.ts`).
+- Hará falta un `tsconfig` para `server/` y que Vitest ya incluye (`server/**/*.test.ts`). La clave va solo en variables de entorno (`.env.example`). Hay que limitar el uso por instalación.
+- Probar la app sin tocar la semilla: la receta de ejemplo sigue en `borrador` por decisión del autor. Elegir no la muestra, pero Cocinar se puede probar iniciando la sesión con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` desde las DevTools y recargando.
 
 ## Registro
+
+### 2026-10-18 · Pantalla Cocinar y componente Avatar (tareas 12 y 13)
+- Hecho:
+  - Pantalla `Cocinar` (`src/renderer/pantallas/Cocinar.svelte`) con paso, chef, temporizadores, barra de botones grandes, paneles bajo demanda (técnica, temporizadores e ingredientes con porciones y sustituciones) y pantalla final. Sustituye a la provisional.
+  - Componentes `Avatar` (con `poseDe` en `avatar.ts`) y `Panel`. Lógica pura de la interfaz en `src/renderer/lib/medidas.ts`.
+  - Estado de la app: `aplicar`, `decir` (Repetir), `cocinarOtra`; el avatar vuelve a esperar a los 6 s.
+  - `formatearReloj` en shared.
+  - Poses `chef_estatico` y `chef_hablando` reescaladas a la escala del resto.
+- Comportamiento detallado en `docs/diseno.md`, "En la app".
+- Tests: 236 en Vitest. Pasan `typecheck`, `lint`, `format:check` y `build`.
+- Comprobado en la app por CDP, con capturas, solo con botones. Sin errores en la consola. Recorrido:
+  - Paso 1, técnica, avanzar hasta el 3 y poner el temporizador sugerido.
+  - Panel de temporizadores y pausa.
+  - Paso 5: cambio a 5 porciones, con las cantidades recalculadas sin perder el paso.
+  - Hasta el 9, atrás, terminar y pantalla final con celebración.
+- Pendiente:
+  - Las sustituciones del panel de ingredientes solo ofrecen las de la tabla, y la semilla aún no tiene `sustituciones.json`.
+  - Sin sonido al acabar un temporizador (llegará con la voz).
+  - Revisar Cocinar con el plugin Design.
 
 ### 2026-10-18 · Pantallas Preparar y Elegir (tareas 10 y 11)
 - Hecho:

@@ -108,3 +108,12 @@ export function formatearDuracion(segundos: number): string {
   }
   return `${seg} ${seg === 1 ? 'segundo' : 'segundos'}`
 }
+
+/** Reloj para la pantalla: "3:32", "12:05", "1:05:00". */
+export function formatearReloj(segundos: number): string {
+  const s = Math.max(0, Math.round(segundos))
+  const h = Math.floor(s / 3600)
+  const min = Math.floor((s % 3600) / 60)
+  const seg = String(s % 60).padStart(2, '0')
+  return h > 0 ? `${h}:${String(min).padStart(2, '0')}:${seg}` : `${min}:${seg}`
+}

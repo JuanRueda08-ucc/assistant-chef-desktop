@@ -37,8 +37,9 @@ src/main/        proceso principal de Electron: ventana, SQLite, IPC
 src/preload/     puente seguro (contextBridge) con API tipada
 src/renderer/    interfaz Svelte 5 (App.svelte elige la pantalla según el estado)
   estado/        app.svelte.ts: estado de la interfaz con runas (pantalla, catálogo, preferencias…)
-  componentes/   piezas del diseño Mostaza: Boton, Chip, Globo, ChefBlob, Icono, Momentos
-  pantallas/     Preparar, Elegir y CocinarProvisional (hasta la tarea 12)
+  componentes/   piezas del diseño Mostaza: Boton, Chip, Globo, ChefBlob, Avatar, Panel, Icono, Momentos
+  lib/           lógica pura de la interfaz con tests (cómo se muestra un ingrediente)
+  pantallas/     Preparar, Elegir y Cocinar (con la pantalla final)
   assets/chef/   poses del chef en PNG
   styles/        tokens.css (único sitio con colores, tipografías y radios)
 src/shared/      tipos y lógica pura compartida (sin dependencias de Electron ni DOM)

@@ -16,7 +16,7 @@
         <button
           type="button"
           aria-current={app.pantalla === momento.pantalla ? 'step' : undefined}
-          disabled={!app.puedeIrA(momento.pantalla)}
+          disabled={app.pantalla !== momento.pantalla && !app.puedeIrA(momento.pantalla)}
           onclick={() => app.irA(momento.pantalla)}
         >
           <span class="numero">{i + 1}</span>{momento.nombre}

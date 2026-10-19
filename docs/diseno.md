@@ -63,7 +63,7 @@ Contrastes (WCAG): tinta sobre fondo 15,5:1; tinta suave sobre fondo 5,9:1; tint
 
 ### Chef
 
-Poses en `src/renderer/assets/chef/` (PNG 1254 × 1254 con transparencia): `chef_busto`, `chef_estatico`, `chef_hablando`, `chef_escuchando`, `chef_esperando`, `chef_derecha`, `chef_izquierda`, `chef_arriba`, `chef_abajo`, `celebracion_leve`, `chef_celebracion_final`. `chef_estatico` y `chef_hablando` están dibujados más pequeños que el resto: hay que normalizar la escala antes de usarlos juntos en el componente `Avatar` (tarea 13). Correspondencia prevista con `EstadoAvatar`: hablar → hablando; esperar → esperando; señalar → derecha, izquierda, arriba o abajo según dónde esté el objetivo en pantalla; celebrar breve → celebración leve; celebrar completa → celebración final; escuchando, cuando el micrófono escucha. El avatar pasará a Rive más adelante con el mismo dibujo.
+Poses en `src/renderer/assets/chef/` (PNG 1254 × 1254 con transparencia): `chef_busto`, `chef_estatico`, `chef_hablando`, `chef_escuchando`, `chef_esperando`, `chef_derecha`, `chef_izquierda`, `chef_arriba`, `chef_abajo`, `celebracion_leve`, `chef_celebracion_final`. `chef_estatico` y `chef_hablando` se reescalaron para que el chef mida lo mismo que en el resto y apoye los pies a la misma altura (los originales están en el commit 664de3c). Correspondencia prevista con `EstadoAvatar`: hablar → hablando; esperar → esperando; señalar → derecha, izquierda, arriba o abajo según dónde esté el objetivo en pantalla; celebrar breve → celebración leve; celebrar completa → celebración final; escuchando, cuando el micrófono escucha. El avatar pasará a Rive más adelante con el mismo dibujo.
 
 ### En la app
 
@@ -81,10 +81,22 @@ Componentes en `src/renderer/componentes/` (`Boton`, `Chip`, `Globo`, `ChefBlob`
   - "Qué te falta" muestra la cantidad ya escalada en medida casera, con la exacta entre paréntesis ("3 ¼ tazas (750 ml)"), y las sustituciones posibles.
   - Las recetas descartadas por restricciones, tiempo o equipo se cuentan en el subtítulo; las no revisadas no se mencionan.
   - Si no hay resultados, el chef lo dice y ofrece cambiar ingredientes.
+- **Cocinar:**
+  - **Cabecera:** título; botón de porciones, que abre el panel de ingredientes; barra de pasos clicable (`ir_a_paso`); temporizadores con anillo y reloj; botón para el panel de temporizadores.
+  - **Tarjeta del paso:** número grande, texto a 36 px, señal de hecho, aviso de seguridad, botón del temporizador sugerido (solo si no hay uno activo con esa etiqueta) e ingredientes del paso. Cada ingrediente lleva el nombre arriba y, debajo, la medida casera con la exacta y la preparación (`src/renderer/lib/medidas.ts`).
+  - **Chef:** el globo muestra lo que devolvió la última herramienta (`decir`) o, al cambiar de paso, el consejo del paso.
+  - **Barra:** Atrás, Repetir (local: el chef vuelve a decir el paso), Ver técnica (desactivado si el paso no tiene) y «Listo, siguiente», que en el último paso pasa a «Terminar receta».
+  - **Atajos:** ← y → mientras no haya un panel abierto.
+  - **Paneles bajo demanda** (sobre la tarjeta, se cierran con Escape): técnica con sus pasos; temporizadores para pausar, seguir, sumar un minuto, cancelar o crear uno nuevo; ingredientes, con porciones y sustituciones revisadas por ingrediente.
+  - Todo pasa por `window.api.sesion.aplicar`, con `confirmado: true` porque es un botón.
+  - **Pantalla final:** chef celebrando, resumen y «Cocinar otra receta».
+- **Avatar:**
+  - Recibe un `EstadoAvatar`. `poseDe` (`src/renderer/componentes/avatar.ts`) elige la pose: señala arriba a los temporizadores y a la izquierda a los ingredientes y al panel.
+  - Tras hablar o señalar vuelve a «esperando» a los 6 s; la celebración final se queda.
+  - Las poses se apilan para cambiar sin parpadeo. Rive sustituirá el interior del componente sin cambiar su interfaz.
 - **Ventana:** mínima de 1100 × 720.
 
 ### Pendiente
 
 - Fotos reales de los platos con licencia; mientras tanto, plato ilustrado con el aviso «Foto pendiente».
-- Normalizar la escala de las poses del chef.
 - Revisar las pantallas construidas con el plugin Design (crítica y accesibilidad).

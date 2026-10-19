@@ -6,6 +6,7 @@ import {
   crearTemporizador,
   estaActivo,
   formatearDuracion,
+  formatearReloj,
   pausar,
   reanudar,
   restanteSeg,
@@ -102,5 +103,18 @@ describe('temporizadores basados en reloj', () => {
     [3900, '1 h 5 min']
   ])('formatearDuracion(%i) = %s', (segundos, texto) => {
     expect(formatearDuracion(segundos)).toBe(texto)
+  })
+})
+
+describe('formatearReloj', () => {
+  it.each([
+    [0, '0:00'],
+    [5, '0:05'],
+    [212, '3:32'],
+    [725, '12:05'],
+    [3900, '1:05:00'],
+    [-3, '0:00']
+  ])('%i s → %s', (segundos, texto) => {
+    expect(formatearReloj(segundos)).toBe(texto)
   })
 })

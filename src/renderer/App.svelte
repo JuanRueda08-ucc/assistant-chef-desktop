@@ -3,7 +3,7 @@
   import busto from './assets/chef/chef_busto.png'
   import Momentos from './componentes/Momentos.svelte'
   import { app } from './estado/app.svelte'
-  import CocinarProvisional from './pantallas/CocinarProvisional.svelte'
+  import Cocinar from './pantallas/Cocinar.svelte'
   import Elegir from './pantallas/Elegir.svelte'
   import Preparar from './pantallas/Preparar.svelte'
 
@@ -24,7 +24,7 @@
   {:else if app.pantalla === 'elegir'}
     <Elegir />
   {:else}
-    <CocinarProvisional />
+    <Cocinar />
   {/if}
 </div>
 

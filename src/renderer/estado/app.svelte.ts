@@ -2,9 +2,10 @@
 // última búsqueda y la sesión de cocina. Todo lo que cambia la cocina pasa por main (IPC); aquí
 // solo se guarda lo que la interfaz necesita mostrar.
 
+import type { NombreHerramienta, ResultadoHerramienta } from '@shared/ia/herramientas'
 import type { ResultadoBusqueda } from '@shared/types/busqueda'
 import type { Ingrediente } from '@shared/types/receta'
-import type { Preferencias, SesionCocina } from '@shared/types/sesion'
+import type { EstadoAvatar, Preferencias, SesionCocina } from '@shared/types/sesion'
 
 export type Pantalla = 'preparar' | 'elegir' | 'cocinar'
 
@@ -18,6 +19,10 @@ export const PREFERENCIAS_INICIALES: Preferencias = {
   equipo: []
 }
 
+/** Tras hablar o señalar, el chef vuelve a esperar pasado este tiempo. */
+const MS_HASTA_ESPERAR = 6000
+const ESPERAR: EstadoAvatar = { accion: 'esperar' }
+
 const mensaje = (e: unknown): string => (e instanceof Error ? e.message : String(e))
 
 class EstadoApp {
@@ -25,7 +30,12 @@ class EstadoApp {
   catalogo = $state<Ingrediente[]>([])
   preferencias = $state<Preferencias>(structuredClone(PREFERENCIAS_INICIALES))
   busqueda = $state<ResultadoBusqueda | null>(null)
-  sesion = $state<SesionCocina | null>(null)
+  // raw: la sesión llega entera de main en cada cambio y se pasa a funciones de shared que copian.
+  sesion = $state.raw<SesionCocina | null>(null)
+  /** Lo que hace el chef ahora (lo devuelve cada herramienta). */
+  avatar = $state.raw<EstadoAvatar>(ESPERAR)
+  /** Lo que dice el chef en su globo; `null` = el consejo del paso. */
+  globo = $state<string | null>(null)
   ocupado = $state(false)
   error = $state<string | null>(null)
 
@@ -61,6 +71,55 @@ class EstadoApp {
       })
       this.pantalla = 'cocinar'
     })
+  }
+
+  /**
+   * Aplica una herramienta del chef a la sesión (botones de Cocinar; la voz usará lo mismo).
+   * Un botón pulsado cuenta como confirmación del usuario.
+   */
+  async aplicar(
+    nombre: NombreHerramienta,
+    argumentos: Record<string, unknown> = {},
+    confirmado = true
+  ): Promise<ResultadoHerramienta | null> {
+    let resultado: ResultadoHerramienta | null = null
+    await this.tarea(async () => {
+      const aplicacion = await window.api.sesion.aplicar({ nombre, argumentos, confirmado })
+      this.sesion = aplicacion.sesion
+      this.globo = aplicacion.resultado.decir ?? null
+      this.mostrarAvatar(aplicacion.avatar)
+      resultado = aplicacion.resultado
+    })
+    return resultado
+  }
+
+  /** «Repetir» es local: el chef vuelve a decir el paso sin pasar por main ni por el modelo. */
+  decir(texto: string): void {
+    this.globo = texto
+    this.mostrarAvatar({ accion: 'hablar' })
+  }
+
+  /** Tras terminar una receta, vuelve a Preparar conservando las preferencias. */
+  cocinarOtra(): void {
+    this.sesion = null
+    this.busqueda = null
+    this.globo = null
+    this.mostrarAvatar(ESPERAR)
+    this.pantalla = 'preparar'
+  }
+
+  private temporizadorAvatar: ReturnType<typeof setTimeout> | undefined
+
+  private mostrarAvatar(estado: EstadoAvatar): void {
+    clearTimeout(this.temporizadorAvatar)
+    this.avatar = estado
+    // La celebración final se queda; lo demás vuelve a esperar al rato.
+    if (
+      estado.accion !== 'esperar' &&
+      !(estado.accion === 'celebrar' && estado.intensidad === 'completa')
+    ) {
+      this.temporizadorAvatar = setTimeout(() => (this.avatar = ESPERAR), MS_HASTA_ESPERAR)
+    }
   }
 
   /** Se puede ir a una pantalla si ya hay datos para ella. */
