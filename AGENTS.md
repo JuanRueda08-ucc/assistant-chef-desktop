@@ -4,7 +4,7 @@ Instrucciones para cualquier agente de código (Codex, Claude Code u otro) que t
 
 ## Qué es
 
-Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visual con un avatar que guía la receta paso a paso con voz, temporizadores y control por voz. Tres momentos: **Preparar** (ingredientes y preferencias), **Elegir** (recetas con panel "qué falta"), **Cocinar** (paso a paso con el chef). No es un chat: el chef actúa con herramientas sobre un estado que vive en la app.
+Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visual con un avatar que guía la receta paso a paso con voz, temporizadores y control por voz. Tres momentos: **Preparar** (ingredientes y preferencias), **Elegir** (recetas con panel "qué falta"), **Cocinar** (paso a paso con el chef). El chef no es un chatbot: se le puede hablar o escribir en las tres pantallas, pero siempre actúa con herramientas sobre un estado que vive en la app (decisión 0007).
 
 ## Antes de empezar una tarea
 
@@ -24,7 +24,8 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 - Electron + Svelte 5 + TypeScript + Vite (electron-vite). **Sin SvelteKit, sin Tauri, sin Python.**
 - SQLite local (better-sqlite3) en el proceso principal; el renderer accede solo por IPC tipado vía `preload`.
 - IA por API con tool calling, detrás de un backend mínimo en `server/` (la clave de la API nunca va en el cliente).
-- Voz: modelo de voz en tiempo real por API; órdenes cortas resueltas en local. **No usar Web Speech API.**
+- Voz: modelo de voz en tiempo real por API (en desarrollo, **Gemini Live con el plan gratuito**); órdenes cortas y palabra «Chef» resueltas en local con **Vosk**. **No usar Web Speech API.** Ver decisión 0007.
+- Chat de texto con el chef en Preparar, Elegir y Cocinar, con las mismas herramientas que la voz (decisión 0007).
 - Avatar: Rive 2D detrás de la interfaz `EstadoAvatar` (`hablar`, `senalar`, `esperar`, `celebrar`) para poder cambiar a 3D sin tocar el resto.
 
 ## Estructura

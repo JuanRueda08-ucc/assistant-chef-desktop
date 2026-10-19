@@ -94,6 +94,12 @@ Reglas para el modelo (van en el prompt de sistema, `docs/prompts/` cuando exist
 - En código: `pasoActual` es el `orden` del paso (desde 1) y `null` fuera de `cocinar`; `pasosHechos` guarda ids de paso; `iniciadoEn` y `eventos[].en` son epoch en ms; `actualizadaEn` es ISO 8601.
 - `EstadoAvatar` es una unión discriminada por `accion`: `{ accion: 'hablar' }`, `{ accion: 'senalar', objetivo: 'temporizadores' | 'ingredientes' | 'panel' }`, `{ accion: 'esperar' }`, `{ accion: 'celebrar', intensidad: 'breve' | 'completa' }`.
 
+## Proveedor, motor local y chat (decisión 0007)
+
+- **Voz en tiempo real:** Gemini Live con el plan gratuito durante el desarrollo, como adaptador `gemini` de `ProveedorIA` (`PROVEEDOR_IA=gemini`, clave de Google AI Studio en `PROVEEDOR_IA_API_KEY`). Antes de tener usuarios reales se revisa entre Gemini de pago y OpenAI Realtime mini. En el plan gratuito Google usa los datos: no se prueba con datos personales.
+- **Motor local:** Vosk con una gramática cerrada para «chef» y las órdenes cortas. Solo despierta al modelo cuando se dice «Chef».
+- **Chat de texto:** en Preparar, Elegir y Cocinar. Usa las mismas herramientas que la voz y los botones; la respuesta aparece en el globo del chef. En Cocinar valen las 9 herramientas de abajo. En Preparar y Elegir hacen falta herramientas nuevas sobre las preferencias y la búsqueda (`marcar_ingredientes`, `cambiar_preferencias`, `buscar_recetas`, `ver_receta`, `elegir_receta`; nombres por concretar), con su propio reductor puro en `src/shared/`.
+
 ## Voz
 
 - Opción A del stack: modelo de voz en tiempo real por API con tool calling. El backend entrega un token efímero; el audio va directo del cliente al proveedor.

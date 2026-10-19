@@ -23,9 +23,14 @@ Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x
 
 ## IA y voz
 - [x] 14. `server/`: `POST /voz/token`, `POST /recetas/generar`, `POST /sustituciones/sugerir`
-- [ ] 15. Órdenes cortas locales (siguiente, atrás, repite, pausa)
-- [ ] 16. Sesión de voz en tiempo real con las herramientas del chef
+- [ ] 15. Órdenes cortas locales con Vosk (chef, siguiente, atrás, repite, pausa, listo)
+- [ ] 16. Sesión de voz en tiempo real con Gemini Live y las herramientas del chef (adaptador `gemini` en `server/`)
 - [ ] 17. Recetas generadas: validación, reintento y etiqueta en la interfaz
+
+## Chat con el chef (decisión 0007)
+- [ ] 21. Chat de texto en Cocinar con las 9 herramientas actuales
+- [ ] 22. Herramientas de Preparar y Elegir (marcar ingredientes, preferencias, buscar, ver y elegir receta) con su reductor puro y tests
+- [ ] 23. Chat de texto en Preparar y Elegir
 
 ## Entrega
 - [ ] 18. Semilla de 15–30 recetas revisadas con fotos licenciadas

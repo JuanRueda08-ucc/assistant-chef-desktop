@@ -6,11 +6,13 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 Roadmap, tareas 15 y 16 (Prompt 9 del paquete): órdenes cortas locales y sesión de voz en tiempo real (ver `docs/ia-chef.md`, "Voz" y "Contexto que recibe el modelo").
 
-**Antes de escribir código, pregunta al autor.** Hay decisiones abiertas que esta tarea necesita:
-- **Proveedor de voz en tiempo real** (y de IA): no hay ninguno elegido. Hoy solo existe el proveedor `falso` del backend.
-- **Reconocimiento local** de órdenes cortas y de la palabra de activación «Chef»: no se puede usar la Web Speech API (`AGENTS.md`). Hay que elegir un motor local (por ejemplo, uno de reconocimiento de palabras clave sin red), revisar su licencia y su tamaño.
+**Decisiones ya tomadas (ver `docs/decisiones/0007-voz-gemini-vosk-y-chat.md`):**
+- **Voz en tiempo real:** Gemini Live con el plan gratuito. Hay que crear el adaptador `server/src/proveedores/gemini.ts`, que implementa `ProveedorIA` y se registra en `proveedores/index.ts` con `PROVEEDOR_IA=gemini`. `crearTokenVoz` usa los ephemeral tokens de la Live API.
+- **Motor local:** Vosk, con una gramática cerrada («chef», «siguiente», «atrás», «repite», «pausa», «listo», «para el temporizador»…). Hay que validar el binario nativo y el modelo de español (unos 50 MB) empaquetados en Electron.
+- **Chat de texto en las tres pantallas** (tareas nuevas 21 a 23 del roadmap). Orden recomendado: primero voz (15 y 16), luego chat en Cocinar (21), luego herramientas de Preparar y Elegir (22) y su chat (23).
+- **El autor pondrá la clave de Google AI Studio en `.env`.** Nunca se pide por chat ni se sube al repositorio. Sin clave, todo debe seguir funcionando con `PROVEEDOR_IA=falso`.
 
-Lo que se puede hacer sin esas decisiones, en `src/shared/`, con tests:
+Primeros pasos, en `src/shared/`, con tests:
 - `interpretarOrden(texto)`: texto reconocido → `LlamadaHerramienta` ("siguiente", "atrás", "repite", "pausa", "para el temporizador"…). «Repite» es local y no usa herramienta. `confirmado` es verdadero cuando el usuario dice «listo» o «siguiente».
 - `contextoCompacto(sesion, ahora)`: el bloque de texto que recibe el modelo en cada turno, tal como lo describe `docs/ia-chef.md`.
 
@@ -21,6 +23,14 @@ Otras notas:
 - Para probar la app sin tocar la semilla (la receta de ejemplo sigue en `borrador`): Cocinar se prueba iniciando la sesión con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` desde las DevTools y recargando.
 
 ## Registro
+
+### 2026-10-19 · Decisiones de voz, motor local y chat (sin código)
+- Decisión 0007:
+  - Gemini Live con el plan gratuito para desarrollar. Antes de tener usuarios se revisa entre Gemini de pago y OpenAI Realtime mini.
+  - Vosk como motor local.
+  - Chat de texto con el chef en Preparar, Elegir y Cocinar (el autor eligió las tres pantallas).
+- Actualizados `AGENTS.md` (qué es la app, stack), `docs/ia-chef.md` (nueva sección "Proveedor, motor local y chat") y `docs/roadmap.md` (tareas 15 y 16 concretadas; tareas 21 a 23 nuevas para el chat).
+- El autor seguirá con Codex: esta entrada y "Siguiente tarea" son el punto de partida.
 
 ### 2026-10-18 · Backend mínimo (tarea 14)
 - Hecho: backend en `server/src/`:
