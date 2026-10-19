@@ -5,6 +5,8 @@ import icon from '../../resources/icon.png?asset'
 import { abrirBase, type BaseDatos } from './db/conexion'
 import { cargarSemilla, leerSemilla } from './db/semillas'
 import { registrarIpc } from './ipc'
+import { obtenerIdInstalacion } from './instalacion'
+import { crearClienteBackend } from './backend'
 
 let db: BaseDatos | null = null
 
@@ -58,15 +60,20 @@ app.whenReady().then(() => {
     // La base vive en la carpeta de datos del usuario; se crea y se siembra en cada arranque.
     db = abrirBase(join(app.getPath('userData'), 'chef.sqlite'))
     cargarSemilla(db, leerSemilla())
+    const instalacion = obtenerIdInstalacion(app.getPath('userData'))
+    const backend = crearClienteBackend(
+      process.env.CHEF_API_URL ?? import.meta.env.CHEF_API_URL ?? 'http://localhost:8787',
+      instalacion
+    )
+    registrarIpc(db, backend)
   } catch (error) {
     dialog.showErrorBox(
-      'No se pudo preparar la base de datos',
+      'No se pudo preparar la app',
       error instanceof Error ? error.message : String(error)
     )
     app.quit()
     return
   }
-  registrarIpc(db)
 
   crearVentana()
 

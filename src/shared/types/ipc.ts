@@ -4,6 +4,7 @@ import type { AplicacionHerramienta, LlamadaHerramienta } from '../ia/herramient
 import type { ResultadoBusqueda } from './busqueda'
 import type { Ingrediente, Receta } from './receta'
 import type { Preferencias, SesionCocina } from './sesion'
+import type { RespuestaTokenVoz } from './voz'
 
 export const CANALES_IPC = {
   catalogoIngredientes: 'catalogo:ingredientes',
@@ -12,7 +13,8 @@ export const CANALES_IPC = {
   recetasBuscar: 'recetas:buscar',
   sesionRetomar: 'sesion:retomar',
   sesionIniciar: 'sesion:iniciar',
-  sesionAplicar: 'sesion:aplicar'
+  sesionAplicar: 'sesion:aplicar',
+  vozToken: 'voz:token'
 } as const
 
 export interface DatosIniciarCocina {
@@ -42,6 +44,10 @@ export type ResumenReceta = Pick<
 
 /** API que el preload expone como `window.api`. */
 export interface ApiChef {
+  voz: {
+    /** Main añade X-Instalacion; el renderer no envía URLs ni identificadores. */
+    token(datos: Record<string, never>): Promise<RespuestaTokenVoz>
+  }
   catalogo: {
     /** Catálogo completo de ingredientes, ordenado por nombre. */
     ingredientes(): Promise<Ingrediente[]>

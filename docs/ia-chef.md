@@ -158,5 +158,9 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   - Solo cuentan las peticiones bien formadas. Cada respuesta lleva `X-Limite-Restantes`.
   - El almacén es en memoria, válido para un solo proceso. En serverless con varias instancias hará falta uno compartido que implemente `AlmacenUso`.
 - **Pendiente:**
-  - La app aún no genera ni guarda el id de instalación ni llama al backend (tareas 16 y 17). Las llamadas deben salir de main, que no tiene CORS y lee `CHEF_API_URL`.
+- **App de escritorio:** `src/main/instalacion.ts` genera un UUID una vez en `userData/instalacion-id`, con creación exclusiva y lectura en los siguientes arranques. Un archivo corrupto se informa; no se reemplaza silenciosamente.
+  - `src/main/backend.ts` pide `POST /voz/token` con `X-Instalacion` desde main. Lee `CHEF_API_URL` (valor incorporado de `.env` al compilar, sobrescribible por entorno al ejecutar); sin CORS en renderer, sin redirecciones y con timeout de 10 s. Solo permite HTTP en loopback; el resto usa HTTPS.
+  - Canal `voz:token` / `window.api.voz.token({})`, registrado en contrato, handler y preload. Valida `{}` con zod y requiere una sesión cocinando en SQLite. Devuelve `{ ok: true, credencial: { token, expiraEn } }` o `{ ok: false, error: { codigo, mensaje } }` para fase, desconexión, límite, servicio o respuesta inválida/caducada. No propaga errores internos.
+- **Pendiente:**
+  - Las llamadas de generación de recetas se integran en la tarea 17.
   - No hay autenticación más allá del id de instalación.

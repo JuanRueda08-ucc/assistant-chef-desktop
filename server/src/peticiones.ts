@@ -40,10 +40,7 @@ export const esquemaPeticionSustitucion = z.strictObject({
 export const esquemaPeticionVoz = z.strictObject({})
 
 /** Respuesta del proveedor para el token de voz. */
-export const esquemaTokenVoz = z.strictObject({
-  token: z.string().min(1),
-  expiraEn: z.iso.datetime()
-})
+export { esquemaTokenVoz } from '@shared/esquemas/voz'
 
 /** Una sugerencia del modelo; se descartan las que no cumplen, sin fallar el resto. */
 export const esquemaSugerenciaModelo = z.object({

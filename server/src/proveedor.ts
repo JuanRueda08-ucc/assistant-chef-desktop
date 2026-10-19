@@ -20,11 +20,8 @@ export interface PeticionSustitucion {
   catalogo: Ingrediente[]
 }
 
-export interface TokenVoz {
-  token: string
-  /** ISO 8601. */
-  expiraEn: string
-}
+export type { TokenVoz } from '@shared/types/voz'
+import type { TokenVoz } from '@shared/types/voz'
 
 export interface ProveedorIA {
   readonly nombre: string

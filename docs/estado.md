@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-En curso (Prompt 9): pasos 1–2 terminados; seguir con id de instalación e IPC (paso 3), e integración Vosk/Gemini en Cocinar (paso 4). Las tareas 15 y 16 siguen abiertas hasta integrar la voz.
+En curso (Prompt 9): pasos 1–3 terminados; seguir con integración Vosk/Gemini en Cocinar (paso 4). Las tareas 15 y 16 siguen abiertas hasta integrar la voz.
 
 Roadmap, tareas 15 y 16 (Prompt 9 del paquete): órdenes cortas locales y sesión de voz en tiempo real (ver `docs/ia-chef.md`, "Voz" y "Contexto que recibe el modelo").
 
@@ -25,6 +25,14 @@ Otras notas:
 - Para probar la app sin tocar la semilla (la receta de ejemplo sigue en `borrador`): Cocinar se prueba iniciando la sesión con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` desde las DevTools y recargando.
 
 ## Registro
+
+### 2026-10-19 · Prompt 9, paso 3: instalación y token por IPC
+- UUID persistente en `userData/instalacion-id`, sin regenerarlo si hay corrupción.
+- Cliente backend en main con `CHEF_API_URL`, cabecera `X-Instalacion`, timeout, validación del token/caducidad y errores tipados.
+- Canal `voz:token` completo (contrato, validación zod en main, preload). Solo pide tokens si SQLite tiene una sesión cocinando.
+- Solo `CHEF_API_URL` de `.env` entra en el bundle de main; la clave sigue en el backend.
+- Tests de persistencia, HTTP simulado, errores e IPC sin red al proveedor.
+- Pendiente: paso 4 (Vosk nativo/modelo, captura de micrófono, sesión Live y herramientas).
 
 ### 2026-10-19 · Prompt 9, paso 2: proveedor Gemini
 - Adaptador REST `server/src/proveedores/gemini.ts`, registrado con `PROVEEDOR_IA=gemini`. La clave solo se lee en el backend.

@@ -3,3 +3,7 @@ declare module '*.sql?raw' {
   const sql: string
   export default sql
 }
+
+interface ImportMetaEnv {
+  readonly CHEF_API_URL: string
+}

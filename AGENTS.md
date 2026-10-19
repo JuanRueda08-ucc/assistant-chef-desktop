@@ -35,6 +35,8 @@ src/main/        proceso principal de Electron: ventana, SQLite, IPC
   db/            conexión SQLite, carga de semillas, repositorios (recetas, catalogo, busqueda)
   ipc.ts         handlers de los canales IPC
   cocina.ts      sesión de cocina: iniciar, retomar y aplicar herramientas guardando en SQLite
+  instalacion.ts UUID persistente en userData/instalacion-id
+  backend.ts     cliente HTTP del backend (CHEF_API_URL), token de voz con errores tipados
 src/preload/     puente seguro (contextBridge) con API tipada
 src/renderer/    interfaz Svelte 5 (App.svelte elige la pantalla según el estado)
   estado/        app.svelte.ts: estado de la interfaz con runas (pantalla, catálogo, preferencias…)
@@ -46,6 +48,7 @@ src/renderer/    interfaz Svelte 5 (App.svelte elige la pantalla según el estad
 src/shared/      tipos y lógica pura compartida (sin dependencias de Electron ni DOM)
   textos.ts      nombres para mostrar de dietas, alérgenos, equipo, categorías y dificultad
   types/         receta.ts, sesion.ts, busqueda.ts, ipc.ts (canales y contrato de window.api)
+                 voz.ts (credencial efímera y errores de voz; esquemas/voz.ts)
   esquemas/      esquemas zod que espejan types/ (receta, sesion, semilla)
   recetas/       lógica pura: escalado, unidades caseras, etiquetas, sustituciones, búsqueda, catálogo
   cocina/        reductor aplicarHerramienta, temporizadores por reloj, crear y adaptar la sesión
@@ -108,6 +111,8 @@ curl -X POST http://localhost:8787/voz/token -H "x-instalacion: prueba-local-000
 ```
 
 Todas las rutas son `POST`, necesitan la cabecera `X-Instalacion` (8 a 64 caracteres `A-Z a-z 0-9 -`) y responden JSON. Detalle de rutas, errores y límites en `docs/ia-chef.md`, "Backend mínimo".
+
+**App → backend:** main usa `CHEF_API_URL` (por defecto `http://localhost:8787`), incorporada desde `.env` al desarrollar/compilar y sobrescribible en el entorno al arrancar. Solo esa URL pública entra en el bundle de main; la clave de Google no se incorpora. HTTP se admite solo en localhost; fuera se exige HTTPS. `window.api.voz.token({})` funciona solo con una sesión cocinando y devuelve un resultado tipado, sin exponer id de instalación ni URLs al renderer.
 
 ## Diseño visual
 
