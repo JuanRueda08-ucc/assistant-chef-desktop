@@ -19,6 +19,8 @@ Contrato en código: `src/shared/ia/herramientas.ts` (definiciones JSON Schema p
 
 Un bloque compacto generado desde `SesionCocina` (no la receta entera):
 
+Implementado en `src/shared/ia/contexto.ts`: `contextoCompacto(sesion, ahora)`. Incluye ids de ingredientes y temporizadores para las herramientas, origen y revisión, fase, advertencia de seguridad del paso y alergias. Las cantidades salen de la receta adaptada y el restante se calcula con el reloj; no muta la sesión. Sin catálogo usa los ids de ingrediente como nombres.
+
 ```
 receta: "Arroz con pollo" (revisada) · 4 porciones · paso 3 de 9
 paso_actual: "Sofríe la cebolla 5 minutos" · ingredientes: cebolla 150 g · requiere_confirmacion: sí · técnica: sofreir
@@ -106,6 +108,12 @@ Reglas para el modelo (van en el prompt de sistema, `docs/prompts/` cuando exist
 - Antes del modelo, un reconocedor local de órdenes cortas resuelve "siguiente / atrás / repite / pausa / para el temporizador" para no pagar ni esperar.
 - Palabra de activación "Chef" y escucha abierta 8 s después de que el chef pregunte. Baja confianza → botones de confirmación en pantalla.
 - El micrófono solo está activo en la fase `cocinar`.
+
+### Órdenes puras
+
+`src/shared/ia/ordenes.ts` comparte `FRASES_ORDENES` con la gramática local. `interpretarOrden(texto)` devuelve una `LlamadaHerramienta` para siguiente/listo/atrás, una acción local para chef/repite y una intención de temporizador para pausa/reanuda/para el temporizador; devuelve `null` ante frases desconocidas. Admite «Chef» delante y normaliza acentos, espacios y puntuación. Solo «listo» y «siguiente» completos ponen `confirmado: true`.
+
+`resolverTemporizador(accion, temporizadores, ahora)` convierte la intención en una llamada validable solo si existe un único candidato compatible. Si no lo hay o hay varios, la interfaz debe mostrar los botones de temporizadores. Repetir vuelve a leer `textoVoz ?? texto`; no hay herramienta ni petición al modelo.
 
 ## Backend mínimo (`server/`)
 

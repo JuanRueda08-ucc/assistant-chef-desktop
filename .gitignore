@@ -13,6 +13,7 @@ coverage
 
 # Material de planificación local, fuera del repositorio
 plan/
+*.lnk
 
 # Configuración local de vista previa de Claude Code
 .claude/launch.json

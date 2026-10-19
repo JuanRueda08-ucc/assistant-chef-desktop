@@ -4,6 +4,8 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
+En curso (Prompt 9): paso 1 terminado; seguir con el adaptador Gemini del backend (paso 2), id de instalación e IPC (paso 3), e integración Vosk/Gemini en Cocinar (paso 4). Las tareas 15 y 16 siguen abiertas hasta integrar la voz.
+
 Roadmap, tareas 15 y 16 (Prompt 9 del paquete): órdenes cortas locales y sesión de voz en tiempo real (ver `docs/ia-chef.md`, "Voz" y "Contexto que recibe el modelo").
 
 **Decisiones ya tomadas (ver `docs/decisiones/0007-voz-gemini-vosk-y-chat.md`):**
@@ -23,6 +25,13 @@ Otras notas:
 - Para probar la app sin tocar la semilla (la receta de ejemplo sigue en `borrador`): Cocinar se prueba iniciando la sesión con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` desde las DevTools y recargando.
 
 ## Registro
+
+### 2026-10-19 · Prompt 9, paso 1: órdenes y contexto puros
+- `src/shared/ia/ordenes.ts`: gramática compartida, intérprete de frases completas y resolución segura de un único temporizador. Repetir y activar son acciones locales; sin un temporizador inequívoco se ofrecen botones.
+- `src/shared/ia/contexto.ts`: contexto por turno con cantidades adaptadas, seguridad, confirmación, siguiente paso, temporizadores por reloj, sustituciones y restricciones/alergias.
+- Tests sin red de confirmación, frases desconocidas, ambigüedad, contexto y reloj, sin mutaciones.
+- `.gitignore` excluye también `*.lnk`; `plan/` sigue excluido.
+- Pendiente: pasos 2–4 antes de marcar las tareas 15 y 16.
 
 ### 2026-10-19 · Decisiones de voz, motor local y chat (sin código)
 - Decisión 0007:
