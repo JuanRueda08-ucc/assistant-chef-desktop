@@ -1,0 +1,11 @@
+out
+dist
+coverage
+plan
+build
+resources
+package-lock.json
+LICENSE.md
+tsconfig.json
+tsconfig.*.json
+*.md

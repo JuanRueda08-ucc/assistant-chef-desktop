@@ -1,0 +1,24 @@
+/* Tokens de diseño. Valores provisionales: el diseño visual está en iteración (docs/diseno.md).
+   Los componentes usan solo estas variables para que el diseño final se aplique aquí. */
+:root {
+  --color-crema: #f5efe1;
+  --color-mostaza: #d4a017;
+  --color-tinta: #1f1d1a;
+
+  --color-fondo: var(--color-crema);
+  --color-texto: var(--color-tinta);
+  --color-acento: var(--color-mostaza);
+
+  --fuente-base: system-ui, sans-serif;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  margin: 0;
+  font-family: var(--fuente-base);
+  background: var(--color-fondo);
+  color: var(--color-texto);
+}

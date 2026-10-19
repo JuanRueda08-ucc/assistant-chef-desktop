@@ -1,0 +1,15 @@
+node_modules
+dist
+out
+coverage
+.DS_Store
+.eslintcache
+*.log*
+
+# Secretos (ver .env.example)
+.env
+.env.*
+!.env.example
+
+# Material de planificación local, fuera del repositorio
+plan/

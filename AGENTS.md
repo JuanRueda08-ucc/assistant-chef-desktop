@@ -60,7 +60,20 @@ docs/            documentación (empieza por docs/README.md)
 
 ## Comandos
 
-Todavía no hay `package.json` (ver `docs/roadmap.md`, tarea 1). Cuando exista, documenta aquí `instalar`, `dev`, `test`, `lint` y `build`.
+Requiere Node 22 o superior y npm.
+
+| Comando | Qué hace |
+|---|---|
+| `npm install` | instala dependencias y descarga el binario de Electron |
+| `npm run dev` | abre la app en desarrollo con recarga en caliente (F12 abre DevTools) |
+| `npm test` | ejecuta los tests de Vitest una vez (`npm run test:watch` para modo vigilancia) |
+| `npm run lint` | ESLint sobre todo el repositorio |
+| `npm run format` / `npm run format:check` | aplica o comprueba Prettier (los `.md` se excluyen) |
+| `npm run typecheck` | `tsc` para main/preload/shared y `svelte-check` para el renderer |
+| `npm run build` | typecheck + compilación a `out/` |
+| `npm run build:win` / `build:mac` / `build:linux` | instaladores con electron-builder (tarea 19) |
+
+Alias de importación: `@shared/*` apunta a `src/shared/*` en main, preload, renderer y tests.
 
 ## Diseño visual
 

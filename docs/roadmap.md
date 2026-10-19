@@ -3,7 +3,7 @@
 Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x]` al terminar.
 
 ## Base
-- [ ] 1. Proyecto electron-vite con Svelte + TypeScript, Vitest, ESLint, Prettier; comandos en `AGENTS.md`
+- [x] 1. Proyecto electron-vite con Svelte + TypeScript, Vitest, ESLint, Prettier; comandos en `AGENTS.md`
 - [ ] 2. SQLite en el proceso principal: crear desde `db/schema.sql`, cargar semillas validadas (zod) e IPC tipado
 - [ ] 3. Esquemas zod que espejan `src/shared/types/` (se reusan para validar recetas generadas)
 
