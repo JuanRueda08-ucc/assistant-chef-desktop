@@ -13,7 +13,34 @@ Fuente de verdad de los datos: `db/schema.sql` (tablas) y `src/shared/types/rece
   - `equipo`: `horno`, `sarten`, `olla`, `olla_presion`, `licuadora`, `batidora`, `microondas`, `freidora_aire`, `plancha`.
   - `categoria` de ingrediente: `verduras`, `frutas`, `proteinas`, `lacteos`, `cereales`, `legumbres`, `especias`, `despensa`.
 - Reglas que valida el esquema además de los tipos: `al_gusto` va sin `cantidad` y todo lo demás con `cantidad` y `redondeo`; `pizca` lleva cantidad (número de pizcas) pero no escala; los pasos están ordenados desde 1 sin huecos; cada paso solo usa ingredientes de la receta y no los repite; `0 < fraccion ≤ 1` (un mismo ingrediente puede aparecer en varios pasos, por ejemplo picar y luego sofreír); temporizador de paso entre 10 s y 6 h; `tiempoActivoMin ≤ tiempoTotalMin`.
-- La semilla (`src/shared/esquemas/semilla.ts`) comprueba además que ingredientes, técnicas y recetas referenciadas existan y que no haya ids ni slugs repetidos.
+- La semilla (`src/shared/esquemas/semilla.ts`) comprueba además que ingredientes, técnicas y recetas referenciadas existan y que no haya ids ni slugs repetidos. Al cargarla, main deriva `dietas` y `alergenos` de cada receta; si un JSON de receta trae esos campos, la carga falla.
+
+### Funciones (`src/shared/recetas/`)
+
+| Función | Archivo | Qué hace |
+|---|---|---|
+| `escalarReceta(receta, porciones)` | `escalado.ts` | copia escalada (`porcionesBase` pasa a ser `porciones`), `factor` y `aviso` (`factor_alto` / `factor_bajo`) |
+| `cantidadesDelPaso(receta, paso)` | `escalado.ts` | cantidades del paso a partir de `fraccion` |
+| `aUnidadCasera(cantidad, unidad, ingrediente)` / `formatearMedida(medida)` | `unidades.ts` | medida casera y su texto ("1 ½ tazas") |
+| `derivarEtiquetas(receta, catalogo)` / `conEtiquetas` | `etiquetas.ts` | dietas compatibles y alérgenos |
+| `aplicarSustitucion(receta, sustitucion, catalogo)` | `sustituciones.ts` | copia con el ingrediente cambiado, ratio aplicado y etiquetas recalculadas |
+| `redondear(valor, paso)` | `redondeo.ts` | múltiplo más cercano de `paso`, nunca menos que `paso` |
+
+Ninguna modifica la receta que recibe. Detalles que no están en las secciones de abajo:
+
+- **Escalado:** `porciones` es un entero de 1 a 20. Con factor 1 las cantidades quedan tal como se escribieron (no se vuelven a redondear). Escala siempre desde la receta original, nunca sobre una ya escalada. Con sustituciones, primero `aplicarSustitucion` sobre la original y después `escalarReceta`.
+- **Cantidades por paso:** se redondean por separado, así que la suma de pasos puede diferir del total en un redondeo (sal 13 g en dos mitades → 7 g + 7 g).
+- **Unidades caseras** (cucharadita 5 ml, cucharada 15 ml, taza 240 ml):
+  - `g` con `pesoUnidadG` → piezas de ½ en ½, si sale al menos media pieza.
+  - Si no, `g` con `densidadGMl` → volumen; `g` sin datos → g, o kg desde 1000 g.
+  - Volumen: menos de 15 ml en cucharaditas (de ¼ en ¼), menos de 60 ml en cucharadas (de ½ en ½), menos de 1000 ml en tazas (de ¼ en ¼) y desde ahí en litros.
+  - `unidad`, `pizca` y `al_gusto` se muestran tal cual.
+- **Etiquetas:** cuentan también los ingredientes opcionales. Además de `dietasIncompatibles` del catálogo, se deduce:
+  - `gluten` → no `sin_gluten`; `lacteos` → no `sin_lactosa`.
+  - `pescado`, `crustaceos` o `moluscos` → no `vegetariana`.
+  - `huevo`, `lacteos` o no vegetariano → no `vegana`.
+  - Un ingrediente fuera del catálogo es un error.
+- **Sustitución:** recibe además el catálogo (para recalcular etiquetas). Mantiene el id del ingrediente de receta (los pasos siguen apuntando a él), la unidad, `al_gusto` y `pizca`. Falla si la sustitución es de otra receta, si la receta no usa el ingrediente de origen o si el destino no está en el catálogo. No comprueba `contexto` ni las restricciones del usuario: eso es parte de la búsqueda de sustituciones (tareas 7 y 8).
 
 ## Principios
 

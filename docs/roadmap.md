@@ -8,9 +8,9 @@ Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x
 - [x] 3. Esquemas zod que espejan `src/shared/types/` (se reusan para validar recetas generadas)
 
 ## Lógica pura (`src/shared/`, con tests)
-- [ ] 4. Escalado de porciones y redondeo (`docs/modelo-recetas.md#adaptar-cantidades-porciones`)
-- [ ] 5. Conversión a unidades caseras para mostrar
-- [ ] 6. Derivar dietas y alérgenos desde el catálogo
+- [x] 4. Escalado de porciones y redondeo (`docs/modelo-recetas.md#adaptar-cantidades-porciones`)
+- [x] 5. Conversión a unidades caseras para mostrar
+- [x] 6. Derivar dietas y alérgenos desde el catálogo
 - [ ] 7. Búsqueda y puntuación de recetas con "qué falta"
 - [ ] 8. Reductor de `SesionCocina`: aplicar cada herramienta con sus precondiciones
 - [ ] 9. Temporizadores basados en reloj (sobreviven a reinicios)

@@ -38,6 +38,7 @@ src/renderer/    interfaz Svelte (pantallas Preparar, Elegir, Cocinar)
 src/shared/      tipos y lógica pura compartida (sin dependencias de Electron ni DOM)
   types/         receta.ts, sesion.ts, ipc.ts (canales y contrato de window.api)
   esquemas/      esquemas zod que espejan types/ (receta, sesion, semilla)
+  recetas/       lógica pura: escalado, unidades caseras, etiquetas, sustituciones
   ia/            herramientas.ts (contrato de herramientas del chef)
 server/          backend serverless: token de voz, generar receta, sugerir sustitución
 db/              schema.sql y semillas JSON (db/seed/, ver db/seed/README.md)
@@ -64,7 +65,7 @@ docs/            documentación (empieza por docs/README.md)
 - TypeScript estricto. Nada de `any` sin comentario que lo justifique.
 - Nombres del dominio en español (`receta`, `paso`, `porciones`); términos técnicos estándar en inglés cuando no hay equivalente claro (`store`, `handler`).
 - `src/shared/` es puro y testeable: sin Electron, sin DOM, sin red.
-- Tests con Vitest junto al archivo (`escalado.test.ts`). La lógica de `src/shared/` lleva test.
+- Tests con Vitest junto al archivo (`escalado.test.ts`). La lógica de `src/shared/` lleva test. Los datos de prueba compartidos van en `*.test-utils.ts` (por ejemplo `src/shared/recetas/fixtures.test-utils.ts`, que usa la semilla real).
 - Seguridad de Electron: `contextIsolation: true`, `nodeIntegration: false`, `sandbox: true`.
 - Secretos solo en `.env` (ver `.env.example`); nunca en el repositorio.
 

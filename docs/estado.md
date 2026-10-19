@@ -4,9 +4,23 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Roadmap, tareas 4, 5 y 6 (Prompt 3 del paquete): `escalarReceta`, `aUnidadCasera`, `derivarEtiquetas` y `aplicarSustitucion` en `src/shared/`, con tests. Al hacer la 6, calcular `dietas` y `alergenos` de cada receta al cargar la semilla (hoy quedan en `[]`).
+Roadmap, tarea 7 (Prompt 4 del paquete): `buscarRecetas(preferencias, recetas, catalogo, sustituciones)` en `src/shared/` con filtros duros, puntuación por cobertura, panel "qué falta" e indicador de receta generada, expuesta por IPC `recetas:buscar` (seguir los pasos de "Añadir un canal IPC" de `AGENTS.md`). Para filtrar por restricciones usar `receta.dietas` y `receta.alergenos` (ya derivados) y, para la sustitución posible, `dietasIncompatiblesDe` de `src/shared/recetas/etiquetas.ts`.
 
 ## Registro
+
+### 2026-10-18 · Cantidades, unidades y etiquetas (tareas 4, 5 y 6)
+- Hecho: en `src/shared/recetas/`:
+  - `escalarReceta` (lineal, suave acotado, fijo, pizca y al_gusto sin escalar, redondeo sin llegar a 0, aviso por factor extremo, tiempos sin escalar) y `cantidadesDelPaso`.
+  - `aUnidadCasera` y `formatearMedida`.
+  - `derivarEtiquetas`, `conEtiquetas` y `dietasIncompatiblesDe`.
+  - `aplicarSustitucion` y `redondear`.
+  - Las reglas concretas están en `docs/modelo-recetas.md`, sección "Funciones".
+- La carga de semillas (`prepararSemilla` en `src/main/db/semillas.ts`) deriva ahora `dietas` y `alergenos`, y rechaza recetas que los traigan escritos a mano. El arroz con pollo queda `sin_gluten`, `sin_lactosa` y con alérgeno `apio`.
+- Diferencia con el Prompt 3: `aplicarSustitucion` recibe un tercer parámetro `catalogo`, necesario para recalcular etiquetas.
+- Tests: 101 en Vitest. Pasan `typecheck`, `lint`, `format:check` y `build`. Comprobado en la app que `recetas:obtener` devuelve las etiquetas derivadas.
+- Pendiente o a tener en cuenta:
+  - Las cantidades por paso se redondean por separado y pueden no sumar exactamente el total.
+  - La sustitución no valida `contexto` ni las restricciones del usuario; eso va en la búsqueda (tarea 7) y en `sustituir_ingrediente` (tarea 8).
 
 ### 2026-10-18 · Tipos, esquemas y base de datos (tareas 2 y 3)
 - Hecho:

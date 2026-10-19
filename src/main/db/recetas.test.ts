@@ -104,8 +104,13 @@ describe('repositorio de recetas', () => {
     ])
   })
 
-  it('devuelve la receta completa igual que la semilla', () => {
-    expect(obtenerReceta(db, 'arroz_con_pollo')).toEqual(esquemaReceta.parse(arrozConPollo))
+  it('devuelve la receta completa igual que la semilla, con las etiquetas derivadas', () => {
+    const receta = obtenerReceta(db, 'arroz_con_pollo')
+    expect(receta).toEqual({
+      ...esquemaReceta.parse(arrozConPollo),
+      dietas: ['sin_gluten', 'sin_lactosa'],
+      alergenos: ['apio']
+    })
   })
 
   it('devuelve null si la receta no existe', () => {

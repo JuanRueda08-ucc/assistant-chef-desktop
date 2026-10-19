@@ -1,5 +1,6 @@
 import { z } from 'zod'
 import { esquemaSemilla, type Semilla } from '@shared/esquemas/semilla'
+import { conEtiquetas, indexar } from '@shared/recetas/etiquetas'
 import type { BaseDatos } from './conexion'
 
 // Las semillas se empaquetan en el bundle de main (Vite resuelve los JSON al compilar), así que
@@ -21,19 +22,46 @@ const recetas = import.meta.glob<unknown>('../../../db/seed/recetas/*.json', {
   import: 'default'
 })
 
-/** Lee los JSON de db/seed/ y los valida. Lanza un error legible si algo no cumple el esquema. */
+/**
+ * Lee los JSON de db/seed/, los valida y deriva `dietas` y `alergenos` de cada receta desde el
+ * catálogo. Lanza un error legible si algo no cumple el esquema.
+ */
 export function leerSemilla(): Semilla {
-  const entrada = {
+  return prepararSemilla({
     ingredientes: Object.values(ingredientes)[0] ?? [],
     tecnicas: Object.values(tecnicas)[0] ?? [],
     sustituciones: Object.values(sustituciones)[0] ?? [],
     recetas: Object.values(recetas)
+  })
+}
+
+/** Valida una semilla en bruto y le añade las etiquetas derivadas. Separada para poder probarla. */
+export function prepararSemilla(entrada: {
+  ingredientes: unknown
+  tecnicas: unknown
+  sustituciones: unknown
+  recetas: unknown[]
+}): Semilla {
+  // Las etiquetas se derivan siempre; escribirlas a mano en la semilla es un error.
+  const conEtiquetasAMano = entrada.recetas
+    .filter(
+      (r): r is { id?: unknown } =>
+        typeof r === 'object' && r !== null && ('dietas' in r || 'alergenos' in r)
+    )
+    .map((r) => String(r.id))
+  if (conEtiquetasAMano.length > 0) {
+    throw new Error(
+      `Semilla no válida (db/seed/): dietas y alergenos se derivan del catálogo, quítalos de: ${conEtiquetasAMano.join(', ')}`
+    )
   }
+
   const resultado = esquemaSemilla.safeParse(entrada)
   if (!resultado.success) {
     throw new Error(`Semilla no válida (db/seed/):\n${z.prettifyError(resultado.error)}`)
   }
-  return resultado.data
+  const semilla = resultado.data
+  const catalogo = indexar(semilla.ingredientes)
+  return { ...semilla, recetas: semilla.recetas.map((r) => conEtiquetas(r, catalogo)) }
 }
 
 const json = (valor: unknown): string => JSON.stringify(valor)
