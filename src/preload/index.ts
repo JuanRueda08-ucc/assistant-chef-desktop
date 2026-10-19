@@ -6,7 +6,8 @@ import { CANALES_IPC, type ApiChef } from '@shared/types/ipc'
 const api: ApiChef = {
   recetas: {
     listar: () => ipcRenderer.invoke(CANALES_IPC.recetasListar),
-    obtener: (id) => ipcRenderer.invoke(CANALES_IPC.recetasObtener, id)
+    obtener: (id) => ipcRenderer.invoke(CANALES_IPC.recetasObtener, id),
+    buscar: (preferencias) => ipcRenderer.invoke(CANALES_IPC.recetasBuscar, preferencias)
   }
 }
 

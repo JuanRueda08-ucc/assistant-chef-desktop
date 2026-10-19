@@ -11,7 +11,7 @@ Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x
 - [x] 4. Escalado de porciones y redondeo (`docs/modelo-recetas.md#adaptar-cantidades-porciones`)
 - [x] 5. Conversión a unidades caseras para mostrar
 - [x] 6. Derivar dietas y alérgenos desde el catálogo
-- [ ] 7. Búsqueda y puntuación de recetas con "qué falta"
+- [x] 7. Búsqueda y puntuación de recetas con "qué falta"
 - [ ] 8. Reductor de `SesionCocina`: aplicar cada herramienta con sus precondiciones
 - [ ] 9. Temporizadores basados en reloj (sobreviven a reinicios)
 

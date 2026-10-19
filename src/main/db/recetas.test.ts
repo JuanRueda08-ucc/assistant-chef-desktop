@@ -2,7 +2,10 @@ import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { esquemaReceta } from '@shared/esquemas/receta'
 import arrozConPollo from '../../../db/seed/recetas/arroz-con-pollo.json'
 import { abrirBase, type BaseDatos } from './conexion'
-import { listarRecetas, obtenerReceta } from './recetas'
+import type { Preferencias } from '@shared/types/sesion'
+import { buscarEnBase } from './busqueda'
+import { listarIngredientes, listarSustituciones } from './catalogo'
+import { listarRecetas, listarRecetasCompletas, obtenerReceta } from './recetas'
 import { cargarSemilla, leerSemilla } from './semillas'
 
 let db: BaseDatos
@@ -99,6 +102,9 @@ describe('repositorio de recetas', () => {
         dificultad: 'facil',
         origen: 'revisada',
         estadoRevision: 'borrador',
+        dietas: ['sin_gluten', 'sin_lactosa'],
+        alergenos: ['apio'],
+        equipo: ['olla'],
         imagen: null
       }
     ])
@@ -115,5 +121,56 @@ describe('repositorio de recetas', () => {
 
   it('devuelve null si la receta no existe', () => {
     expect(obtenerReceta(db, 'no_existe')).toBeNull()
+  })
+
+  it('lista las recetas completas', () => {
+    expect(listarRecetasCompletas(db).map((r) => [r.id, r.pasos.length])).toEqual([
+      ['arroz_con_pollo', 9]
+    ])
+  })
+})
+
+describe('catálogo y búsqueda en la base', () => {
+  const preferencias: Preferencias = {
+    ingredientes: ['pollo_muslo', 'arroz_blanco'],
+    porciones: 4,
+    restricciones: [],
+    alergias: [],
+    tiempoMaxMin: null,
+    nivel: null,
+    equipo: []
+  }
+
+  it('lee el catálogo y las sustituciones', () => {
+    const ingredientes = listarIngredientes(db)
+    expect(ingredientes).toHaveLength(leerSemilla().ingredientes.length)
+    expect(ingredientes.find((i) => i.id === 'aceite_oliva')).toMatchObject({
+      esBasicoDespensa: true,
+      densidadGMl: 0.92,
+      sinonimos: ['aceite']
+    })
+    expect(listarSustituciones(db)).toEqual([])
+  })
+
+  it('la receta en borrador queda descartada y se ofrece una generada', () => {
+    expect(buscarEnBase(db, preferencias)).toEqual({
+      resultados: [],
+      descartadas: [{ recetaId: 'arroz_con_pollo', motivos: ['no_revisada'] }],
+      ofrecerGenerada: true
+    })
+  })
+
+  it('busca sobre los datos de la base, sustituciones incluidas', () => {
+    db.prepare("UPDATE recetas SET estado_revision = 'revisada' WHERE id = 'arroz_con_pollo'").run()
+    db.prepare(
+      `INSERT INTO sustituciones (id, ingrediente_origen_id, ingrediente_destino_id, ratio, impacto, fuente)
+       VALUES ('caldo_aceite', 'caldo_pollo', 'aceite_oliva', 1, 'Prueba.', 'revisada')`
+    ).run()
+    const { resultados } = buscarEnBase(db, preferencias)
+    expect(resultados.map((r) => r.receta.id)).toEqual(['arroz_con_pollo'])
+    expect(resultados[0]?.cobertura).toBe(0.416667)
+    expect(
+      resultados[0]?.faltantes.find((f) => f.ingredienteId === 'caldo_pollo')?.sustituciones
+    ).toHaveLength(1)
   })
 })

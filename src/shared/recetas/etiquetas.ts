@@ -47,7 +47,7 @@ export function derivarEtiquetas(
   receta: Pick<Receta, 'ingredientes'>,
   catalogo: Catalogo
 ): Etiquetas {
-  const porId = esLista(catalogo) ? indexar(catalogo) : catalogo
+  const porId = comoMapa(catalogo)
   const alergenos = new Set<Alergeno>()
   const incompatibles = new Set<Dieta>()
 
@@ -67,6 +67,11 @@ export function derivarEtiquetas(
 /** Devuelve una copia de la receta con `dietas` y `alergenos` recalculados. */
 export function conEtiquetas(receta: Receta, catalogo: Catalogo): Receta {
   return { ...structuredClone(receta), ...derivarEtiquetas(receta, catalogo) }
+}
+
+/** El catálogo como `Map` por id, tal cual si ya lo es. */
+export function comoMapa(catalogo: Catalogo): ReadonlyMap<string, Ingrediente> {
+  return esLista(catalogo) ? indexar(catalogo) : catalogo
 }
 
 function esLista(catalogo: Catalogo): catalogo is readonly Ingrediente[] {

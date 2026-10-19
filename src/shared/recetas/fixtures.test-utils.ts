@@ -29,8 +29,14 @@ export function ingrediente(datos: Partial<Ingrediente> & Pick<Ingrediente, 'id'
   return esquemaIngrediente.parse({ nombre: datos.id, categoria: 'despensa', ...datos })
 }
 
-/** Receta mínima de un paso con los ingredientes dados (todos usados en el paso). */
-export function recetaCon(ingredientes: Record<string, unknown>[]): Receta {
+/**
+ * Receta mínima de un paso con los ingredientes dados (todos usados en el paso). `campos`
+ * sobrescribe los de la cabecera (id, titulo, tiempoTotalMin…).
+ */
+export function recetaCon(
+  ingredientes: Record<string, unknown>[],
+  campos: Record<string, unknown> = {}
+): Receta {
   return esquemaReceta.parse({
     id: 'prueba',
     slug: 'prueba',
@@ -42,6 +48,7 @@ export function recetaCon(ingredientes: Record<string, unknown>[]): Receta {
     dificultad: 'facil',
     origen: 'revisada',
     estadoRevision: 'revisada',
+    ...campos,
     ingredientes: ingredientes.map((ir, i) => ({ id: `ir_${i + 1}`, ...ir })),
     pasos: [
       {

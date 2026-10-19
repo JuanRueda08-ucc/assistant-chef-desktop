@@ -25,6 +25,8 @@ Fuente de verdad de los datos: `db/schema.sql` (tablas) y `src/shared/types/rece
 | `derivarEtiquetas(receta, catalogo)` / `conEtiquetas` | `etiquetas.ts` | dietas compatibles y alérgenos |
 | `aplicarSustitucion(receta, sustitucion, catalogo)` | `sustituciones.ts` | copia con el ingrediente cambiado, ratio aplicado y etiquetas recalculadas |
 | `redondear(valor, paso)` | `redondeo.ts` | múltiplo más cercano de `paso`, nunca menos que `paso` |
+| `buscarRecetas(preferencias, recetas, catalogo, sustituciones)` | `busqueda.ts` | resultados ordenados con panel "qué falta", descartadas con motivos y `ofrecerGenerada` (tipos en `src/shared/types/busqueda.ts`) |
+| `resumirReceta(receta)` | `resumen.ts` | `ResumenReceta` (cabecera, etiquetas y equipo, sin ingredientes ni pasos) |
 
 Ninguna modifica la receta que recibe. Detalles que no están en las secciones de abajo:
 
@@ -41,6 +43,11 @@ Ninguna modifica la receta que recibe. Detalles que no están en las secciones d
   - `huevo`, `lacteos` o no vegetariano → no `vegana`.
   - Un ingrediente fuera del catálogo es un error.
 - **Sustitución:** recibe además el catálogo (para recalcular etiquetas). Mantiene el id del ingrediente de receta (los pasos siguen apuntando a él), la unidad, `al_gusto` y `pizca`. Falla si la sustitución es de otra receta, si la receta no usa el ingrediente de origen o si el destino no está en el catálogo. No comprueba `contexto` ni las restricciones del usuario: eso es parte de la búsqueda de sustituciones (tareas 7 y 8).
+- **Búsqueda:**
+  - **Filtros duros**, en este orden de motivos: `no_revisada`, `restriccion` (la receta debe tener en sus `dietas` derivadas todas las del usuario), `alergia`, `equipo` (todo el de la receta debe estar en el del usuario; si el usuario no indica equipo no se filtra), `tiempo` (`tiempoTotalMin ≤ tiempoMaxMin`) y `nivel` (`dificultad ≤ nivel`, con `facil < media < avanzada`). El filtro por `nivel` no estaba en la lista original: se añadió porque el usuario lo indica en Preparar. Una receta que solo cumpliría las restricciones tras una sustitución se descarta igualmente.
+  - **Puntuación:** `cobertura − 0,1 × faltantes + 0,05 × faltantes con sustitución` (`PENALIZACION_FALTANTE`, `BONUS_SUSTITUCION`). Cada ingrediente cuenta una vez, y es obligatorio si alguna de sus apariciones lo es. A igual puntuación ordena por menos faltantes, luego menos tiempo total y luego título.
+  - **Sustitución posible:** de la receta o general, con un destino que el usuario tiene (o básico de despensa), que está en el catálogo y que no choca con sus restricciones ni alergias. Primero las específicas de la receta. El `contexto` no se comprueba todavía.
+  - **`ofrecerGenerada`:** `true` si ninguna receta llega a `coberturaConSustituciones ≥ 0,6` (`UMBRAL_COBERTURA`), incluido el caso de no tener ningún resultado.
 
 ## Principios
 

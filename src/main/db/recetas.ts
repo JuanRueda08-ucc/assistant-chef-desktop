@@ -68,6 +68,9 @@ function resumen(fila: FilaReceta): ResumenReceta {
     dificultad: receta.dificultad.parse(fila.dificultad),
     origen: receta.origen.parse(fila.origen),
     estadoRevision: receta.estadoRevision.parse(fila.estado_revision),
+    dietas: receta.dietas.parse(JSON.parse(fila.dietas)),
+    alergenos: receta.alergenos.parse(JSON.parse(fila.alergenos)),
+    equipo: receta.equipo.parse(JSON.parse(fila.equipo)),
     imagen: fila.imagen
   }
 }
@@ -78,6 +81,14 @@ export function listarRecetas(db: BaseDatos): ResumenReceta[] {
     .prepare('SELECT * FROM recetas ORDER BY titulo COLLATE NOCASE')
     .all() as FilaReceta[]
   return filas.map(resumen)
+}
+
+/** Todas las recetas completas, ordenadas por título (para la búsqueda). */
+export function listarRecetasCompletas(db: BaseDatos): Receta[] {
+  return listarRecetas(db).flatMap((r) => {
+    const receta = obtenerReceta(db, r.id)
+    return receta ? [receta] : []
+  })
 }
 
 /** Receta completa con ingredientes y pasos, validada con el esquema; `null` si no existe. */
@@ -97,9 +108,6 @@ export function obtenerReceta(db: BaseDatos, id: string): Receta | null {
 
   return esquemaReceta.parse({
     ...resumen(fila),
-    dietas: JSON.parse(fila.dietas),
-    alergenos: JSON.parse(fila.alergenos),
-    equipo: JSON.parse(fila.equipo),
     ingredientes: ingredientes.map((ir) => ({
       id: ir.id,
       ingredienteId: ir.ingrediente_id,

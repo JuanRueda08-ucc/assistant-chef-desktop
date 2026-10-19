@@ -4,9 +4,36 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Roadmap, tarea 7 (Prompt 4 del paquete): `buscarRecetas(preferencias, recetas, catalogo, sustituciones)` en `src/shared/` con filtros duros, puntuación por cobertura, panel "qué falta" e indicador de receta generada, expuesta por IPC `recetas:buscar` (seguir los pasos de "Añadir un canal IPC" de `AGENTS.md`). Para filtrar por restricciones usar `receta.dietas` y `receta.alergenos` (ya derivados) y, para la sustitución posible, `dietasIncompatiblesDe` de `src/shared/recetas/etiquetas.ts`.
+Roadmap, tareas 8 y 9 (Prompt 5 del paquete):
+- Definiciones JSON Schema de las 9 herramientas en `src/shared/ia/herramientas.ts`.
+- Reductor `aplicarHerramienta(sesion, llamada, ahora) → { sesion, resultado, avatar }` en `src/shared/`.
+- Temporizadores basados en reloj.
+- Persistencia de `SesionCocina` en la tabla `sesiones`, y retomarla al abrir la app.
+
+Piezas que ya existen:
+- `cambiar_porciones`: `escalarReceta` y `cantidadesDelPaso`.
+- `sustituir_ingrediente`: `aplicarSustitucion`. Al recalcular, aplica las sustituciones sobre la receta original y después escala.
+- Límites y validación: `esquemaSesionCocina`, `PORCIONES_MIN` y `PORCIONES_MAX`, `SEGUNDOS_TEMPORIZADOR_MIN` y `SEGUNDOS_TEMPORIZADOR_MAX`.
+- Base de datos: la tabla `sesiones` con su índice único de una sola sesión `cocinar`.
 
 ## Registro
+
+### 2026-10-18 · Búsqueda y "qué falta" (tarea 7)
+- Hecho:
+  - `buscarRecetas` en `src/shared/recetas/busqueda.ts` con filtros duros, puntuación, panel "qué falta" con sustituciones posibles, opcionales informados, descartadas con motivos y `ofrecerGenerada`. Tipos en `src/shared/types/busqueda.ts`.
+  - `resumirReceta` en shared.
+  - En main: repositorios `listarIngredientes`, `listarSustituciones` y `listarRecetasCompletas`, `buscarEnBase`, y el canal IPC `recetas:buscar`, que valida las preferencias con `esquemaPreferencias`.
+  - `ResumenReceta` incluye ahora `dietas`, `alergenos` y `equipo`, para las etiquetas de Elegir.
+- Decisiones (detalle en `docs/modelo-recetas.md`, "Búsqueda"):
+  - Se añadió el filtro por `nivel`, que no estaba en el Prompt 4.
+  - Si el usuario no indica equipo, no se filtra por equipo.
+  - Una receta que solo cumpliría las restricciones tras una sustitución se descarta igualmente.
+  - Constantes: `PENALIZACION_FALTANTE` 0,1, `BONUS_SUSTITUCION` 0,05 y `UMBRAL_COBERTURA` 0,6.
+- Tests: 128 en Vitest. Pasan `typecheck`, `lint`, `format:check` y `build`. Comprobado en la app: `window.api.recetas.buscar` responde y rechaza preferencias inválidas.
+- Pendiente o a tener en cuenta:
+  - La única receta de la semilla está en `borrador`, así que en la app la búsqueda la descarta (`no_revisada`) y ofrece una generada; habrá recetas revisadas con la tarea 18.
+  - No hay `sustituciones.json` en la semilla.
+  - El `contexto` de las sustituciones no se usa todavía.
 
 ### 2026-10-18 · Cantidades, unidades y etiquetas (tareas 4, 5 y 6)
 - Hecho: en `src/shared/recetas/`:

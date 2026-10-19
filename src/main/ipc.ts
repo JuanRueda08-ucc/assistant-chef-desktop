@@ -1,6 +1,8 @@
 import { ipcMain } from 'electron'
 import { esquemaId } from '@shared/esquemas/receta'
+import { esquemaPreferencias } from '@shared/esquemas/sesion'
 import { CANALES_IPC, type ApiChef } from '@shared/types/ipc'
+import { buscarEnBase } from './db/busqueda'
 import type { BaseDatos } from './db/conexion'
 import { listarRecetas, obtenerReceta } from './db/recetas'
 
@@ -19,5 +21,11 @@ export function registrarIpc(db: BaseDatos): void {
     CANALES_IPC.recetasObtener,
     (_evento, id: unknown): Resultado<ApiChef['recetas']['obtener']> =>
       obtenerReceta(db, esquemaId.parse(id))
+  )
+
+  ipcMain.handle(
+    CANALES_IPC.recetasBuscar,
+    (_evento, preferencias: unknown): Resultado<ApiChef['recetas']['buscar']> =>
+      buscarEnBase(db, esquemaPreferencias.parse(preferencias))
   )
 }

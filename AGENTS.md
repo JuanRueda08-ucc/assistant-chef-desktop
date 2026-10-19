@@ -31,14 +31,14 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 
 ```
 src/main/        proceso principal de Electron: ventana, SQLite, IPC
-  db/            conexión SQLite, carga de semillas, repositorios (recetas.ts)
+  db/            conexión SQLite, carga de semillas, repositorios (recetas, catalogo, busqueda)
   ipc.ts         handlers de los canales IPC
 src/preload/     puente seguro (contextBridge) con API tipada
 src/renderer/    interfaz Svelte (pantallas Preparar, Elegir, Cocinar)
 src/shared/      tipos y lógica pura compartida (sin dependencias de Electron ni DOM)
   types/         receta.ts, sesion.ts, ipc.ts (canales y contrato de window.api)
   esquemas/      esquemas zod que espejan types/ (receta, sesion, semilla)
-  recetas/       lógica pura: escalado, unidades caseras, etiquetas, sustituciones
+  recetas/       lógica pura: escalado, unidades caseras, etiquetas, sustituciones, búsqueda
   ia/            herramientas.ts (contrato de herramientas del chef)
 server/          backend serverless: token de voz, generar receta, sugerir sustitución
 db/              schema.sql y semillas JSON (db/seed/, ver db/seed/README.md)
