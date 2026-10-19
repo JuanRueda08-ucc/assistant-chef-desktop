@@ -22,7 +22,7 @@ Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x
 - [x] 13. Componente `Avatar` con la interfaz `EstadoAvatar` (marcador estático primero, Rive después)
 
 ## IA y voz
-- [ ] 14. `server/`: `POST /voz/token`, `POST /recetas/generar`, `POST /sustituciones/sugerir`
+- [x] 14. `server/`: `POST /voz/token`, `POST /recetas/generar`, `POST /sustituciones/sugerir`
 - [ ] 15. Órdenes cortas locales (siguiente, atrás, repite, pausa)
 - [ ] 16. Sesión de voz en tiempo real con las herramientas del chef
 - [ ] 17. Recetas generadas: validación, reintento y etiqueta en la interfaz

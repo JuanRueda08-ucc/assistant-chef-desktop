@@ -4,20 +4,43 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Roadmap, tarea 14 (Prompt 8 del paquete): backend mínimo en `server/` (Node + TypeScript) con `POST /voz/token`, `POST /recetas/generar` y `POST /sustituciones/sugerir` (ver `docs/ia-chef.md`, "Backend mínimo").
+Roadmap, tareas 15 y 16 (Prompt 9 del paquete): órdenes cortas locales y sesión de voz en tiempo real (ver `docs/ia-chef.md`, "Voz" y "Contexto que recibe el modelo").
 
-- El proveedor de IA va detrás de una interfaz `ProveedorIA`; los tests usan un proveedor falso.
-- **Todavía no hay proveedor elegido**: está pendiente fuera del código, así que no hace falta conectar uno real para terminar la tarea.
-- El hosting tampoco está decidido. Conviene escribir los handlers como `Request → Response` (API web estándar), para que sirvan en Node y en cualquier plataforma serverless.
-- `/recetas/generar`:
-  - Valida con `esquemaReceta` de `src/shared/esquemas/`.
-  - Deriva las etiquetas con `conEtiquetas`; las que mande el modelo se ignoran.
-  - Hace un reintento con el error y, si vuelve a fallar, rechaza.
-- `/sustituciones/sugerir`: como máximo 3 sugerencias, filtradas con `destinoPermitido` (`src/shared/recetas/busqueda.ts`).
-- Hará falta un `tsconfig` para `server/` y que Vitest ya incluye (`server/**/*.test.ts`). La clave va solo en variables de entorno (`.env.example`). Hay que limitar el uso por instalación.
-- Probar la app sin tocar la semilla: la receta de ejemplo sigue en `borrador` por decisión del autor. Elegir no la muestra, pero Cocinar se puede probar iniciando la sesión con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` desde las DevTools y recargando.
+**Antes de escribir código, pregunta al autor.** Hay decisiones abiertas que esta tarea necesita:
+- **Proveedor de voz en tiempo real** (y de IA): no hay ninguno elegido. Hoy solo existe el proveedor `falso` del backend.
+- **Reconocimiento local** de órdenes cortas y de la palabra de activación «Chef»: no se puede usar la Web Speech API (`AGENTS.md`). Hay que elegir un motor local (por ejemplo, uno de reconocimiento de palabras clave sin red), revisar su licencia y su tamaño.
+
+Lo que se puede hacer sin esas decisiones, en `src/shared/`, con tests:
+- `interpretarOrden(texto)`: texto reconocido → `LlamadaHerramienta` ("siguiente", "atrás", "repite", "pausa", "para el temporizador"…). «Repite» es local y no usa herramienta. `confirmado` es verdadero cuando el usuario dice «listo» o «siguiente».
+- `contextoCompacto(sesion, ahora)`: el bloque de texto que recibe el modelo en cada turno, tal como lo describe `docs/ia-chef.md`.
+
+Otras notas:
+- Las llamadas al backend deben salir de main (sin CORS, con `CHEF_API_URL`) y llevar un id de instalación que main genere una vez y guarde en la carpeta de datos del usuario.
+- El micrófono solo puede estar activo en la fase `cocinar`.
+- El avatar ya tiene la pose `escuchando` (`poseDe(estado, true)`).
+- Para probar la app sin tocar la semilla (la receta de ejemplo sigue en `borrador`): Cocinar se prueba iniciando la sesión con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` desde las DevTools y recargando.
 
 ## Registro
+
+### 2026-10-18 · Backend mínimo (tarea 14)
+- Hecho: backend en `server/src/`:
+  - `app.ts`: manejador `Request → Response` con las tres rutas, errores JSON y límite de uso.
+  - `proveedor.ts` (`ProveedorIA`), `proveedores/falso.ts` y `proveedores/index.ts`.
+  - `peticiones.ts` (esquemas zod), `validar-receta.ts`, `sugerencias.ts` y `limite.ts`.
+  - `servidor-node.ts` y `principal.ts`, con los scripts `npm run server:dev` y `server:start`.
+  - `tsconfig.server.json`, incluido en `npm run typecheck`. `.env.example` ampliado.
+- Decisión 0006 (forma del backend). Detalle de rutas, errores y límites en `docs/ia-chef.md`, "Backend mínimo"; comandos en `AGENTS.md`.
+- Diferencias con el Prompt 8:
+  - El catálogo y las técnicas los manda la app en cada petición.
+  - Las recetas generadas salen con `estadoRevision: borrador` y un id `gen_…`.
+  - No hay proveedor real porque no está elegido.
+- Tests: 260 en Vitest (24 del backend), incluida una prueba por HTTP real. Pasan `typecheck`, `lint`, `format:check` y `build`.
+- Comprobado con `npm run server:start` y `curl`: las tres rutas responden con el proveedor falso, y una petición sin `X-Instalacion` se rechaza.
+- Pendiente:
+  - Elegir un proveedor real y escribir su adaptador.
+  - Un almacén de límites compartido y una autenticación mejor antes de publicar.
+  - Reglas de seguridad alimentaria e `ingredienteNuevo` para las recetas generadas (tarea 17).
+  - La app todavía no llama al backend.
 
 ### 2026-10-18 · Pantalla Cocinar y componente Avatar (tareas 12 y 13)
 - Hecho:

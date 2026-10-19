@@ -112,3 +112,35 @@ Función serverless (Node + TypeScript). Guarda la clave de la API y limita el u
 | `POST /sustituciones/sugerir` | opciones cuando la tabla no tiene ninguna |
 
 El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder cambiarlo sin tocar la app.
+
+### En el código (`server/src/`)
+
+- **Manejador:** `crearApp({ proveedor, limitador })` en `app.ts` devuelve un manejador `Request → Response` (API web estándar). `servidor-node.ts` lo sirve con Node; en una plataforma serverless se exporta tal cual. Ver decisión 0006.
+- **Proveedor:** `ProveedorIA` (`proveedor.ts`) tiene tres métodos: `crearTokenVoz`, `generarReceta(peticion, errorAnterior)` y `sugerirSustituciones`. Devuelve JSON en bruto, que el backend valida siempre.
+  - `crearProveedor` (`proveedores/index.ts`) elige según `PROVEEDOR_IA`. Hoy solo existe `falso`: respuestas deterministas sin red, para tests y desarrollo.
+  - Para añadir uno real, crea un adaptador en `proveedores/`, lee la clave de `PROVEEDOR_IA_API_KEY` y regístralo ahí.
+- **Peticiones** (todas `POST` con cabecera `X-Instalacion`; esquemas en `peticiones.ts`):
+
+  | Ruta | Cuerpo | Respuesta 200 |
+  |---|---|---|
+  | `/voz/token` | `{}` | `{ token, expiraEn }` |
+  | `/recetas/generar` | `{ preferencias, catalogo, tecnicas? }` | `{ receta }` |
+  | `/sustituciones/sugerir` | `{ ingredienteId, recetaId?, tituloReceta?, preferencias: { ingredientes?, restricciones?, alergias? }, catalogo }` | `{ sustituciones }` |
+
+  El catálogo lo manda la app (es la fuente de verdad y puede crecer); el backend no tiene base de datos.
+- **Generar receta** (`validar-receta.ts`):
+  - El servidor pone `id` (`gen_…`), `slug`, `origen: generada` y `estadoRevision: borrador`. Ignora `dietas` y `alergenos` del modelo y los deriva del catálogo.
+  - Valida con `esquemaReceta` (estricto) y exige que los ingredientes estén en el catálogo y que las técnicas existan.
+  - Si falla, hace un reintento pasándole el error al modelo. Si vuelve a fallar, responde 422 `receta_invalida`.
+  - La seguridad alimentaria y `ingredienteNuevo` llegan en la tarea 17.
+- **Sugerir sustituciones** (`sugerencias.ts`): de lo que devuelve el modelo se queda con lo válido, como mucho 3, en su orden.
+  - Descarta lo que no está en el catálogo, el propio ingrediente, las repetidas y lo que rompe restricciones o alergias (`destinoPermitido`).
+  - El resultado son `Sustitucion` con `fuente: generada`. `resuelve` lo calcula el código.
+  - Para aplicarlas en la sesión hay que añadirlas a la tabla `sustituciones` (decisión 0004).
+- **Errores:** `{ error: { codigo, mensaje } }`. 404 `ruta_desconocida`, 405 `metodo_no_permitido`, 400 `instalacion_invalida` / `json_invalido` / `peticion_invalida` / `ingrediente_desconocido`, 413 (cuerpo de más de 2 MB), 429 `limite_superado` (con `Retry-After`), 502 `proveedor_fallo` (sin detalles internos) y 422 `receta_invalida`.
+- **Límite de uso** (`limite.ts`): por instalación, función y día UTC. Por defecto 40 tokens de voz, 20 recetas y 60 sugerencias, configurables con `LIMITE_VOZ`, `LIMITE_RECETAS` y `LIMITE_SUSTITUCIONES`.
+  - Solo cuentan las peticiones bien formadas. Cada respuesta lleva `X-Limite-Restantes`.
+  - El almacén es en memoria, válido para un solo proceso. En serverless con varias instancias hará falta uno compartido que implemente `AlmacenUso`.
+- **Pendiente:**
+  - La app aún no genera ni guarda el id de instalación ni llama al backend (tareas 16 y 17). Las llamadas deben salir de main, que no tiene CORS y lee `CHEF_API_URL`.
+  - No hay autenticación más allá del id de instalación.

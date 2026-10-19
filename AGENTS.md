@@ -49,7 +49,8 @@ src/shared/      tipos y lógica pura compartida (sin dependencias de Electron n
   recetas/       lógica pura: escalado, unidades caseras, etiquetas, sustituciones, búsqueda, catálogo
   cocina/        reductor aplicarHerramienta, temporizadores por reloj, crear y adaptar la sesión
   ia/            herramientas.ts (contrato de herramientas del chef: argumentos zod y JSON Schema)
-server/          backend serverless: token de voz, generar receta, sugerir sustitución
+server/src/      backend: app.ts (manejador Request → Response), rutas, proveedor (ProveedorIA),
+                 proveedores/ (falso), limite.ts, servidor-node.ts y principal.ts (arranque local)
 db/              schema.sql y semillas JSON (db/seed/, ver db/seed/README.md)
 docs/            documentación (empieza por docs/README.md)
 ```
@@ -91,11 +92,21 @@ Requiere Node 22 o superior y npm.
 | `npm test` | ejecuta los tests de Vitest una vez (`npm run test:watch` para modo vigilancia) |
 | `npm run lint` | ESLint sobre todo el repositorio |
 | `npm run format` / `npm run format:check` | aplica o comprueba Prettier (los `.md` se excluyen) |
-| `npm run typecheck` | `tsc` para main/preload/shared y `svelte-check` para el renderer |
+| `npm run typecheck` | `tsc` para main/preload/shared, para `server/` (`tsconfig.server.json`) y `svelte-check` para el renderer |
 | `npm run build` | typecheck + compilación a `out/` |
 | `npm run build:win` / `build:mac` / `build:linux` | instaladores con electron-builder (tarea 19) |
+| `npm run server:dev` | backend local con recarga (`server/src/principal.ts`, puerto `SERVIDOR_PUERTO`, por defecto 8787) |
+| `npm run server:start` | backend local sin recarga |
 
-Alias de importación: `@shared/*` apunta a `src/shared/*` en main, preload, renderer y tests.
+Alias de importación: `@shared/*` apunta a `src/shared/*` en main, preload, renderer, server y tests.
+
+**Backend en local:** copia `.env.example` a `.env` (o no crees ninguno: los valores por defecto sirven) y ejecuta `npm run server:dev`. Con `PROVEEDOR_IA=falso` responde sin red y sin clave. Ejemplo:
+
+```bash
+curl -X POST http://localhost:8787/voz/token -H "x-instalacion: prueba-local-0001"
+```
+
+Todas las rutas son `POST`, necesitan la cabecera `X-Instalacion` (8 a 64 caracteres `A-Z a-z 0-9 -`) y responden JSON. Detalle de rutas, errores y límites en `docs/ia-chef.md`, "Backend mínimo".
 
 ## Diseño visual
 
