@@ -1,5 +1,8 @@
 import { mount } from 'svelte'
 
+// Tipografías incluidas en la app (sin red): ver docs/diseno.md.
+import '@fontsource-variable/bricolage-grotesque/opsz.css'
+import '@fontsource-variable/figtree/wght.css'
 import './styles/tokens.css'
 
 import App from './App.svelte'

@@ -34,6 +34,6 @@
     min-height: 100vh;
     padding: 2rem;
     background: var(--color-fondo);
-    color: var(--color-texto);
+    color: var(--color-tinta);
   }
 </style>

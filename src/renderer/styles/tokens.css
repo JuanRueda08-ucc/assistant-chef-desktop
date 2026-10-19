@@ -1,15 +1,55 @@
-/* Tokens de diseño. Valores provisionales: el diseño visual está en iteración (docs/diseno.md).
-   Los componentes usan solo estas variables para que el diseño final se aplique aquí. */
+/* Tokens de diseño · dirección A «Mostaza» (docs/diseno.md, docs/decisiones/0005-direccion-visual.md).
+   Los componentes usan solo estas variables: no escribas colores, tipografías ni radios sueltos.
+   Contrastes comprobados (WCAG): ver docs/diseno.md. */
 :root {
-  --color-crema: #f5efe1;
-  --color-mostaza: #d4a017;
-  --color-tinta: #1f1d1a;
+  /* Color */
+  --color-fondo: #f6f5f1; /* blanco roto: fondo de las pantallas */
+  --color-superficie: #ffffff; /* tarjetas, paneles, globo del chef */
+  --color-tinta: #1d1d1b; /* texto y trazo, el mismo negro del dibujo del chef */
+  --color-tinta-suave: #5f5e5a; /* texto secundario (5,9:1 sobre el fondo) */
+  --color-acento: #ffc83d; /* amarillo girasol: botón principal, selección, cápsulas */
+  --color-acento-suave: #fff3cc; /* fondo de lo seleccionado */
+  --color-blob: #ffd970; /* círculo detrás del chef */
+  --color-panel-suave: #f1efe8; /* etiquetas, números de los momentos */
+  --color-borde-control: #8c887f; /* borde de controles sin seleccionar (3:1) */
+  --color-separador: #e8e6df; /* bordes decorativos de tarjetas, no de controles */
+  --color-exito: #2f9e5b; /* micrófono escuchando, temporizador listo */
 
-  --color-fondo: var(--color-crema);
-  --color-texto: var(--color-tinta);
-  --color-acento: var(--color-mostaza);
+  /* Tipografía: Bricolage Grotesque para títulos y números grandes; Figtree para el texto. */
+  --fuente-titulo: 'Bricolage Grotesque Variable', system-ui, sans-serif;
+  --fuente-texto: 'Figtree Variable', system-ui, sans-serif;
+  --texto-xs: 13px;
+  --texto-s: 15px;
+  --texto-m: 17px;
+  --texto-l: 22px;
+  --texto-xl: 30px;
+  --texto-paso: 36px; /* texto del paso en Cocinar, legible a 2 m */
+  --texto-numero: 64px; /* número del paso */
+  --peso-texto: 500;
+  --peso-fuerte: 700;
+  --peso-titulo: 800;
 
-  --fuente-base: system-ui, sans-serif;
+  /* Forma: el trazo grueso imita la línea del chef y marca lo activo o principal. */
+  --trazo: 2.5px;
+  --borde: 1.5px;
+  --radio-xl: 32px;
+  --radio-l: 24px;
+  --radio-m: 16px;
+  --radio-pildora: 999px;
+
+  /* Espacio */
+  --espacio-1: 4px;
+  --espacio-2: 8px;
+  --espacio-3: 12px;
+  --espacio-4: 16px;
+  --espacio-5: 24px;
+  --espacio-6: 32px;
+
+  /* Tamaños táctiles y de lectura a distancia */
+  --alto-control: 44px;
+  --alto-boton-cocina: 76px;
+
+  --foco: 3px solid var(--color-tinta);
 }
 
 * {
@@ -18,7 +58,33 @@
 
 body {
   margin: 0;
-  font-family: var(--fuente-base);
+  font-family: var(--fuente-texto);
+  font-weight: var(--peso-texto);
+  font-size: var(--texto-m);
   background: var(--color-fondo);
-  color: var(--color-texto);
+  color: var(--color-tinta);
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--fuente-titulo);
+  font-weight: var(--peso-titulo);
+  letter-spacing: -0.01em;
+  margin: 0;
+}
+
+:focus-visible {
+  outline: var(--foco);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
 }

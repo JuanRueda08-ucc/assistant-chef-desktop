@@ -13,3 +13,6 @@ coverage
 
 # Material de planificación local, fuera del repositorio
 plan/
+
+# Configuración local de vista previa de Claude Code
+.claude/launch.json

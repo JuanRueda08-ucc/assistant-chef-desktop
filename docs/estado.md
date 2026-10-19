@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Roadmap, tareas 10 y 11 (Prompt 6 del paquete): pantallas Preparar y Elegir en `src/renderer/` con Svelte 5, usando solo variables de `src/renderer/styles/tokens.css` y componentes neutros (ver `docs/diseno.md`).
+Roadmap, tareas 10 y 11 (Prompt 6 del paquete): pantallas Preparar y Elegir en `src/renderer/` con Svelte 5, **con el diseño final de la dirección A «Mostaza»**. Ya no se usan componentes neutros: sigue `docs/diseno.md` (componentes, contrastes) y la maqueta `docs/diseno/maquetas.html`, usando solo variables de `src/renderer/styles/tokens.css`. El Prompt 6 original habla de "componentes neutros" y "crema, mostaza, tinta"; eso quedó reemplazado por la decisión 0005.
 
 - **Falta un canal IPC para el catálogo:** Preparar necesita los ingredientes por categoría. Añade `catalogo:ingredientes` siguiendo "Añadir un canal IPC" de `AGENTS.md`; el repositorio `listarIngredientes` ya existe en `src/main/db/catalogo.ts`.
 - **Elegir:** usa `window.api.recetas.buscar(preferencias)`. Muestra `resultados[].faltantes` y `opcionalesFaltantes` en el panel "qué falta", y las etiquetas con `receta.dietas`, `alergenos` y `equipo`. `ofrecerGenerada` queda para la tarea 17.
@@ -13,6 +13,19 @@ Roadmap, tareas 10 y 11 (Prompt 6 del paquete): pantallas Preparar y Elegir en `
 - `App.svelte` tiene una lista provisional de recetas que estas pantallas reemplazan.
 
 ## Registro
+
+### 2026-10-18 · Dirección visual «Mostaza»
+- Hecho:
+  - Se compararon tres direcciones en maquetas de las tres pantallas, a partir de dos referencias del autor (app de recetas amarilla y paleta azul pizarra); el autor eligió la A «Mostaza».
+  - Especificación en `docs/diseno.md`, decisión en `docs/decisiones/0005-direccion-visual.md` y maqueta en `docs/diseno/maquetas.html`.
+  - `src/renderer/styles/tokens.css` reescrito con los tokens finales.
+  - Bricolage Grotesque y Figtree incluidas con `@fontsource-variable/*` e importadas en `src/renderer/main.ts`.
+  - Regla de diseño de `AGENTS.md` actualizada.
+- Chef: 11 poses PNG en `src/renderer/assets/chef/` (aportadas por el autor; se les añadió la extensión `.png`). `chef_estatico` y `chef_hablando` están a menor escala que el resto: hay que normalizarlas antes de la tarea 13.
+- Contrastes comprobados (detalle en `docs/diseno.md`). El texto secundario se oscureció a `#5f5e5a` y los controles sin seleccionar llevan el borde `#8c887f` (3:1).
+- Pendiente:
+  - Revisar las pantallas, una vez construidas, con el plugin Design de Anthropic (instalado en la cuenta; sus skills estarán disponibles en una sesión nueva).
+  - Fotos licenciadas de los platos.
 
 ### 2026-10-18 · Estado de cocina y herramientas del chef (tareas 8 y 9)
 - Hecho:

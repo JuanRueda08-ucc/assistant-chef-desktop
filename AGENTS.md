@@ -91,4 +91,8 @@ Alias de importación: `@shared/*` apunta a `src/shared/*` en main, preload, ren
 
 ## Diseño visual
 
-El diseño visual está en iteración aparte; no inventes estilos finales. Usa variables CSS en `src/renderer/styles/tokens.css` para que el diseño se pueda aplicar después. Dirección actual: fondo crema, mostaza y tinta; avatar monolínea basado en el dibujo del autor (ver `docs/diseno.md`).
+Dirección elegida: **A «Mostaza»**, especificada en `docs/diseno.md` (colores, tipografía, componentes y contrastes), con maqueta de referencia en `docs/diseno/maquetas.html`. Reglas:
+- Usa solo las variables de `src/renderer/styles/tokens.css`; no escribas colores, tipografías ni radios sueltos. Si falta un token, añádelo allí y documéntalo en `docs/diseno.md`.
+- El trazo de tinta grueso (`--trazo`) marca lo activo y lo principal; el amarillo nunca es texto ni la única señal de selección.
+- Las tipografías se incluyen con `@fontsource-variable/*`; nada se carga de internet.
+- Las imágenes del chef están en `src/renderer/assets/chef/`.
