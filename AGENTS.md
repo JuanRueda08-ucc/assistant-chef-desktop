@@ -51,7 +51,7 @@ src/shared/      tipos y lógica pura compartida (sin dependencias de Electron n
   cocina/        reductor aplicarHerramienta, temporizadores por reloj, crear y adaptar la sesión
   ia/            herramientas.ts (contrato de herramientas del chef: argumentos zod y JSON Schema)
 server/src/      backend: app.ts (manejador Request → Response), rutas, proveedor (ProveedorIA),
-                 proveedores/ (falso), limite.ts, servidor-node.ts y principal.ts (arranque local)
+                 proveedores/ (falso, gemini), limite.ts, servidor-node.ts y principal.ts (arranque local)
 db/              schema.sql y semillas JSON (db/seed/, ver db/seed/README.md)
 docs/            documentación (empieza por docs/README.md)
 ```

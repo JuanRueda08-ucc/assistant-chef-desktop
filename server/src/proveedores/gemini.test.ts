@@ -1,0 +1,106 @@
+import { describe, expect, it, vi } from 'vitest'
+import { MODELO_GEMINI_LIVE } from '@shared/ia/gemini'
+import { crearApp } from '../app'
+import { AlmacenMemoria, Limitador } from '../limite'
+import { cuerpoReceta, cuerpoSustitucion, post, T0 } from '../fixtures.test-utils'
+import { ProveedorGemini } from './gemini'
+import { crearProveedor } from './index'
+import { esquemaPeticionReceta, esquemaPeticionSustitucion } from '../peticiones'
+
+const json = (cuerpo: unknown, status = 200): Response =>
+  new Response(JSON.stringify(cuerpo), { status })
+
+describe('ProveedorGemini (transporte simulado, sin red)', () => {
+  it('registra Gemini, exige clave solo para Gemini y conserva falso por defecto', () => {
+    expect(crearProveedor({}).nombre).toBe('falso')
+    expect(crearProveedor({ PROVEEDOR_IA: 'falso' }).nombre).toBe('falso')
+    expect(() => crearProveedor({ PROVEEDOR_IA: 'gemini' })).toThrow('PROVEEDOR_IA_API_KEY')
+    expect(
+      crearProveedor({ PROVEEDOR_IA: 'gemini', PROVEEDOR_IA_API_KEY: 'solo-test' }).nombre
+    ).toBe('gemini')
+  })
+  it('solicita un token de un uso con ventana de apertura de un minuto y modelo restringido', async () => {
+    const solicitar = vi.fn<typeof fetch>().mockResolvedValue(json({ name: 'auth_tokens/prueba' }))
+    const proveedor = new ProveedorGemini('solo-test', { fetch: solicitar, ahora: () => T0 })
+    expect(await proveedor.crearTokenVoz('instalacion-test')).toEqual({
+      token: 'auth_tokens/prueba',
+      expiraEn: new Date(T0 + 60_000).toISOString()
+    })
+    const [url, opciones] = solicitar.mock.calls[0]!
+    expect(url).toBe('https://generativelanguage.googleapis.com/v1beta/auth_tokens')
+    expect(opciones?.headers).toMatchObject({ 'x-goog-api-key': 'solo-test' })
+    expect(JSON.parse(opciones!.body as string)).toEqual({
+      uses: 1,
+      expireTime: new Date(T0 + 30 * 60_000).toISOString(),
+      newSessionExpireTime: new Date(T0 + 60_000).toISOString(),
+      liveConnectConstraints: {
+        model: `models/${MODELO_GEMINI_LIVE}`,
+        config: { responseModalities: ['AUDIO'] }
+      }
+    })
+  })
+  it('las rutas mantienen validación y no exponen la clave ni errores internos de Google', async () => {
+    const solicitar = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(json({ error: { message: 'solo-test' } }, 429))
+    const registrarError = vi.fn()
+    const manejar = crearApp({
+      proveedor: new ProveedorGemini('solo-test', { fetch: solicitar }),
+      limitador: new Limitador(new AlmacenMemoria()),
+      registrarError
+    })
+    const respuesta = await manejar(post('/voz/token'))
+    expect(respuesta.status).toBe(502)
+    expect(await respuesta.text()).not.toContain('solo-test')
+    expect(JSON.stringify(registrarError.mock.calls)).not.toContain('solo-test')
+  })
+  it.each([{}, { name: 'clave-permanente' }, { name: '' }])(
+    'rechaza un token malformado %j',
+    async (bruto) => {
+      const proveedor = new ProveedorGemini('solo-test', {
+        fetch: vi.fn<typeof fetch>().mockResolvedValue(json(bruto))
+      })
+      await expect(proveedor.crearTokenVoz('instalacion-test')).rejects.toThrow(
+        'formato inesperado'
+      )
+    }
+  )
+  it('implementa generación, reintento con error y sugerencias en JSON', async () => {
+    const solicitar = vi.fn<typeof fetch>().mockImplementation(async () =>
+      json({
+        candidates: [
+          {
+            content: {
+              parts: [{ thought: true, text: 'interno' }, { text: '{"titulo":"Prueba"}' }]
+            }
+          }
+        ]
+      })
+    )
+    const proveedor = new ProveedorGemini('solo-test', { fetch: solicitar })
+    expect(
+      await proveedor.generarReceta(esquemaPeticionReceta.parse(cuerpoReceta()), 'faltan pasos')
+    ).toEqual({
+      titulo: 'Prueba'
+    })
+    expect(solicitar.mock.calls[0]![1]!.body).toContain('faltan pasos')
+    expect(
+      await proveedor.sugerirSustituciones(esquemaPeticionSustitucion.parse(cuerpoSustitucion()))
+    ).toEqual({ titulo: 'Prueba' })
+  })
+  it('oculta errores de transporte y rechaza contenido vacío o JSON inválido', async () => {
+    const solicitar = vi
+      .fn<typeof fetch>()
+      .mockRejectedValueOnce(new Error('clave solo-test'))
+      .mockResolvedValueOnce(json({ candidates: [] }))
+      .mockResolvedValueOnce(json({ candidates: [{ content: { parts: [{ text: 'no JSON' }] } }] }))
+    const proveedor = new ProveedorGemini('solo-test', { fetch: solicitar })
+    await expect(proveedor.crearTokenVoz('instalacion-test')).rejects.toThrow('conectar')
+    await expect(
+      proveedor.generarReceta(esquemaPeticionReceta.parse(cuerpoReceta()), null)
+    ).rejects.toThrow('contenido JSON')
+    await expect(
+      proveedor.generarReceta(esquemaPeticionReceta.parse(cuerpoReceta()), null)
+    ).rejects.toThrow('JSON válido')
+  })
+})

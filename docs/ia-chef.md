@@ -131,7 +131,9 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
 
 - **Manejador:** `crearApp({ proveedor, limitador })` en `app.ts` devuelve un manejador `Request → Response` (API web estándar). `servidor-node.ts` lo sirve con Node; en una plataforma serverless se exporta tal cual. Ver decisión 0006.
 - **Proveedor:** `ProveedorIA` (`proveedor.ts`) tiene tres métodos: `crearTokenVoz`, `generarReceta(peticion, errorAnterior)` y `sugerirSustituciones`. Devuelve JSON en bruto, que el backend valida siempre.
-  - `crearProveedor` (`proveedores/index.ts`) elige según `PROVEEDOR_IA`. Hoy solo existe `falso`: respuestas deterministas sin red, para tests y desarrollo.
+  - `crearProveedor` (`proveedores/index.ts`) elige según `PROVEEDOR_IA`: `falso` (por defecto, respuestas deterministas sin red) o `gemini` (exige `PROVEEDOR_IA_API_KEY` solo en el backend).
+  - `gemini.ts` usa REST `v1beta/auth_tokens`: un uso, un minuto para abrir la conexión y treinta minutos de vigencia, restringido a audio y `gemini-3.8-live`. `expiraEn` es el límite para abrir la conexión. Recetas y sustituciones usan JSON de `gemini-3.8-flash`, con la validación existente en el backend. Timeout de 20 s; los errores no incluyen clave ni cuerpos de Google. Fetch y reloj se simulan en tests sin red.
+  - Referencias verificadas el 2026-10-19: [tokens efímeros](https://ai.google.dev/gemini-api/docs/live-api/ephemeral-tokens), [WebSocket](https://ai.google.dev/gemini-api/docs/live-api/get-started-websocket) y [modelos](https://ai.google.dev/gemini-api/docs/models).
   - Para añadir uno real, crea un adaptador en `proveedores/`, lee la clave de `PROVEEDOR_IA_API_KEY` y regístralo ahí.
 - **Peticiones** (todas `POST` con cabecera `X-Instalacion`; esquemas en `peticiones.ts`):
 

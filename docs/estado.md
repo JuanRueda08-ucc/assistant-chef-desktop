@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-En curso (Prompt 9): paso 1 terminado; seguir con el adaptador Gemini del backend (paso 2), id de instalación e IPC (paso 3), e integración Vosk/Gemini en Cocinar (paso 4). Las tareas 15 y 16 siguen abiertas hasta integrar la voz.
+En curso (Prompt 9): pasos 1–2 terminados; seguir con id de instalación e IPC (paso 3), e integración Vosk/Gemini en Cocinar (paso 4). Las tareas 15 y 16 siguen abiertas hasta integrar la voz.
 
 Roadmap, tareas 15 y 16 (Prompt 9 del paquete): órdenes cortas locales y sesión de voz en tiempo real (ver `docs/ia-chef.md`, "Voz" y "Contexto que recibe el modelo").
 
@@ -25,6 +25,14 @@ Otras notas:
 - Para probar la app sin tocar la semilla (la receta de ejemplo sigue en `borrador`): Cocinar se prueba iniciando la sesión con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` desde las DevTools y recargando.
 
 ## Registro
+
+### 2026-10-19 · Prompt 9, paso 2: proveedor Gemini
+- Adaptador REST `server/src/proveedores/gemini.ts`, registrado con `PROVEEDOR_IA=gemini`. La clave solo se lee en el backend.
+- Token efímero Live `v1beta`: un uso, un minuto para abrir, treinta minutos de vigencia, modelo `gemini-3.8-live` y audio restringidos.
+- Implementados también los métodos de recetas/sustituciones en JSON; siguen pasando por la validación del backend.
+- Configuración pública e instrucciones del chef en `src/shared/ia/gemini.ts`. `.env.example`, AGENTS y documentación actualizados; `falso` sigue siendo el valor predeterminado sin red ni clave.
+- Tests con fetch/tiempo simulados, incluidos errores y ocultación de secretos. No se usó la API real.
+- Pendiente: pasos 3–4.
 
 ### 2026-10-19 · Prompt 9, paso 1: órdenes y contexto puros
 - `src/shared/ia/ordenes.ts`: gramática compartida, intérprete de frases completas y resolución segura de un único temporizador. Repetir y activar son acciones locales; sin un temporizador inequívoco se ofrecen botones.
