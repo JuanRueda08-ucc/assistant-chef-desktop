@@ -55,7 +55,7 @@ export function escalarReceta(receta: Receta, porciones: number): RecetaEscalada
     }))
   }
 
-  return { receta: copia, factor: limpiar(factor), aviso: avisoPara(factor) }
+  return { receta: copia, factor: limpiar(factor), aviso: avisoEscalado(factor) }
 }
 
 /** Cantidad escalada y redondeada de un ingrediente; `null` para `al_gusto`. */
@@ -101,7 +101,8 @@ export function cantidadesDelPaso(receta: Receta, paso: Paso): CantidadPaso[] {
   })
 }
 
-function avisoPara(factor: number): AvisoEscalado | null {
+/** Aviso para un factor de escalado extremo; `null` entre 0,5 y 2. */
+export function avisoEscalado(factor: number): AvisoEscalado | null {
   if (factor > FACTOR_AVISO_ALTO) {
     return {
       tipo: 'factor_alto',

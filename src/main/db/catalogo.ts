@@ -1,7 +1,29 @@
 import { z } from 'zod'
-import { esquemaIngrediente, esquemaSustitucion } from '@shared/esquemas/receta'
-import type { Ingrediente, Sustitucion } from '@shared/types/receta'
+import { esquemaIngrediente, esquemaSustitucion, esquemaTecnica } from '@shared/esquemas/receta'
+import type { Ingrediente, Sustitucion, Tecnica } from '@shared/types/receta'
 import type { BaseDatos } from './conexion'
+
+interface FilaTecnica {
+  id: string
+  nombre: string
+  descripcion: string
+  pasos_cortos: string
+  media: string | null
+}
+
+/** Todas las técnicas, validadas con el esquema. */
+export function listarTecnicas(db: BaseDatos): Tecnica[] {
+  const filas = db.prepare('SELECT * FROM tecnicas ORDER BY id').all() as FilaTecnica[]
+  return z.array(esquemaTecnica).parse(
+    filas.map((f) => ({
+      id: f.id,
+      nombre: f.nombre,
+      descripcion: f.descripcion,
+      pasosCortos: JSON.parse(f.pasos_cortos),
+      media: f.media
+    }))
+  )
+}
 
 interface FilaIngrediente {
   id: string

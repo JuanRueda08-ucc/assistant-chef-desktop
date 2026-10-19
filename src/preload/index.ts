@@ -8,6 +8,11 @@ const api: ApiChef = {
     listar: () => ipcRenderer.invoke(CANALES_IPC.recetasListar),
     obtener: (id) => ipcRenderer.invoke(CANALES_IPC.recetasObtener, id),
     buscar: (preferencias) => ipcRenderer.invoke(CANALES_IPC.recetasBuscar, preferencias)
+  },
+  sesion: {
+    retomar: () => ipcRenderer.invoke(CANALES_IPC.sesionRetomar),
+    iniciar: (datos) => ipcRenderer.invoke(CANALES_IPC.sesionIniciar, datos),
+    aplicar: (llamada) => ipcRenderer.invoke(CANALES_IPC.sesionAplicar, llamada)
   }
 }
 

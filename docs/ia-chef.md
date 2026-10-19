@@ -46,6 +46,38 @@ Todas devuelven `{ ok: true, estado, decir? }` o `{ ok: false, error, decir? }`.
 
 "Repetir" es local: vuelve a leer `textoVoz` del paso sin pasar por el modelo.
 
+### En el código
+
+- **Contrato** (`src/shared/ia/herramientas.ts`):
+  - `ARGUMENTOS` tiene un esquema zod estricto por herramienta. De ellos salen las `DEFINICIONES_HERRAMIENTAS` en JSON Schema que recibe el modelo (`nombre`, `descripcion`, `parametros`), así que no hay dos definiciones que mantener.
+  - `controlar_temporizador` exige `id` o `etiqueta`, y `segundos` va solo con `sumar`.
+  - `etiqueta` admite como mucho 40 caracteres.
+- **Llamada:** `{ nombre, argumentos, confirmado }`. `confirmado` lo pone la app (botón pulsado u orden "listo" en este turno), nunca el modelo; por eso no está en los argumentos.
+- **Resultado:**
+  - Si funciona: `{ ok: true, estado, datos?, decir? }`. `estado` es un `EstadoCocina` resumido: fase, receta, porciones, paso actual y total, y temporizadores no cancelados con su restante en ese momento.
+  - `datos` lleva lo propio de cada herramienta: `temporizadorSugerido`, `temporizadorId`, `aviso`, `tecnica` u `opciones`.
+  - Si falla: `{ ok: false, error: { codigo, mensaje }, decir? }`, con los códigos de `CODIGOS_ERROR`.
+- **Reductor:** `aplicarHerramienta(sesion, llamada, ahora, contexto)` en `src/shared/cocina/aplicar.ts`.
+  - El cuarto parámetro, `contexto`, no estaba en el diseño original. Lleva la receta original, el catálogo, las sustituciones y las técnicas: hace falta para reescalar y sustituir desde la original.
+  - Es puro: la hora la pasa quien llama y nunca modifica lo que recibe. Si falla, devuelve la misma sesión con avatar `hablar`.
+  - En cada éxito añade un evento (máximo 50) y actualiza `actualizadaEn`.
+  - Antes de aplicar la herramienta, marca como terminados los temporizadores que llegaron a cero.
+- **Reglas que concretan la tabla:**
+  - `avanzar_paso` exige `confirmado` si el paso actual tiene `requiereConfirmacion`. Ofrece el temporizador del nuevo paso en `datos` y en `decir`, pero no lo crea.
+  - `iniciar_temporizador`: "activos" son los que están corriendo o pausados. No admite repetir la etiqueta de un activo (sin distinguir mayúsculas). Los ids son `t1`, `t2`…
+  - `controlar_temporizador` busca por etiqueta entre los no cancelados y, si hay varios, prefiere el activo. Si sigue habiendo varios, devuelve `temporizador_ambiguo`.
+  - `sumar` a un temporizador terminado lo vuelve a poner en marcha, y el total no puede pasar de 6 h. `cancelar` también sirve para descartar uno terminado.
+  - `cambiar_porciones` reconstruye la receta desde la original: primero las sustituciones y después el escalado.
+  - `mostrar_tecnica` no cambia el estado; devuelve la técnica en `datos`.
+  - `sustituir_ingrediente`:
+    - Sin `sustitutoId`, devuelve las opciones de la tabla que respetan las restricciones y alergias del usuario (específicas de la receta primero), aunque el usuario no tenga el ingrediente.
+    - Con `sustitutoId`, exige una fila de la tabla para ese par. Las que proponga el modelo tendrán que añadirse a la tabla con `fuente: generada` (tarea 14).
+  - `terminar_receta` deja `fase: terminado` y `pasoActual: null`.
+- **Main** (`src/main/cocina.ts`):
+  - `sesion:iniciar` crea la sesión, escalada y en el paso 1. Descarta la sesión `cocinar` anterior, si había, y no permite recetas `retiradas`.
+  - `sesion:aplicar` guarda la sesión solo si `ok`.
+  - `sesion:retomar` devuelve la sesión que estaba cocinando, con los temporizadores puestos al día con el reloj, y la guarda si alguno terminó mientras la app estaba cerrada.
+
 Reglas para el modelo (van en el prompt de sistema, `docs/prompts/` cuando exista):
 - Nunca afirmes un cambio que no hiciste con una herramienta.
 - No avances solo cuando acaba un temporizador: pregunta.

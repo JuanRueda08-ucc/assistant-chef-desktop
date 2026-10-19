@@ -12,8 +12,8 @@ Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x
 - [x] 5. Conversión a unidades caseras para mostrar
 - [x] 6. Derivar dietas y alérgenos desde el catálogo
 - [x] 7. Búsqueda y puntuación de recetas con "qué falta"
-- [ ] 8. Reductor de `SesionCocina`: aplicar cada herramienta con sus precondiciones
-- [ ] 9. Temporizadores basados en reloj (sobreviven a reinicios)
+- [x] 8. Reductor de `SesionCocina`: aplicar cada herramienta con sus precondiciones
+- [x] 9. Temporizadores basados en reloj (sobreviven a reinicios)
 
 ## Interfaz
 - [ ] 10. Preparar: ingredientes por categoría y búsqueda, preferencias

@@ -33,13 +33,15 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 src/main/        proceso principal de Electron: ventana, SQLite, IPC
   db/            conexión SQLite, carga de semillas, repositorios (recetas, catalogo, busqueda)
   ipc.ts         handlers de los canales IPC
+  cocina.ts      sesión de cocina: iniciar, retomar y aplicar herramientas guardando en SQLite
 src/preload/     puente seguro (contextBridge) con API tipada
 src/renderer/    interfaz Svelte (pantallas Preparar, Elegir, Cocinar)
 src/shared/      tipos y lógica pura compartida (sin dependencias de Electron ni DOM)
-  types/         receta.ts, sesion.ts, ipc.ts (canales y contrato de window.api)
+  types/         receta.ts, sesion.ts, busqueda.ts, ipc.ts (canales y contrato de window.api)
   esquemas/      esquemas zod que espejan types/ (receta, sesion, semilla)
   recetas/       lógica pura: escalado, unidades caseras, etiquetas, sustituciones, búsqueda
-  ia/            herramientas.ts (contrato de herramientas del chef)
+  cocina/        reductor aplicarHerramienta, temporizadores por reloj, crear y adaptar la sesión
+  ia/            herramientas.ts (contrato de herramientas del chef: argumentos zod y JSON Schema)
 server/          backend serverless: token de voz, generar receta, sugerir sustitución
 db/              schema.sql y semillas JSON (db/seed/, ver db/seed/README.md)
 docs/            documentación (empieza por docs/README.md)
@@ -51,6 +53,7 @@ docs/            documentación (empieza por docs/README.md)
 - **Opcionales como `null`**, no `?:`: el JSON, SQLite y zod usan la misma forma. En los JSON de semilla se pueden omitir; zod pone el valor por defecto.
 - **Base:** `chef.sqlite` en `app.getPath('userData')`. `db/schema.sql` es idempotente y se ejecuta en cada arranque; las semillas se validan y se cargan también en cada arranque (se empaquetan en el bundle de main con `import.meta.glob`).
 - **Añadir un canal IPC:** 1) nombre en `CANALES_IPC` y firma en `ApiChef` (`src/shared/types/ipc.ts`); 2) handler en `src/main/ipc.ts` que valida los argumentos con zod; 3) función en `src/preload/index.ts`. Nunca expongas `ipcRenderer` en bruto.
+- **Cambiar la cocina:** siempre con `window.api.sesion.aplicar({ nombre, argumentos, confirmado })`, tanto desde botones como desde voz. `confirmado` lo pone la app (botón pulsado o "listo" reconocido), nunca el modelo. Main pone la hora, aplica `aplicarHerramienta` y guarda la sesión solo si `resultado.ok`. Al abrir la app, `window.api.sesion.retomar()` devuelve la sesión que estaba cocinando.
 
 ## Reglas del dominio
 

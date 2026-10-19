@@ -4,19 +4,36 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Roadmap, tareas 8 y 9 (Prompt 5 del paquete):
-- Definiciones JSON Schema de las 9 herramientas en `src/shared/ia/herramientas.ts`.
-- Reductor `aplicarHerramienta(sesion, llamada, ahora) → { sesion, resultado, avatar }` en `src/shared/`.
-- Temporizadores basados en reloj.
-- Persistencia de `SesionCocina` en la tabla `sesiones`, y retomarla al abrir la app.
+Roadmap, tareas 10 y 11 (Prompt 6 del paquete): pantallas Preparar y Elegir en `src/renderer/` con Svelte 5, usando solo variables de `src/renderer/styles/tokens.css` y componentes neutros (ver `docs/diseno.md`).
 
-Piezas que ya existen:
-- `cambiar_porciones`: `escalarReceta` y `cantidadesDelPaso`.
-- `sustituir_ingrediente`: `aplicarSustitucion`. Al recalcular, aplica las sustituciones sobre la receta original y después escala.
-- Límites y validación: `esquemaSesionCocina`, `PORCIONES_MIN` y `PORCIONES_MAX`, `SEGUNDOS_TEMPORIZADOR_MIN` y `SEGUNDOS_TEMPORIZADOR_MAX`.
-- Base de datos: la tabla `sesiones` con su índice único de una sola sesión `cocinar`.
+- **Falta un canal IPC para el catálogo:** Preparar necesita los ingredientes por categoría. Añade `catalogo:ingredientes` siguiendo "Añadir un canal IPC" de `AGENTS.md`; el repositorio `listarIngredientes` ya existe en `src/main/db/catalogo.ts`.
+- **Elegir:** usa `window.api.recetas.buscar(preferencias)`. Muestra `resultados[].faltantes` y `opcionalesFaltantes` en el panel "qué falta", y las etiquetas con `receta.dietas`, `alergenos` y `equipo`. `ofrecerGenerada` queda para la tarea 17.
+- **Al elegir una receta:** `window.api.sesion.iniciar({ recetaId, porciones, preferencias })` lleva a Cocinar (tarea 12). Al abrir la app, `window.api.sesion.retomar()` debe llevar directo a Cocinar si hay una sesión cocinando.
+- **Cuidado:** la única receta de la semilla está en `borrador` y la búsqueda la descarta. Para probar Elegir hace falta al menos una receta `revisada` (cambia temporalmente el `estadoRevision` en tu base local, o espera a la tarea 18). No cambies la semilla sin decidirlo.
+- `App.svelte` tiene una lista provisional de recetas que estas pantallas reemplazan.
 
 ## Registro
+
+### 2026-10-18 · Estado de cocina y herramientas del chef (tareas 8 y 9)
+- Hecho:
+  - Contrato de las 9 herramientas en `src/shared/ia/herramientas.ts`: argumentos zod, JSON Schema generado, llamada, resultado y códigos de error.
+  - Reductor `aplicarHerramienta` en `src/shared/cocina/aplicar.ts`, con temporizadores por reloj (`temporizadores.ts`) y `crearSesionCocina` / `adaptarReceta` (`sesion.ts`).
+  - En main: `src/main/cocina.ts` (iniciar, retomar y aplicar guardando), `src/main/db/sesiones.ts`, `listarTecnicas`, y los canales IPC `sesion:retomar`, `sesion:iniciar` y `sesion:aplicar` en el preload.
+  - Nuevas funciones exportadas en `busqueda.ts`: `opcionesDeSustitucion` y `destinoPermitido`; en `escalado.ts`: `avisoEscalado`.
+- Decisiones: ver `docs/decisiones/0004-herramientas-y-sesion.md` y la sección "En el código" de `docs/ia-chef.md`. Diferencias con el Prompt 5:
+  - El reductor recibe un cuarto parámetro, `contexto`.
+  - `confirmado` va en la llamada y no en los argumentos del modelo.
+  - Los resultados incluyen `datos`.
+- Tests: 217 en Vitest, con éxito y precondición fallida de cada herramienta, confirmación obligatoria, inmutabilidad (objetos congelados) y una receta cocinada de principio a fin. La persistencia se prueba con un archivo SQLite real cerrado y reabierto, con temporizadores corriendo, terminados y pausados. Pasan `typecheck`, `lint`, `format:check` y `build`.
+- Comprobado en la app (`npm run dev` dos veces seguidas):
+  - Iniciar la sesión, el rechazo sin confirmación, avanzar confirmando y crear un temporizador.
+  - Al reabrir, se retoma el paso 2 con el temporizador corriendo según el reloj.
+  - Una herramienta desconocida se rechaza.
+  - En tu base local de desarrollo queda una sesión cocinando de esa prueba; el próximo `sesion:iniciar` la reemplaza.
+- Pendiente o a tener en cuenta:
+  - El contexto compacto para el modelo (bloque de texto de `docs/ia-chef.md`) se hace en la tarea 16.
+  - Las sustituciones del modelo tendrán que guardarse en la tabla (tarea 14).
+  - Al iniciar otra receta, la sesión anterior se borra.
 
 ### 2026-10-18 · Búsqueda y "qué falta" (tarea 7)
 - Hecho:

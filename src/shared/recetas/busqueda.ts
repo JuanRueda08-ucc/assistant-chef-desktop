@@ -123,7 +123,7 @@ function puntuar(
     .map((id) => ({
       ingredienteId: id,
       nombre: nombre(id),
-      sustituciones: opcionesPara(id, receta.id, preferencias, porId, sustituciones, tiene)
+      sustituciones: opcionesDeSustitucion(id, receta.id, preferencias, porId, sustituciones, tiene)
     }))
 
   const total = obligatorios.size
@@ -147,24 +147,26 @@ function puntuar(
 }
 
 /**
- * Sustituciones para un faltante: de la receta o generales, cuyo destino el usuario tiene y no
- * rompe sus restricciones ni alergias. El `contexto` (horneado, salteado) no se comprueba aquí.
+ * Sustituciones para un ingrediente: de la receta o generales, cuyo destino está en el catálogo,
+ * no rompe las restricciones ni alergias del usuario y pasa `disponible` (en la búsqueda: que el
+ * usuario lo tenga). Primero las específicas de la receta. El `contexto` no se comprueba aquí.
  */
-function opcionesPara(
+export function opcionesDeSustitucion(
   ingredienteId: string,
   recetaId: string,
-  preferencias: Preferencias,
-  porId: ReadonlyMap<string, Ingrediente>,
+  preferencias: Pick<Preferencias, 'restricciones' | 'alergias'>,
+  catalogo: Catalogo,
   sustituciones: readonly Sustitucion[],
-  tiene: (ingredienteId: string) => boolean
+  disponible: (ingredienteId: string) => boolean = () => true
 ): OpcionSustitucion[] {
+  const porId = comoMapa(catalogo)
   return sustituciones
     .filter(
       (s) =>
         s.ingredienteOrigenId === ingredienteId &&
         (s.recetaId === null || s.recetaId === recetaId) &&
-        tiene(s.ingredienteDestinoId) &&
-        respetaPreferencias(porId.get(s.ingredienteDestinoId), preferencias)
+        disponible(s.ingredienteDestinoId) &&
+        destinoPermitido(porId.get(s.ingredienteDestinoId), preferencias)
     )
     .map((s) => ({
       sustitucionId: s.id,
@@ -177,10 +179,13 @@ function opcionesPara(
     .sort((a, b) => Number(b.especifica) - Number(a.especifica))
 }
 
-/** Un destino fuera del catálogo no se ofrece: no se puede comprobar que sea seguro. */
-function respetaPreferencias(
+/**
+ * Si un ingrediente puede entrar en la receta sin romper las restricciones ni alergias del
+ * usuario. Un ingrediente fuera del catálogo no se permite: no se puede comprobar que sea seguro.
+ */
+export function destinoPermitido(
   destino: Ingrediente | undefined,
-  preferencias: Preferencias
+  preferencias: Pick<Preferencias, 'restricciones' | 'alergias'>
 ): boolean {
   if (!destino) return false
   const incompatibles = dietasIncompatiblesDe(destino)

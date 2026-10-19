@@ -14,10 +14,12 @@
 ```
 
 ## Responsabilidades
-- **Main:** abre la ventana, posee la base SQLite (`chef.sqlite` en la carpeta de datos del usuario; esquema y semillas se aplican en cada arranque) y guarda `SesionCocina` en cada cambio. Expone canales IPC tipados (`recetas:buscar`, `sesion:aplicar`, etc.). Implementados: `recetas:listar`, `recetas:obtener` y `recetas:buscar` (contrato en `src/shared/types/ipc.ts`; la búsqueda carga recetas, catálogo y sustituciones de la base y llama a `buscarRecetas` de shared).
+- **Main:** abre la ventana, posee la base SQLite (`chef.sqlite` en la carpeta de datos del usuario; esquema y semillas se aplican en cada arranque) y guarda `SesionCocina` en cada cambio. Expone canales IPC tipados (`recetas:buscar`, `sesion:aplicar`, etc.). Implementados (contrato en `src/shared/types/ipc.ts`):
+  - `recetas:listar`, `recetas:obtener` y `recetas:buscar`. La búsqueda carga recetas, catálogo y sustituciones de la base y llama a `buscarRecetas` de shared.
+  - `sesion:retomar`, `sesion:iniciar` y `sesion:aplicar`, en `src/main/cocina.ts`. Cargan el contexto de la base, llaman al reductor y guardan.
 - **Preload:** `contextBridge` con una API mínima y tipada; el renderer no ve Node.
 - **Renderer:** interfaz, avatar y audio. La sesión de voz en tiempo real se abre desde aquí con un token efímero del backend.
-- **Shared:** lógica pura. El reductor `aplicarHerramienta(sesion, llamada) → { sesion, resultado }` es el único sitio donde cambia el estado de cocina; lo usan tanto las órdenes locales como las llamadas del modelo.
+- **Shared:** lógica pura. El reductor `aplicarHerramienta(sesion, llamada, ahora, contexto) → { sesion, resultado, avatar }` (`src/shared/cocina/aplicar.ts`) es el único sitio donde cambia el estado de cocina; lo usan los botones, las órdenes locales y las llamadas del modelo.
 - **Server:** guarda la clave del proveedor, emite tokens de voz, genera y valida recetas, sugiere sustituciones, limita uso.
 
 ## Flujo de una orden de voz

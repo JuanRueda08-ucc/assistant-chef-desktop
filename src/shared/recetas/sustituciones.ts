@@ -17,7 +17,10 @@ import { redondear } from './redondeo'
  */
 export function aplicarSustitucion(
   receta: Receta,
-  sustitucion: Sustitucion,
+  sustitucion: Pick<
+    Sustitucion,
+    'id' | 'ingredienteOrigenId' | 'ingredienteDestinoId' | 'ratio' | 'recetaId'
+  >,
   catalogo: Catalogo
 ): Receta {
   if (sustitucion.recetaId !== null && sustitucion.recetaId !== receta.id) {
