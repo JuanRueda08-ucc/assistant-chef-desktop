@@ -17,7 +17,7 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 1. Actualiza `docs/estado.md` (qué hiciste, qué queda, siguiente paso). Es lo que lee el próximo agente.
 2. Marca la casilla en `docs/roadmap.md`.
 3. Si tomaste una decisión de arquitectura, añade un archivo en `docs/decisiones/` (formato en `docs/decisiones/README.md`).
-4. Commits pequeños en español, en imperativo: `Añade escalado de porciones`.
+4. Commits pequeños en inglés con [Conventional Commits](https://www.conventionalcommits.org/): `tipo(ámbito opcional): descripción` en imperativo, por ejemplo `feat: add portion scaling` o `fix(timers): keep remaining time after restart`. Tipos: `feat`, `fix`, `docs`, `refactor`, `test`, `chore`, `build`, `ci`, `style`, `perf`.
 
 ## Stack (decidido, ver docs/decisiones/0001-stack.md)
 
