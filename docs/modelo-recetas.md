@@ -2,6 +2,19 @@
 
 Fuente de verdad de los datos: `db/schema.sql` (tablas) y `src/shared/types/receta.ts` (tipos). Si cambias uno, cambia el otro y este documento.
 
+## En el código
+
+- Tipos: `src/shared/types/receta.ts`. Esquemas zod equivalentes: `src/shared/esquemas/receta.ts` (objetos estrictos, sin campos extra).
+- Los campos opcionales son `T | null`; en los JSON de `db/seed/` se pueden omitir y zod pone `null`, `[]` o el valor por defecto (`escalado: lineal`, `opcional: false`).
+- Columnas en snake_case (`porciones_base`); las listas se guardan como JSON en TEXT.
+- Listas cerradas (constantes en `receta.ts`, los `CHECK` de `schema.sql` las repiten y un test lo comprueba):
+  - `dietas`: `vegetariana`, `vegana`, `sin_gluten`, `sin_lactosa`.
+  - `alergenos`: los 14 del Reglamento UE 1169/2011 (`gluten`, `crustaceos`, `huevo`, `pescado`, `cacahuete`, `soja`, `lacteos`, `frutos_secos`, `apio`, `mostaza`, `sesamo`, `sulfitos`, `altramuces`, `moluscos`).
+  - `equipo`: `horno`, `sarten`, `olla`, `olla_presion`, `licuadora`, `batidora`, `microondas`, `freidora_aire`, `plancha`.
+  - `categoria` de ingrediente: `verduras`, `frutas`, `proteinas`, `lacteos`, `cereales`, `legumbres`, `especias`, `despensa`.
+- Reglas que valida el esquema además de los tipos: `al_gusto` va sin `cantidad` y todo lo demás con `cantidad` y `redondeo`; `pizca` lleva cantidad (número de pizcas) pero no escala; los pasos están ordenados desde 1 sin huecos; cada paso solo usa ingredientes de la receta y no los repite; `0 < fraccion ≤ 1` (un mismo ingrediente puede aparecer en varios pasos, por ejemplo picar y luego sofreír); temporizador de paso entre 10 s y 6 h; `tiempoActivoMin ≤ tiempoTotalMin`.
+- La semilla (`src/shared/esquemas/semilla.ts`) comprueba además que ingredientes, técnicas y recetas referenciadas existan y que no haya ids ni slugs repetidos.
+
 ## Principios
 
 1. **Lo calculable se calcula en código.** Escalar cantidades, convertir unidades, filtrar por restricciones y llevar el tiempo son funciones deterministas. El LLM no hace aritmética de cocina.

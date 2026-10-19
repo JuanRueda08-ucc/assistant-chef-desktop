@@ -1,4 +1,4 @@
-import type { ApiChef } from './api'
+import type { ApiChef } from '@shared/types/ipc'
 
 declare global {
   interface Window {

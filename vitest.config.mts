@@ -7,8 +7,6 @@ export default defineConfig({
   },
   test: {
     include: ['src/**/*.test.ts', 'server/**/*.test.ts'],
-    environment: 'node',
-    // Todavía no hay lógica en src/shared; los tests llegan con las tareas 3 a 9 del roadmap.
-    passWithNoTests: true
+    environment: 'node'
   }
 })

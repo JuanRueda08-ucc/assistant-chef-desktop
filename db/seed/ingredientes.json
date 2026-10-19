@@ -1,0 +1,99 @@
+[
+  {
+    "id": "pollo_muslo",
+    "nombre": "Muslo de pollo",
+    "sinonimos": ["pollo", "contramuslo", "muslos de pollo"],
+    "categoria": "proteinas",
+    "dietasIncompatibles": ["vegetariana", "vegana"],
+    "pesoUnidadG": 200
+  },
+  {
+    "id": "arroz_blanco",
+    "nombre": "Arroz blanco",
+    "sinonimos": ["arroz", "arroz de grano largo"],
+    "categoria": "cereales",
+    "densidadGMl": 0.85
+  },
+  {
+    "id": "cebolla",
+    "nombre": "Cebolla",
+    "sinonimos": ["cebolla blanca", "cebolla cabezona"],
+    "categoria": "verduras",
+    "pesoUnidadG": 150
+  },
+  {
+    "id": "pimiento_rojo",
+    "nombre": "Pimiento rojo",
+    "sinonimos": ["pimentón rojo", "morrón", "ají dulce"],
+    "categoria": "verduras",
+    "pesoUnidadG": 150
+  },
+  {
+    "id": "ajo",
+    "nombre": "Ajo",
+    "sinonimos": ["diente de ajo", "dientes de ajo"],
+    "categoria": "verduras",
+    "pesoUnidadG": 5
+  },
+  {
+    "id": "tomate",
+    "nombre": "Tomate",
+    "sinonimos": ["jitomate", "tomate maduro"],
+    "categoria": "verduras",
+    "pesoUnidadG": 120
+  },
+  {
+    "id": "caldo_pollo",
+    "nombre": "Caldo de pollo",
+    "sinonimos": ["caldo", "fondo de pollo"],
+    "categoria": "despensa",
+    "alergenos": ["apio"],
+    "dietasIncompatibles": ["vegetariana", "vegana"],
+    "densidadGMl": 1
+  },
+  {
+    "id": "guisantes",
+    "nombre": "Guisantes",
+    "sinonimos": ["arvejas", "chícharos", "petit pois"],
+    "categoria": "legumbres",
+    "densidadGMl": 0.65
+  },
+  {
+    "id": "aceite_oliva",
+    "nombre": "Aceite de oliva",
+    "sinonimos": ["aceite"],
+    "categoria": "despensa",
+    "esBasicoDespensa": true,
+    "densidadGMl": 0.92
+  },
+  {
+    "id": "sal",
+    "nombre": "Sal",
+    "sinonimos": ["sal fina", "sal de mesa"],
+    "categoria": "especias",
+    "esBasicoDespensa": true,
+    "densidadGMl": 1.2
+  },
+  {
+    "id": "pimienta_negra",
+    "nombre": "Pimienta negra",
+    "sinonimos": ["pimienta"],
+    "categoria": "especias",
+    "esBasicoDespensa": true,
+    "densidadGMl": 0.5
+  },
+  {
+    "id": "pimenton",
+    "nombre": "Pimentón dulce",
+    "sinonimos": ["paprika", "pimentón"],
+    "categoria": "especias",
+    "densidadGMl": 0.45
+  },
+  {
+    "id": "laurel",
+    "nombre": "Hoja de laurel",
+    "sinonimos": ["laurel"],
+    "categoria": "especias",
+    "pesoUnidadG": 0.2
+  }
+]

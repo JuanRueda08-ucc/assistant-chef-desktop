@@ -1,7 +1,12 @@
-import { app, shell, BrowserWindow } from 'electron'
+import { app, shell, BrowserWindow, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
 import icon from '../../resources/icon.png?asset'
+import { abrirBase, type BaseDatos } from './db/conexion'
+import { cargarSemilla, leerSemilla } from './db/semillas'
+import { registrarIpc } from './ipc'
+
+let db: BaseDatos | null = null
 
 function crearVentana(): void {
   const ventana = new BrowserWindow({
@@ -46,11 +51,30 @@ app.whenReady().then(() => {
     optimizer.watchWindowShortcuts(ventana)
   })
 
+  try {
+    // La base vive en la carpeta de datos del usuario; se crea y se siembra en cada arranque.
+    db = abrirBase(join(app.getPath('userData'), 'chef.sqlite'))
+    cargarSemilla(db, leerSemilla())
+  } catch (error) {
+    dialog.showErrorBox(
+      'No se pudo preparar la base de datos',
+      error instanceof Error ? error.message : String(error)
+    )
+    app.quit()
+    return
+  }
+  registrarIpc(db)
+
   crearVentana()
 
   app.on('activate', () => {
     if (BrowserWindow.getAllWindows().length === 0) crearVentana()
   })
+})
+
+app.on('will-quit', () => {
+  db?.close()
+  db = null
 })
 
 app.on('window-all-closed', () => {

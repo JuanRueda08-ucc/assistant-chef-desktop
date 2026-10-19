@@ -58,7 +58,9 @@ Reglas para el modelo (van en el prompt de sistema, `docs/prompts/` cuando exist
 
 - Se guarda en SQLite (`sesiones`, columna JSON) en cada cambio: si la app se cierra, se puede retomar.
 - Los temporizadores guardan `iniciadoEn` y `restanteSeg` al pausar; el tiempo restante se calcula con el reloj, no con un contador, para sobrevivir a reinicios.
-- Solo existe una sesión `cocinar` activa a la vez.
+- Solo existe una sesión `cocinar` activa a la vez (índice único parcial en `sesiones`).
+- En código: `pasoActual` es el `orden` del paso (desde 1) y `null` fuera de `cocinar`; `pasosHechos` guarda ids de paso; `iniciadoEn` y `eventos[].en` son epoch en ms; `actualizadaEn` es ISO 8601.
+- `EstadoAvatar` es una unión discriminada por `accion`: `{ accion: 'hablar' }`, `{ accion: 'senalar', objetivo: 'temporizadores' | 'ingredientes' | 'panel' }`, `{ accion: 'esperar' }`, `{ accion: 'celebrar', intensidad: 'breve' | 'completa' }`.
 
 ## Voz
 

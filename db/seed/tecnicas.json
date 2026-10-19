@@ -1,0 +1,42 @@
+[
+  {
+    "id": "picar_brunoise",
+    "nombre": "Picar en brunoise",
+    "descripcion": "Cortar en dados pequeños y regulares, de unos 3 mm, para que se cocinen parejo.",
+    "pasosCortos": [
+      "Corta la verdura en láminas finas.",
+      "Corta las láminas en tiras del mismo grosor.",
+      "Junta las tiras y córtalas en dados."
+    ]
+  },
+  {
+    "id": "sellar",
+    "nombre": "Sellar",
+    "descripcion": "Dorar la superficie de una proteína a fuego alto para dar color y sabor.",
+    "pasosCortos": [
+      "Seca bien la pieza con papel de cocina.",
+      "Calienta el aceite hasta que brille.",
+      "Coloca la pieza y no la muevas hasta que se despegue sola."
+    ]
+  },
+  {
+    "id": "sofreir",
+    "nombre": "Sofreír",
+    "descripcion": "Cocinar verduras picadas en poca grasa a fuego medio hasta que se ablanden sin tomar color fuerte.",
+    "pasosCortos": [
+      "Añade las verduras al aceite caliente.",
+      "Remueve cada minuto.",
+      "Para cuando la cebolla esté transparente."
+    ]
+  },
+  {
+    "id": "nacarar",
+    "nombre": "Nacarar el arroz",
+    "descripcion": "Rehogar el arroz crudo en la grasa antes de añadir el líquido para que los granos queden sueltos.",
+    "pasosCortos": [
+      "Añade el arroz al sofrito.",
+      "Remueve para cubrir todos los granos de grasa.",
+      "Para cuando los granos se vean translúcidos en los bordes."
+    ]
+  }
+]

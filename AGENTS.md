@@ -31,15 +31,25 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 
 ```
 src/main/        proceso principal de Electron: ventana, SQLite, IPC
+  db/            conexión SQLite, carga de semillas, repositorios (recetas.ts)
+  ipc.ts         handlers de los canales IPC
 src/preload/     puente seguro (contextBridge) con API tipada
 src/renderer/    interfaz Svelte (pantallas Preparar, Elegir, Cocinar)
 src/shared/      tipos y lógica pura compartida (sin dependencias de Electron ni DOM)
-  types/         receta.ts, sesion.ts
+  types/         receta.ts, sesion.ts, ipc.ts (canales y contrato de window.api)
+  esquemas/      esquemas zod que espejan types/ (receta, sesion, semilla)
   ia/            herramientas.ts (contrato de herramientas del chef)
 server/          backend serverless: token de voz, generar receta, sugerir sustitución
-db/              schema.sql y semillas JSON
+db/              schema.sql y semillas JSON (db/seed/, ver db/seed/README.md)
 docs/            documentación (empieza por docs/README.md)
 ```
+
+## Datos e IPC
+
+- **Tipos, esquemas y SQL van juntos.** Cada interfaz de `src/shared/types/` tiene su esquema zod en `src/shared/esquemas/`, con una comprobación de tipos (`_ComprobarX`) que hace fallar `npm run typecheck` si divergen. `src/main/db/schema.test.ts` comprueba que los `CHECK` de `db/schema.sql` usan las mismas listas que las constantes (`UNIDADES`, `FASES`…).
+- **Opcionales como `null`**, no `?:`: el JSON, SQLite y zod usan la misma forma. En los JSON de semilla se pueden omitir; zod pone el valor por defecto.
+- **Base:** `chef.sqlite` en `app.getPath('userData')`. `db/schema.sql` es idempotente y se ejecuta en cada arranque; las semillas se validan y se cargan también en cada arranque (se empaquetan en el bundle de main con `import.meta.glob`).
+- **Añadir un canal IPC:** 1) nombre en `CANALES_IPC` y firma en `ApiChef` (`src/shared/types/ipc.ts`); 2) handler en `src/main/ipc.ts` que valida los argumentos con zod; 3) función en `src/preload/index.ts`. Nunca expongas `ipcRenderer` en bruto.
 
 ## Reglas del dominio
 

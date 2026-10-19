@@ -24,13 +24,16 @@
     "build:linux": "npm run build && electron-builder --linux"
   },
   "dependencies": {
-    "@electron-toolkit/utils": "^4.0.0"
+    "@electron-toolkit/utils": "^4.0.0",
+    "better-sqlite3": "^13.0.3",
+    "zod": "^4.6.7"
   },
   "devDependencies": {
     "@electron-toolkit/eslint-config-prettier": "^3.0.1",
     "@electron-toolkit/eslint-config-ts": "^4.0.0",
     "@electron-toolkit/tsconfig": "^2.0.0",
     "@sveltejs/vite-plugin-svelte": "^7.3.1",
+    "@types/better-sqlite3": "^9.6.0",
     "@types/node": "^24.19.2",
     "electron": "^44.7.2",
     "electron-builder": "^26.15.3",

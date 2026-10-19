@@ -1,0 +1,238 @@
+{
+  "id": "arroz_con_pollo",
+  "slug": "arroz-con-pollo",
+  "titulo": "Arroz con pollo",
+  "descripcion": "Arroz meloso con muslos de pollo dorados, sofrito de cebolla y pimiento y un toque de pimentón.",
+  "porcionesBase": 4,
+  "tiempoTotalMin": 55,
+  "tiempoActivoMin": 25,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["olla"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "pollo_muslo",
+      "cantidad": 800,
+      "unidad": "g",
+      "redondeo": 50,
+      "preparacion": "muslos sin piel"
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "arroz_blanco",
+      "cantidad": 300,
+      "unidad": "g",
+      "redondeo": 10
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "cebolla",
+      "cantidad": 150,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "picada fina"
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "pimiento_rojo",
+      "cantidad": 120,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en dados pequeños"
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "ajo",
+      "cantidad": 3,
+      "unidad": "unidad",
+      "redondeo": 1,
+      "preparacion": "picado"
+    },
+    {
+      "id": "ir_6",
+      "ingredienteId": "tomate",
+      "cantidad": 200,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "rallado"
+    },
+    {
+      "id": "ir_7",
+      "ingredienteId": "caldo_pollo",
+      "cantidad": 750,
+      "unidad": "ml",
+      "redondeo": 50,
+      "preparacion": "caliente"
+    },
+    {
+      "id": "ir_8",
+      "ingredienteId": "guisantes",
+      "cantidad": 100,
+      "unidad": "g",
+      "redondeo": 10,
+      "opcional": true
+    },
+    {
+      "id": "ir_9",
+      "ingredienteId": "aceite_oliva",
+      "cantidad": 30,
+      "unidad": "ml",
+      "escalado": "suave",
+      "redondeo": 5
+    },
+    {
+      "id": "ir_10",
+      "ingredienteId": "sal",
+      "cantidad": 8,
+      "unidad": "g",
+      "escalado": "suave",
+      "redondeo": 1
+    },
+    {
+      "id": "ir_11",
+      "ingredienteId": "pimienta_negra",
+      "cantidad": null,
+      "unidad": "al_gusto"
+    },
+    {
+      "id": "ir_12",
+      "ingredienteId": "pimenton",
+      "cantidad": 5,
+      "unidad": "g",
+      "escalado": "suave",
+      "redondeo": 1
+    },
+    {
+      "id": "ir_13",
+      "ingredienteId": "laurel",
+      "cantidad": 1,
+      "unidad": "unidad",
+      "escalado": "fijo",
+      "redondeo": 1
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Pica la cebolla y el pimiento en dados pequeños y el ajo bien fino.",
+      "ingredientes": [
+        { "ingredienteRecetaId": "ir_3", "fraccion": 1 },
+        { "ingredienteRecetaId": "ir_4", "fraccion": 1 },
+        { "ingredienteRecetaId": "ir_5", "fraccion": 1 }
+      ],
+      "duracionSeg": 480,
+      "tecnicaId": "picar_brunoise",
+      "requiereConfirmacion": true,
+      "consejo": "Dados del mismo tamaño se cocinan a la vez."
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Salpimienta el pollo por todos lados.",
+      "ingredientes": [
+        { "ingredienteRecetaId": "ir_1", "fraccion": 1 },
+        { "ingredienteRecetaId": "ir_10", "fraccion": 0.5 },
+        { "ingredienteRecetaId": "ir_11", "fraccion": 1 }
+      ],
+      "duracionSeg": 60,
+      "requiereConfirmacion": false
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Calienta el aceite en la olla a fuego medio-alto y dora el pollo 4 min por cada lado. Retíralo a un plato.",
+      "textoVoz": "Calienta el aceite en la olla a fuego medio alto y dora el pollo cuatro minutos por cada lado. Luego retíralo a un plato.",
+      "ingredientes": [
+        { "ingredienteRecetaId": "ir_9", "fraccion": 1 },
+        { "ingredienteRecetaId": "ir_1", "fraccion": 1 }
+      ],
+      "duracionSeg": 480,
+      "temporizador": { "etiqueta": "Dorar pollo", "segundos": 480 },
+      "senalHecho": "cuando esté dorado por ambos lados",
+      "tecnicaId": "sellar",
+      "requiereConfirmacion": true,
+      "consejo": "No muevas el pollo hasta que se despegue solo.",
+      "seguridad": "Aceite caliente: coloca las piezas alejándolas de ti para evitar salpicaduras."
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "En la misma olla, sofríe la cebolla, el pimiento y el ajo 5 min a fuego medio.",
+      "textoVoz": "En la misma olla, sofríe la cebolla, el pimiento y el ajo cinco minutos a fuego medio.",
+      "ingredientes": [
+        { "ingredienteRecetaId": "ir_3", "fraccion": 1 },
+        { "ingredienteRecetaId": "ir_4", "fraccion": 1 },
+        { "ingredienteRecetaId": "ir_5", "fraccion": 1 }
+      ],
+      "duracionSeg": 300,
+      "temporizador": { "etiqueta": "Sofrito", "segundos": 300 },
+      "senalHecho": "hasta que la cebolla esté transparente",
+      "tecnicaId": "sofreir",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p5",
+      "orden": 5,
+      "texto": "Añade el tomate, el pimentón y el laurel y cocina 3 min removiendo.",
+      "textoVoz": "Añade el tomate, el pimentón y la hoja de laurel, y cocina tres minutos removiendo.",
+      "ingredientes": [
+        { "ingredienteRecetaId": "ir_6", "fraccion": 1 },
+        { "ingredienteRecetaId": "ir_12", "fraccion": 1 },
+        { "ingredienteRecetaId": "ir_13", "fraccion": 1 }
+      ],
+      "duracionSeg": 180,
+      "senalHecho": "cuando el tomate se haya deshecho",
+      "requiereConfirmacion": true,
+      "consejo": "El pimentón se quema rápido: no dejes de remover."
+    },
+    {
+      "id": "p6",
+      "orden": 6,
+      "texto": "Agrega el arroz y remueve 2 min para nacararlo.",
+      "textoVoz": "Agrega el arroz y remueve dos minutos para nacararlo.",
+      "ingredientes": [{ "ingredienteRecetaId": "ir_2", "fraccion": 1 }],
+      "duracionSeg": 120,
+      "senalHecho": "cuando los granos se vean translúcidos en los bordes",
+      "tecnicaId": "nacarar",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p7",
+      "orden": 7,
+      "texto": "Vierte el caldo caliente, devuelve el pollo a la olla, añade el resto de la sal y lleva a ebullición.",
+      "ingredientes": [
+        { "ingredienteRecetaId": "ir_7", "fraccion": 1 },
+        { "ingredienteRecetaId": "ir_10", "fraccion": 0.5 }
+      ],
+      "duracionSeg": 300,
+      "senalHecho": "cuando hierva con burbujas por toda la superficie",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p8",
+      "orden": 8,
+      "texto": "Baja el fuego, tapa y cocina 18 min sin remover. Añade los guisantes en los últimos 5 min.",
+      "textoVoz": "Baja el fuego, tapa la olla y cocina dieciocho minutos sin remover. Añade los guisantes en los últimos cinco minutos.",
+      "ingredientes": [{ "ingredienteRecetaId": "ir_8", "fraccion": 1 }],
+      "duracionSeg": 1080,
+      "temporizador": { "etiqueta": "Arroz", "segundos": 1080 },
+      "senalHecho": "cuando el arroz haya absorbido el caldo y esté tierno",
+      "requiereConfirmacion": true,
+      "seguridad": "El pollo debe llegar a 74 °C en el centro; si no tienes termómetro, el jugo debe salir transparente."
+    },
+    {
+      "id": "p9",
+      "orden": 9,
+      "texto": "Apaga el fuego y deja reposar 5 min tapado. Retira el laurel y sirve.",
+      "textoVoz": "Apaga el fuego y deja reposar cinco minutos con la olla tapada. Retira la hoja de laurel y sirve.",
+      "duracionSeg": 300,
+      "temporizador": { "etiqueta": "Reposo", "segundos": 300 },
+      "requiereConfirmacion": false,
+      "consejo": "El reposo termina de soltar los granos."
+    }
+  ]
+}

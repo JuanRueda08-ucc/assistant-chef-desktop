@@ -14,7 +14,7 @@
 ```
 
 ## Responsabilidades
-- **Main:** abre la ventana, posee la base SQLite y guarda `SesionCocina` en cada cambio. Expone canales IPC tipados (`recetas:buscar`, `sesion:aplicar`, etc.).
+- **Main:** abre la ventana, posee la base SQLite (`chef.sqlite` en la carpeta de datos del usuario; esquema y semillas se aplican en cada arranque) y guarda `SesionCocina` en cada cambio. Expone canales IPC tipados (`recetas:buscar`, `sesion:aplicar`, etc.). Implementados: `recetas:listar` y `recetas:obtener` (contrato en `src/shared/types/ipc.ts`).
 - **Preload:** `contextBridge` con una API mínima y tipada; el renderer no ve Node.
 - **Renderer:** interfaz, avatar y audio. La sesión de voz en tiempo real se abre desde aquí con un token efímero del backend.
 - **Shared:** lógica pura. El reductor `aplicarHerramienta(sesion, llamada) → { sesion, resultado }` es el único sitio donde cambia el estado de cocina; lo usan tanto las órdenes locales como las llamadas del modelo.
