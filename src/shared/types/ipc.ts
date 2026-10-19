@@ -4,7 +4,7 @@ import type { AplicacionHerramienta, LlamadaHerramienta } from '../ia/herramient
 import type { ResultadoBusqueda } from './busqueda'
 import type { Ingrediente, Receta } from './receta'
 import type { Preferencias, SesionCocina } from './sesion'
-import type { RespuestaTokenVoz, ResultadoVosk, ResultadoVozLocal } from './voz'
+import type { AudioNarracion, RespuestaTokenVoz, ResultadoVosk, ResultadoVozLocal } from './voz'
 
 export const CANALES_IPC = {
   catalogoIngredientes: 'catalogo:ingredientes',
@@ -19,7 +19,9 @@ export const CANALES_IPC = {
   vozReconocer: 'voz:reconocer',
   vozReset: 'voz:reset',
   vozDetener: 'voz:detener',
-  vozRepetir: 'voz:repetir'
+  vozRepetir: 'voz:repetir',
+  vozNarrar: 'voz:narrar',
+  vozCallar: 'voz:callar'
 } as const
 
 export interface DatosIniciarCocina {
@@ -57,6 +59,8 @@ export interface ApiChef {
     reset(datos: Record<string, never>): Promise<void>
     detener(datos: Record<string, never>): Promise<void>
     repetir(datos: Record<string, never>): Promise<ResultadoVozLocal>
+    narrar(datos: { sesionId: string; pasoId: string }): Promise<AudioNarracion | null>
+    callar(datos: Record<string, never>): Promise<void>
   }
   catalogo: {
     /** Catálogo completo de ingredientes, ordenado por nombre. */

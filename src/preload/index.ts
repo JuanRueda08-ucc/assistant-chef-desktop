@@ -10,7 +10,9 @@ const api: ApiChef = {
     reconocer: (audio) => ipcRenderer.invoke(CANALES_IPC.vozReconocer, audio),
     reset: (datos) => ipcRenderer.invoke(CANALES_IPC.vozReset, datos),
     detener: (datos) => ipcRenderer.invoke(CANALES_IPC.vozDetener, datos),
-    repetir: (datos) => ipcRenderer.invoke(CANALES_IPC.vozRepetir, datos)
+    repetir: (datos) => ipcRenderer.invoke(CANALES_IPC.vozRepetir, datos),
+    narrar: (datos) => ipcRenderer.invoke(CANALES_IPC.vozNarrar, datos),
+    callar: (datos) => ipcRenderer.invoke(CANALES_IPC.vozCallar, datos)
   },
   catalogo: {
     ingredientes: () => ipcRenderer.invoke(CANALES_IPC.catalogoIngredientes)

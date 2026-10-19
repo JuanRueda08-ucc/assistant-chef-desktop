@@ -1,6 +1,8 @@
 import { z } from 'zod'
 import { esquemaReceta } from '@shared/esquemas/receta'
 import { MODELO_GEMINI_LIVE, VERSION_GEMINI } from '@shared/ia/gemini'
+import { esquemaAudioNarracion } from '@shared/esquemas/voz'
+import type { AudioNarracion } from '@shared/types/voz'
 import type { PeticionReceta, PeticionSustitucion, ProveedorIA, TokenVoz } from '../proveedor'
 
 const ORIGEN = `https://generativelanguage.googleapis.com/${VERSION_GEMINI}`
@@ -25,6 +27,50 @@ interface OpcionesGemini {
 /** REST, sin SDK ni clave en la app. Fetch y reloj inyectados para tests sin red. */
 export class ProveedorGemini implements ProveedorIA {
   readonly nombre = 'gemini'
+  async narrar(texto: string): Promise<AudioNarracion> {
+    const bruto = z
+      .object({
+        steps: z.array(z.object({ type: z.string(), content: z.array(z.unknown()).optional() }))
+      })
+      .parse(
+        await this.post('interactions', {
+          model: 'gemini-3.8-flash-tts',
+          input: [
+            {
+              type: 'user_input',
+              content: [
+                {
+                  type: 'text',
+                  text: texto,
+                  annotations: [
+                    {
+                      type: 'speech_metadata',
+                      style:
+                        'Warm, calm cooking instructor. Natural Latin American Spanish, clear diction and moderate pace. Read the transcript verbatim.'
+                    }
+                  ]
+                }
+              ]
+            }
+          ],
+          response_format: { type: 'audio' },
+          generation_config: { speech_config: [{ voice: 'Sulafat' }] }
+        })
+      )
+    const esquemaBloque = z.object({
+      type: z.literal('audio'),
+      data: z.string(),
+      mime_type: z.literal('audio/wav').optional()
+    })
+    const audios = bruto.steps
+      .filter((s) => s.type === 'model_output')
+      .flatMap((s) => s.content ?? [])
+      .map((c) => esquemaBloque.safeParse(c))
+      .filter((c) => c.success)
+    const ultimo = audios.at(-1)
+    if (!ultimo?.success) throw new Error('Gemini no devolvió la narración de audio.')
+    return esquemaAudioNarracion.parse({ datos: ultimo.data.data, mimeType: 'audio/wav' })
+  }
   private readonly solicitar: typeof fetch
   private readonly ahora: () => number
 

@@ -14,6 +14,7 @@ import {
 import type { ProveedorIA } from './proveedor'
 import { filtrarSugerencias } from './sugerencias'
 import { validarRecetaGenerada } from './validar-receta'
+import { esquemaPeticionNarracion, esquemaRespuestaNarracion } from '@shared/esquemas/voz'
 
 export interface Dependencias {
   proveedor: ProveedorIA
@@ -83,6 +84,14 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
   }
 
   const rutas: Record<string, Ruta> = {
+    '/voz/narrar': {
+      grupo: 'voz',
+      esquema: esquemaPeticionNarracion,
+      manejar: async (cuerpo: z.output<typeof esquemaPeticionNarracion>) =>
+        delProveedor(async () =>
+          esquemaRespuestaNarracion.parse({ audio: await dep.proveedor.narrar(cuerpo.texto) })
+        )
+    },
     '/voz/token': {
       grupo: 'voz',
       esquema: esquemaPeticionVoz,

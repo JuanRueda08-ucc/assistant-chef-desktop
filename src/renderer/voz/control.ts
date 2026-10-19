@@ -31,6 +31,17 @@ export class ControlVoz {
   private reloj: ReturnType<typeof setTimeout> | undefined
   private inactividad: ReturnType<typeof setTimeout> | undefined
   private pendiente: { texto: string; version: string } | null = null
+  private lectura = 0
+  callar(): void {
+    this.lectura += 1
+    this.reproductor?.interrumpir()
+    this.silencioHasta = Date.now() + 350
+    void this.api.voz.callar({}).catch(() => {})
+    this.cambiar(this.abort ? 'local' : 'apagado')
+  }
+  get microfonoActivo(): boolean {
+    return this.abort !== null
+  }
 
   constructor(
     private readonly api: ApiChef,
@@ -67,6 +78,7 @@ export class ControlVoz {
   }
 
   detener(): void {
+    this.lectura += 1
     this.abort?.abort()
     this.abort = null
     clearTimeout(this.reloj)
@@ -102,23 +114,47 @@ export class ControlVoz {
     const sesion = this.eventos.sesion()
     const paso = sesion?.recetaAdaptada?.pasos.find((p) => p.orden === sesion.pasoActual)
     if (!paso) return
+    const lectura = ++this.lectura
+    const vigente = (): boolean =>
+      lectura === this.lectura &&
+      this.eventos.sesion()?.fase === 'cocinar' &&
+      this.eventos.sesion()?.id === sesion!.id &&
+      this.eventos.sesion()?.pasoActual === paso.orden
     const abort = this.abort
     clearTimeout(this.reloj)
     this.audio = []
     this.reproductor?.interrumpir()
-    if (abort) this.cambiar('hablando')
+    this.cambiar('hablando')
     this.eventos.decir(paso.textoVoz ?? paso.texto)
     try {
-      const r = await this.api.voz.repetir({})
-      if (!r.ok) this.eventos.error(r.mensaje)
-      if (abort && abort === this.abort) {
-        await this.api.voz.reset({})
-        this.silencioHasta = Date.now() + 350
-        this.cambiar('local')
+      let natural = false
+      try {
+        const audio = await this.api.voz.narrar({ sesionId: sesion!.id, pasoId: paso.id })
+        if (!vigente()) return
+        if (audio) {
+          this.reproductor ??= crearReproductor()
+          await this.reproductor.reproducirArchivo(audio.datos)
+          natural = true
+        }
+      } catch {
+        /* Respaldo local cuando Gemini no está disponible. */
+      }
+      if (!vigente()) return
+      if (!natural) {
+        this.eventos.error(
+          'Usando la voz local de respaldo. La voz natural necesita Gemini configurado y conexión.'
+        )
+        const r = await this.api.voz.repetir({})
+        if (!r.ok && vigente()) this.eventos.error(r.mensaje)
       }
     } catch {
-      this.eventos.error('No pude leer el paso. Puedes verlo en el globo del chef.')
-      if (abort === this.abort && abort) this.cambiar('local')
+      if (vigente()) this.eventos.error('No pude leer el paso. Puedes verlo en el globo del chef.')
+    } finally {
+      if (vigente()) {
+        if (abort && abort === this.abort) await this.api.voz.reset({}).catch(() => {})
+        this.silencioHasta = Date.now() + 350
+        this.cambiar(this.abort ? 'local' : 'apagado')
+      }
     }
   }
 

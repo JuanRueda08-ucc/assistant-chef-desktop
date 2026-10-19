@@ -4,6 +4,8 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
+En curso tras la prueba del autor: narración automática y Gemini TTS con respaldo local (24, decisión 0009); integrar el agente de cocina en ingredientes y chat de las tres pantallas (21–23), con instrucciones de dominio y pruebas. La clave sigue siendo configuración local del autor.
+
 Roadmap, tarea 21: chat de texto en Cocinar con las nueve herramientas existentes (decisión 0007). Después, herramientas de Preparar/Elegir (22) y su chat (23). Las tareas 15 y 16 están implementadas en los cuatro pasos del Prompt 9.
 
 Antes de dar la voz por validada para usuarios: probar una conversación real con Gemini cuando el autor configure su clave en `.env` (no se ha solicitado ni usado para llamar a Google); medir ruido y latencia en cocina (20); ejecutar las pruebas nativas en macOS/Linux y revisar sus instaladores (19). La integración de Gemini tiene tests de transporte simulado, sin llamadas a Google.
@@ -13,6 +15,13 @@ Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-10-19 · Correcciones de voz tras prueba del autor
+- Lectura automática al entrar y al cambiar de paso; Repetir comparte la narración.
+- `/voz/narrar`, `voz:narrar` y `voz:callar`; main toma el paso desde SQLite, cachea audio en memoria y no envía la clave al cliente.
+- Gemini TTS (Interactions, Sulafat, texto literal en español latinoamericano) con lector del sistema de respaldo; proveedor falso sin red. Voz y micrófono tienen controles separados. Se descartan lecturas tardías.
+- Cambio aprobado por el autor en decisión 0009; conserva Vosk y Live.
+- Pendiente en esta sesión: agente culinario y chat/ingredientes (21–23); validación con clave real fuera de los tests.
 
 ### 2026-10-19 · Prompt 9, paso 4: Vosk nativo y sesión Live (15–16)
 - Vosk oficial por API C con Koffi en un worker de Node, detrás de IPC tipado y con PCM acotado. Gramática cerrada compartida, resultados finales y confianza mínima 0,8; ante duda ofrece botones. Temporizadores ambiguos abren su panel.

@@ -5,10 +5,12 @@ import { ControlVoz } from './control'
 
 const audio = vi.hoisted(() => ({
   recibir: null as ((audio: ArrayBuffer) => void) | null,
-  signal: null as AbortSignal | null
+  signal: null as AbortSignal | null,
+  reproducirArchivo: vi.fn().mockResolvedValue(undefined)
 }))
 vi.mock('./audio', () => ({
   crearReproductor: () => ({
+    reproducirArchivo: audio.reproducirArchivo,
     cerrar: vi.fn(),
     interrumpir: vi.fn(),
     reproducir: vi.fn(),
@@ -43,6 +45,8 @@ function banco(): {
       reset: vi.fn().mockResolvedValue(undefined),
       reconocer: vi.fn().mockResolvedValue(null),
       repetir: vi.fn().mockResolvedValue({ ok: true }),
+      narrar: vi.fn().mockResolvedValue(null),
+      callar: vi.fn().mockResolvedValue(undefined),
       token: vi.fn().mockResolvedValue({
         ok: false,
         error: { codigo: 'sin_conexion', mensaje: 'Sin conexión' }
@@ -63,6 +67,31 @@ function banco(): {
 }
 
 describe('control de voz (sin micro ni red reales)', () => {
+  it('lee con Gemini sin abrir micrófono y no usa el respaldo si recibe audio', async () => {
+    const { control, api } = banco()
+    vi.mocked(api.voz.narrar).mockResolvedValue({ datos: 'AAAA', mimeType: 'audio/wav' })
+    await control.repetir()
+    expect(api.voz.iniciar).not.toHaveBeenCalled()
+    expect(api.voz.repetir).not.toHaveBeenCalled()
+    expect(audio.reproducirArchivo).toHaveBeenCalledWith('AAAA')
+    control.detener()
+  })
+  it('no reproduce una respuesta de un paso que ya cambió', async () => {
+    const { control, api, sesion } = banco()
+    let resolver!: (valor: null) => void
+    vi.mocked(api.voz.narrar).mockImplementation(
+      () =>
+        new Promise<null>((resolve) => {
+          resolver = resolve
+        })
+    )
+    const leyendo = control.repetir()
+    sesion.pasoActual = 2
+    resolver(null)
+    await leyendo
+    expect(api.voz.repetir).not.toHaveBeenCalled()
+    control.detener()
+  })
   it('solo inicia en cocinar y cierra captura al detener', async () => {
     const { control, api, sesion } = banco()
     sesion.fase = 'preparar'

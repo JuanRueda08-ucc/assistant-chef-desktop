@@ -24,7 +24,7 @@ describe('voz:token IPC', () => {
     const evento = { sender: { id: 1, once: vi.fn() } }
     try {
       cargarSemilla(db, leerSemilla())
-      registrarIpc(db, { pedirTokenVoz: vi.fn() }, voz, lector)
+      registrarIpc(db, { pedirTokenVoz: vi.fn(), narrar: vi.fn() }, voz, lector)
       const handler = (canal: string): ((evento: unknown, dato: unknown) => Promise<unknown>) =>
         handle.mock.calls.find(([c]) => c === canal)![1]
       await expect(handler(CANALES_IPC.vozIniciar)(evento, {})).rejects.toThrow('cocinas')
@@ -70,7 +70,7 @@ describe('voz:token IPC', () => {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
         db,
-        { pedirTokenVoz },
+        { pedirTokenVoz, narrar: vi.fn() },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() }
       )

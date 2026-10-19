@@ -3,6 +3,7 @@
 </script>
 
 <script lang="ts">
+  import { untrack } from 'svelte'
   import {
     estaActivo,
     formatearDuracion,
@@ -31,6 +32,7 @@
   const sesion = $derived(app.sesion)
   const faseVoz = $derived(sesion?.fase)
   let estadoVoz = $state<EstadoVoz>('apagado')
+  let microfonoActivo = $state(false)
   let errorVoz = $state<string | null>(null)
   let confirmarVoz = $state<string | null>(null)
   const voz = new ControlVoz(window.api, {
@@ -57,6 +59,7 @@
     },
     estado: (estado) => {
       estadoVoz = estado
+      microfonoActivo = voz.microfonoActivo
     },
     error: (mensaje) => {
       errorVoz = mensaje
@@ -73,6 +76,16 @@
     receta && sesion?.pasoActual ? (receta.pasos[sesion.pasoActual - 1] ?? null) : null
   )
   const esUltimo = $derived(sesion?.pasoActual === total)
+  const claveNarracion = $derived(
+    sesion?.fase === 'cocinar' && paso ? `${sesion.id}:${paso.id}` : null
+  )
+  let narracionActiva = $state(true)
+  $effect(() => {
+    if (claveNarracion && narracionActiva)
+      untrack(() => {
+        void voz.repetir()
+      })
+  })
   const catalogo = $derived(
     Object.fromEntries(app.catalogo.map((i) => [i.id, i])) as Record<string, Ingrediente>
   )
@@ -445,13 +458,18 @@
         <Avatar estado={app.avatar} escuchando={estadoVoz === 'escuchando'} tamano={230} />
         <div class="controles-voz">
           <Chip
-            seleccionado={estadoVoz !== 'apagado'}
-            onclick={() => (estadoVoz === 'apagado' ? voz.iniciar() : voz.detener())}
+            seleccionado={microfonoActivo}
+            onclick={() => (microfonoActivo ? voz.detener() : voz.iniciar())}
           >
-            <Icono nombre="microfono" />{estadoVoz === 'apagado'
-              ? 'Activar micrófono'
-              : 'Apagar micrófono'}
+            <Icono nombre="microfono" />{microfonoActivo ? 'Apagar micrófono' : 'Activar micrófono'}
           </Chip>
+          <Chip
+            seleccionado={narracionActiva}
+            onclick={() => {
+              narracionActiva = !narracionActiva
+              if (!narracionActiva) voz.callar()
+            }}>{narracionActiva ? 'Voz del chef activada' : 'Voz del chef silenciada'}</Chip
+          >
           {#if estadoVoz === 'local'}<Chip onclick={() => voz.activar()}>Hablar al chef</Chip>{/if}
           <small role="status"
             >{estadoVoz === 'local'

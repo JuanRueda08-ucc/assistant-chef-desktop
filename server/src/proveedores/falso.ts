@@ -19,6 +19,10 @@ export class ProveedorFalso implements ProveedorIA {
   readonly llamadasReceta: { peticion: PeticionReceta; errorAnterior: string | null }[] = []
   readonly llamadasSustitucion: PeticionSustitucion[] = []
   private tokens = 0
+  async narrar(): Promise<null> {
+    this.fallarSiToca()
+    return null
+  }
   private readonly recetas: unknown[]
 
   constructor(private readonly opciones: OpcionesProveedorFalso = {}) {

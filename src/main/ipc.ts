@@ -3,7 +3,7 @@ import { z } from 'zod'
 import { esquemaId } from '@shared/esquemas/receta'
 import { PORCIONES_MAX, PORCIONES_MIN, esquemaPreferencias } from '@shared/esquemas/sesion'
 import { esquemaLlamadaHerramienta } from '@shared/ia/herramientas'
-import { esquemaPeticionTokenVoz } from '@shared/esquemas/voz'
+import { esquemaLeerPaso, esquemaPeticionTokenVoz } from '@shared/esquemas/voz'
 import { CANALES_IPC, type ApiChef } from '@shared/types/ipc'
 import { aplicarEnCocina, iniciarCocina, retomarCocina } from './cocina'
 import { buscarEnBase } from './db/busqueda'
@@ -35,6 +35,19 @@ export function registrarIpc(
 ): void {
   let propietario: number | null = null
   const vigilados = new Set<number>()
+  ipcMain.handle(CANALES_IPC.vozCallar, (_evento, datos: unknown) => {
+    esquemaPeticionTokenVoz.parse(datos)
+    lector.detener()
+  })
+  ipcMain.handle(CANALES_IPC.vozNarrar, async (_evento, datos: unknown) => {
+    const peticion = esquemaLeerPaso.parse(datos)
+    const sesion = obtenerSesionCocinando(db)
+    const paso = sesion?.recetaAdaptada?.pasos.find((p) => p.orden === sesion.pasoActual)
+    if (!sesion || !paso || sesion.id !== peticion.sesionId || paso.id !== peticion.pasoId)
+      return null
+    lector.detener()
+    return backend.narrar(paso.textoVoz ?? paso.texto)
+  })
   const exigirCocina = (): void => {
     if (!obtenerSesionCocinando(db))
       throw new Error('La voz solo está disponible mientras cocinas.')

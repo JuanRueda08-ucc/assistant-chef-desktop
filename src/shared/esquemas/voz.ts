@@ -6,6 +6,7 @@ import {
   type ResultadoVosk,
   type ResultadoVozLocal
 } from '../types/voz'
+import type { AudioNarracion } from '../types/voz'
 import type { Afirmar, Igual } from './coincidencia'
 
 export const esquemaPeticionTokenVoz = z.strictObject({})
@@ -38,4 +39,24 @@ export type _ComprobarResultadoVosk = Afirmar<
 >
 export type _ComprobarResultadoVozLocal = Afirmar<
   Igual<z.output<typeof esquemaResultadoVozLocal>, ResultadoVozLocal>
+>
+
+export const esquemaAudioNarracion = z.strictObject({
+  datos: z
+    .string()
+    .min(4)
+    .max(8_000_000)
+    .regex(/^[A-Za-z0-9+/]+={0,2}$/),
+  mimeType: z.literal('audio/wav')
+})
+export const esquemaPeticionNarracion = z.strictObject({
+  texto: z.string().trim().min(1).max(2000)
+})
+export const esquemaRespuestaNarracion = z.strictObject({ audio: esquemaAudioNarracion.nullable() })
+export const esquemaLeerPaso = z.strictObject({
+  sesionId: z.string().min(1),
+  pasoId: z.string().min(1)
+})
+export type _ComprobarAudioNarracion = Afirmar<
+  Igual<z.output<typeof esquemaAudioNarracion>, AudioNarracion>
 >

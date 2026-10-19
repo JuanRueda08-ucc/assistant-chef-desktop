@@ -22,3 +22,8 @@ export interface ResultadoVosk {
 }
 
 export type ResultadoVozLocal = { ok: true } | { ok: false; mensaje: string }
+
+export interface AudioNarracion {
+  datos: string
+  mimeType: 'audio/wav'
+}

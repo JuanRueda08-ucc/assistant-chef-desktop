@@ -22,11 +22,13 @@ export interface PeticionSustitucion {
 
 export type { TokenVoz } from '@shared/types/voz'
 import type { TokenVoz } from '@shared/types/voz'
+import type { AudioNarracion } from '@shared/types/voz'
 
 export interface ProveedorIA {
   readonly nombre: string
   /** Token efímero para que el cliente abra la sesión de voz en tiempo real. */
   crearTokenVoz(instalacion: string): Promise<TokenVoz>
+  narrar(texto: string): Promise<AudioNarracion | null>
   /**
    * Receta en bruto (JSON del modelo). `errorAnterior` trae el motivo por el que se rechazó el
    * intento anterior, para que el modelo lo corrija en el reintento.

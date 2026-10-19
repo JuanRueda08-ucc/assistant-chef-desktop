@@ -22,6 +22,7 @@ Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x
 - [x] 13. Componente `Avatar` con la interfaz `EstadoAvatar` (marcador estático primero, Rive después)
 
 ## IA y voz
+- [x] 24. Narración automática al entrar y avanzar, Gemini TTS con voz natural y respaldo local (feedback del autor, decisión 0009)
 - [x] 14. `server/`: `POST /voz/token`, `POST /recetas/generar`, `POST /sustituciones/sugerir`
 - [x] 15. Órdenes cortas locales con Vosk (chef, siguiente, atrás, repite, pausa, listo)
 - [x] 16. Sesión de voz en tiempo real con Gemini Live y las herramientas del chef (adaptador `gemini` en `server/`)

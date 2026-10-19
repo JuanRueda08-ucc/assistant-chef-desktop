@@ -48,6 +48,8 @@ Todas devuelven `{ ok: true, estado, decir? }` o `{ ok: false, error, decir? }`.
 
 "Repetir" es local: vuelve a leer `textoVoz` del paso sin pasar por el modelo.
 
+Actualizado por decisión 0009: el texto sigue saliendo del paso (`textoVoz ?? texto`), sin que el modelo lo reescriba. Se narra automáticamente al entrar/cambiar de paso y al pulsar Repetir, usando Gemini TTS con lector del sistema de respaldo. Main pide `/voz/narrar` y valida el audio WAV; el proveedor falso devuelve `audio: null`. `voz:narrar` valida sesión/paso contra SQLite; `voz:callar` detiene el lector sin cerrar el micrófono. Caché de hasta doce audios en memoria y descarte de respuestas tardías. El control «Voz del chef» permite silenciar la narración. Ver [generación de voz de Google](https://ai.google.dev/gemini-api/docs/speech-generation), verificada el 2026-10-19.
+
 ### En el código
 
 - **Contrato** (`src/shared/ia/herramientas.ts`):

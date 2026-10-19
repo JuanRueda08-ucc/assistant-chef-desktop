@@ -54,6 +54,7 @@ export async function capturarAudio(
 }
 
 export function crearReproductor(): {
+  reproducirArchivo: (datos: string) => Promise<void>
   reproducir: (base64: string, frecuencia: number) => void
   interrumpir: () => void
   pendienteMs: () => number
@@ -62,13 +63,35 @@ export function crearReproductor(): {
   const contexto = new AudioContext({ sampleRate: 24000 })
   void contexto.resume()
   let fin = 0
+  let generacion = 0
   const fuentes = new Set<AudioBufferSourceNode>()
   const interrumpir = (): void => {
+    generacion += 1
     fuentes.forEach((f) => f.stop())
     fuentes.clear()
     fin = 0
   }
   return {
+    async reproducirArchivo(datos) {
+      const actual = generacion
+      const bytes = Uint8Array.from(atob(datos), (c) => c.charCodeAt(0))
+      const buffer = await contexto.decodeAudioData(bytes.buffer)
+      if (contexto.state === 'closed' || actual !== generacion) return
+      await contexto.resume()
+      if (actual !== generacion) return
+      return new Promise((resolve) => {
+        const fuente = contexto.createBufferSource()
+        fuente.buffer = buffer
+        fuente.connect(contexto.destination)
+        fuentes.add(fuente)
+        fuente.onended = () => {
+          fuentes.delete(fuente)
+          fuente.disconnect()
+          resolve()
+        }
+        fuente.start()
+      })
+    },
     reproducir(base64, frecuencia) {
       if (contexto.state === 'closed') return
       const bytes = Uint8Array.from(atob(base64), (c) => c.charCodeAt(0))

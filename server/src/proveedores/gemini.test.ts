@@ -11,6 +11,30 @@ const json = (cuerpo: unknown, status = 200): Response =>
   new Response(JSON.stringify(cuerpo), { status })
 
 describe('ProveedorGemini (transporte simulado, sin red)', () => {
+  it('narra el texto exacto con voz natural y valida el audio devuelto', async () => {
+    const solicitar = vi.fn<typeof fetch>().mockResolvedValue(
+      json({
+        steps: [
+          {
+            type: 'model_output',
+            content: [{ type: 'audio', mime_type: 'audio/wav', data: 'AAAA' }]
+          }
+        ]
+      })
+    )
+    const proveedor = new ProveedorGemini('solo-test', { fetch: solicitar })
+    expect(await proveedor.narrar('Añade el arroz.')).toEqual({
+      datos: 'AAAA',
+      mimeType: 'audio/wav'
+    })
+    const [url, opciones] = solicitar.mock.calls[0]!
+    expect(url).toContain('/v1beta/interactions')
+    expect(JSON.parse(opciones!.body as string)).toMatchObject({
+      model: 'gemini-3.8-flash-tts',
+      input: [{ content: [{ text: 'Añade el arroz.' }] }],
+      generation_config: { speech_config: [{ voice: 'Sulafat' }] }
+    })
+  })
   it('registra Gemini, exige clave solo para Gemini y conserva falso por defecto', () => {
     expect(crearProveedor({}).nombre).toBe('falso')
     expect(crearProveedor({ PROVEEDOR_IA: 'falso' }).nombre).toBe('falso')

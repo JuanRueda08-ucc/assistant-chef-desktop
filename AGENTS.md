@@ -38,6 +38,7 @@ src/main/        proceso principal de Electron: ventana, SQLite, IPC
   instalacion.ts UUID persistente en userData/instalacion-id
   backend.ts     cliente HTTP del backend (CHEF_API_URL), token de voz con errores tipados
   voz/           Vosk por API C/Koffi en worker; lector del sistema para repetir sin IA
+                 Narración automática Gemini TTS por backend, con lector local de respaldo (0009)
 src/preload/     puente seguro (contextBridge) con API tipada
 src/renderer/    interfaz Svelte 5 (App.svelte elige la pantalla según el estado)
   estado/        app.svelte.ts: estado de la interfaz con runas (pantalla, catálogo, preferencias…)
