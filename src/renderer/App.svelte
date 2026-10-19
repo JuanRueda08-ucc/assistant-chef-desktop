@@ -1,39 +1,63 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import type { ResumenReceta } from '@shared/types/ipc'
+  import busto from './assets/chef/chef_busto.png'
+  import Momentos from './componentes/Momentos.svelte'
+  import { app } from './estado/app.svelte'
+  import CocinarProvisional from './pantallas/CocinarProvisional.svelte'
+  import Elegir from './pantallas/Elegir.svelte'
+  import Preparar from './pantallas/Preparar.svelte'
 
-  // Provisional: comprueba que el renderer lee recetas por IPC. Las pantallas Preparar, Elegir
-  // y Cocinar reemplazan esto en las tareas 10 a 12.
-  let recetas = $state<ResumenReceta[]>([])
-  let error = $state<string | null>(null)
-
-  onMount(async () => {
-    try {
-      recetas = await window.api.recetas.listar()
-    } catch (e) {
-      error = e instanceof Error ? e.message : String(e)
-    }
+  onMount(() => {
+    app.arrancar()
   })
 </script>
 
-<main>
-  <h1>Chef digital</h1>
-  {#if error}
-    <p role="alert">No se pudieron cargar las recetas: {error}</p>
+<div class="app">
+  <header class="barra">
+    <div class="marca"><img src={busto} alt="" />Chef digital</div>
+    <Momentos />
+    <div class="hueco"></div>
+  </header>
+
+  {#if app.pantalla === 'preparar'}
+    <Preparar />
+  {:else if app.pantalla === 'elegir'}
+    <Elegir />
   {:else}
-    <ul data-testid="recetas">
-      {#each recetas as receta (receta.id)}
-        <li>{receta.titulo} · {receta.porcionesBase} porciones · {receta.estadoRevision}</li>
-      {/each}
-    </ul>
+    <CocinarProvisional />
   {/if}
-</main>
+</div>
 
 <style>
-  main {
-    min-height: 100vh;
-    padding: 2rem;
-    background: var(--color-fondo);
-    color: var(--color-tinta);
+  .app {
+    height: 100vh;
+    display: grid;
+    grid-template-rows: 72px 1fr;
+    min-height: 0;
+    overflow: hidden;
+  }
+  .barra {
+    display: grid;
+    grid-template-columns: 200px 1fr 200px;
+    align-items: center;
+    justify-items: center;
+    padding: 0 var(--espacio-6);
+  }
+  .marca {
+    justify-self: start;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font-family: var(--fuente-titulo);
+    font-weight: var(--peso-titulo);
+    font-size: 20px;
+  }
+  .marca img {
+    width: 36px;
+    height: 36px;
+    object-fit: contain;
+  }
+  .app > :global(main) {
+    min-height: 0;
   }
 </style>

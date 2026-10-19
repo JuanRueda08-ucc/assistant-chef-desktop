@@ -65,6 +65,24 @@ Contrastes (WCAG): tinta sobre fondo 15,5:1; tinta suave sobre fondo 5,9:1; tint
 
 Poses en `src/renderer/assets/chef/` (PNG 1254 × 1254 con transparencia): `chef_busto`, `chef_estatico`, `chef_hablando`, `chef_escuchando`, `chef_esperando`, `chef_derecha`, `chef_izquierda`, `chef_arriba`, `chef_abajo`, `celebracion_leve`, `chef_celebracion_final`. `chef_estatico` y `chef_hablando` están dibujados más pequeños que el resto: hay que normalizar la escala antes de usarlos juntos en el componente `Avatar` (tarea 13). Correspondencia prevista con `EstadoAvatar`: hablar → hablando; esperar → esperando; señalar → derecha, izquierda, arriba o abajo según dónde esté el objetivo en pantalla; celebrar breve → celebración leve; celebrar completa → celebración final; escuchando, cuando el micrófono escucha. El avatar pasará a Rive más adelante con el mismo dibujo.
 
+### En la app
+
+Componentes en `src/renderer/componentes/` (`Boton`, `Chip`, `Globo`, `ChefBlob`, `Icono`, `Momentos`) y pantallas en `src/renderer/pantallas/`. Detalles de comportamiento ya implementados:
+
+- **Preparar:**
+  - Las 8 categorías del catálogo, cada una con un contador de los ingredientes marcados en ella.
+  - La búsqueda ignora tildes y busca también en los sinónimos (`buscarIngredientes`).
+  - Los básicos de despensa no se marcan: se nombran debajo de la rejilla.
+  - En el panel: porciones de 1 a 20, tiempo (30 min / 1 hora / sin prisa) y "Recetas" (fáciles / fáciles y medias / todas, que es el filtro de `nivel`).
+  - Alergias y equipo muestran las opciones frecuentes, con "Ver todas" o "Ver todo" para el resto. Si no se marca equipo, no se filtra por equipo.
+- **Elegir:**
+  - Carrusel de una tarjeta, con flechas, puntos y las teclas ← y →.
+  - En las cápsulas, las porciones son las del usuario.
+  - "Qué te falta" muestra la cantidad ya escalada en medida casera, con la exacta entre paréntesis ("3 ¼ tazas (750 ml)"), y las sustituciones posibles.
+  - Las recetas descartadas por restricciones, tiempo o equipo se cuentan en el subtítulo; las no revisadas no se mencionan.
+  - Si no hay resultados, el chef lo dice y ofrece cambiar ingredientes.
+- **Ventana:** mínima de 1100 × 720.
+
 ### Pendiente
 
 - Fotos reales de los platos con licencia; mientras tanto, plato ilustrado con el aviso «Foto pendiente».

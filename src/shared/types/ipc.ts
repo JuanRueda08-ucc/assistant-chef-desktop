@@ -2,10 +2,11 @@
 
 import type { AplicacionHerramienta, LlamadaHerramienta } from '../ia/herramientas'
 import type { ResultadoBusqueda } from './busqueda'
-import type { Receta } from './receta'
+import type { Ingrediente, Receta } from './receta'
 import type { Preferencias, SesionCocina } from './sesion'
 
 export const CANALES_IPC = {
+  catalogoIngredientes: 'catalogo:ingredientes',
   recetasListar: 'recetas:listar',
   recetasObtener: 'recetas:obtener',
   recetasBuscar: 'recetas:buscar',
@@ -41,6 +42,10 @@ export type ResumenReceta = Pick<
 
 /** API que el preload expone como `window.api`. */
 export interface ApiChef {
+  catalogo: {
+    /** Catálogo completo de ingredientes, ordenado por nombre. */
+    ingredientes(): Promise<Ingrediente[]>
+  }
   recetas: {
     listar(): Promise<ResumenReceta[]>
     obtener(id: string): Promise<Receta | null>

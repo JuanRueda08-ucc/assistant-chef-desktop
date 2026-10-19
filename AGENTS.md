@@ -35,11 +35,17 @@ src/main/        proceso principal de Electron: ventana, SQLite, IPC
   ipc.ts         handlers de los canales IPC
   cocina.ts      sesión de cocina: iniciar, retomar y aplicar herramientas guardando en SQLite
 src/preload/     puente seguro (contextBridge) con API tipada
-src/renderer/    interfaz Svelte (pantallas Preparar, Elegir, Cocinar)
+src/renderer/    interfaz Svelte 5 (App.svelte elige la pantalla según el estado)
+  estado/        app.svelte.ts: estado de la interfaz con runas (pantalla, catálogo, preferencias…)
+  componentes/   piezas del diseño Mostaza: Boton, Chip, Globo, ChefBlob, Icono, Momentos
+  pantallas/     Preparar, Elegir y CocinarProvisional (hasta la tarea 12)
+  assets/chef/   poses del chef en PNG
+  styles/        tokens.css (único sitio con colores, tipografías y radios)
 src/shared/      tipos y lógica pura compartida (sin dependencias de Electron ni DOM)
+  textos.ts      nombres para mostrar de dietas, alérgenos, equipo, categorías y dificultad
   types/         receta.ts, sesion.ts, busqueda.ts, ipc.ts (canales y contrato de window.api)
   esquemas/      esquemas zod que espejan types/ (receta, sesion, semilla)
-  recetas/       lógica pura: escalado, unidades caseras, etiquetas, sustituciones, búsqueda
+  recetas/       lógica pura: escalado, unidades caseras, etiquetas, sustituciones, búsqueda, catálogo
   cocina/        reductor aplicarHerramienta, temporizadores por reloj, crear y adaptar la sesión
   ia/            herramientas.ts (contrato de herramientas del chef: argumentos zod y JSON Schema)
 server/          backend serverless: token de voz, generar receta, sugerir sustitución
@@ -54,6 +60,7 @@ docs/            documentación (empieza por docs/README.md)
 - **Base:** `chef.sqlite` en `app.getPath('userData')`. `db/schema.sql` es idempotente y se ejecuta en cada arranque; las semillas se validan y se cargan también en cada arranque (se empaquetan en el bundle de main con `import.meta.glob`).
 - **Añadir un canal IPC:** 1) nombre en `CANALES_IPC` y firma en `ApiChef` (`src/shared/types/ipc.ts`); 2) handler en `src/main/ipc.ts` que valida los argumentos con zod; 3) función en `src/preload/index.ts`. Nunca expongas `ipcRenderer` en bruto.
 - **Cambiar la cocina:** siempre con `window.api.sesion.aplicar({ nombre, argumentos, confirmado })`, tanto desde botones como desde voz. `confirmado` lo pone la app (botón pulsado o "listo" reconocido), nunca el modelo. Main pone la hora, aplica `aplicarHerramienta` y guarda la sesión solo si `resultado.ok`. Al abrir la app, `window.api.sesion.retomar()` devuelve la sesión que estaba cocinando.
+- **Svelte 5 e IPC:** los objetos `$state` son proxies que no se pueden enviar por IPC ni copiar con `structuredClone`. Envía `$state.snapshot(valor)` y guarda los datos que pasarás a funciones de `src/shared/` que copian (por ejemplo `escalarReceta`) con `$state.raw`.
 
 ## Reglas del dominio
 

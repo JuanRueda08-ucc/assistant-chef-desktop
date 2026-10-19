@@ -134,6 +134,7 @@ function puntuar(
 
   return {
     receta: resumirReceta(receta),
+    ingredientesObligatorios: total,
     cobertura: limpiar(cobertura),
     coberturaConSustituciones: limpiar(coberturaConSustituciones),
     puntuacion: limpiar(

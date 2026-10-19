@@ -34,6 +34,8 @@ export interface Faltante {
 
 export interface ResultadoReceta {
   receta: ResumenReceta
+  /** Ingredientes distintos no opcionales de la receta (el "de 12" de "tienes 8 de 12"). */
+  ingredientesObligatorios: number
   /** Ingredientes no opcionales cubiertos (los del usuario y los básicos de despensa), de 0 a 1. */
   cobertura: number
   /** Igual que `cobertura`, contando también los faltantes que tienen sustitución. */

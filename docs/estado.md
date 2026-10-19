@@ -4,15 +4,31 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Roadmap, tareas 10 y 11 (Prompt 6 del paquete): pantallas Preparar y Elegir en `src/renderer/` con Svelte 5, **con el diseño final de la dirección A «Mostaza»**. Ya no se usan componentes neutros: sigue `docs/diseno.md` (componentes, contrastes) y la maqueta `docs/diseno/maquetas.html`, usando solo variables de `src/renderer/styles/tokens.css`. El Prompt 6 original habla de "componentes neutros" y "crema, mostaza, tinta"; eso quedó reemplazado por la decisión 0005.
+Roadmap, tareas 12 y 13 (Prompt 7 del paquete): pantalla Cocinar y componente `Avatar`, con el diseño «Mostaza» (`docs/diseno.md`, maqueta `docs/diseno/maquetas.html`, pantalla Cocinar).
 
-- **Falta un canal IPC para el catálogo:** Preparar necesita los ingredientes por categoría. Añade `catalogo:ingredientes` siguiendo "Añadir un canal IPC" de `AGENTS.md`; el repositorio `listarIngredientes` ya existe en `src/main/db/catalogo.ts`.
-- **Elegir:** usa `window.api.recetas.buscar(preferencias)`. Muestra `resultados[].faltantes` y `opcionalesFaltantes` en el panel "qué falta", y las etiquetas con `receta.dietas`, `alergenos` y `equipo`. `ofrecerGenerada` queda para la tarea 17.
-- **Al elegir una receta:** `window.api.sesion.iniciar({ recetaId, porciones, preferencias })` lleva a Cocinar (tarea 12). Al abrir la app, `window.api.sesion.retomar()` debe llevar directo a Cocinar si hay una sesión cocinando.
-- **Cuidado:** la única receta de la semilla está en `borrador` y la búsqueda la descarta. Para probar Elegir hace falta al menos una receta `revisada` (cambia temporalmente el `estadoRevision` en tu base local, o espera a la tarea 18). No cambies la semilla sin decidirlo.
-- `App.svelte` tiene una lista provisional de recetas que estas pantallas reemplazan.
+- Reemplaza `src/renderer/pantallas/CocinarProvisional.svelte`. La sesión está en `app.sesion` (`src/renderer/estado/app.svelte.ts`). Cada botón llama a `window.api.sesion.aplicar({ nombre, argumentos, confirmado: true })` y guarda en el estado la `sesion` y el `avatar` devueltos. Si `resultado.ok` es falso, muestra `resultado.decir` en el globo.
+- Las cantidades del paso salen de `cantidadesDelPaso(sesion.recetaAdaptada, paso)`, en medida casera con `aUnidadCasera` y `formatearMedida`. Los temporizadores se pintan con `restanteSeg(t, Date.now())`, con un tic por segundo solo en la interfaz.
+- `Avatar` recibe un `EstadoAvatar` y elige la pose (correspondencia en `docs/diseno.md`, "Chef"). Antes hay que **normalizar la escala** de `chef_estatico` y `chef_hablando`, que están dibujados más pequeños que el resto.
+- Pendiente de decisión del autor: la receta de la semilla sigue en `borrador`, así que en la app la búsqueda no la muestra. Para probar Elegir y Cocinar sin cambiar nada, edita temporalmente `estadoRevision` a `revisada` en `db/seed/recetas/arroz-con-pollo.json` (la semilla se recarga en cada arranque, así que cambiarlo en la base no sirve) y deshazlo después.
 
 ## Registro
+
+### 2026-10-18 · Pantallas Preparar y Elegir (tareas 10 y 11)
+- Hecho:
+  - Pantallas `Preparar` y `Elegir` con el diseño «Mostaza», componentes base en `src/renderer/componentes/` y estado de la interfaz en `src/renderer/estado/app.svelte.ts`. `App.svelte` elige la pantalla y, al abrir la app, retoma la sesión si se estaba cocinando.
+  - Pantalla provisional de Cocinar que confirma que la sesión empezó (hasta la tarea 12).
+  - Canal IPC `catalogo:ingredientes`.
+  - En shared: `src/shared/textos.ts` (nombres para mostrar) y `src/shared/recetas/catalogo.ts` (`normalizarTexto`, `buscarIngredientes`, `agruparPorCategoria`).
+  - `ResultadoReceta` incluye `ingredientesObligatorios`.
+  - Ventana mínima de 1100 × 720. ESLint analiza también `*.svelte.ts`.
+- El comportamiento de cada pantalla está en `docs/diseno.md`, "En la app".
+- Tests: 224 en Vitest. Pasan `typecheck`, `lint`, `format:check` y `build`.
+- Comprobado en la app con capturas por CDP, con la receta marcada temporalmente como `revisada` y luego revertida: marcar ingredientes con la búsqueda, filtrar sin gluten, ver la receta con cápsulas, etiquetas y "qué te falta" con cantidades escaladas, y empezar a cocinar. Sin errores en la consola.
+- Error corregido por el camino: los `$state` de Svelte son proxies que `structuredClone` no copia; la receta de Elegir se guarda con `$state.raw` (regla añadida a `AGENTS.md`).
+- Pendiente:
+  - Decidir si la receta de ejemplo pasa a `revisada`.
+  - Fotos de platos.
+  - Revisar las pantallas con el plugin Design (crítica y accesibilidad).
 
 ### 2026-10-18 · Dirección visual «Mostaza»
 - Hecho:

@@ -6,6 +6,7 @@ import { esquemaLlamadaHerramienta } from '@shared/ia/herramientas'
 import { CANALES_IPC, type ApiChef } from '@shared/types/ipc'
 import { aplicarEnCocina, iniciarCocina, retomarCocina } from './cocina'
 import { buscarEnBase } from './db/busqueda'
+import { listarIngredientes } from './db/catalogo'
 import type { BaseDatos } from './db/conexion'
 import { listarRecetas, obtenerReceta } from './db/recetas'
 
@@ -22,6 +23,11 @@ const esquemaIniciarCocina = z.strictObject({
  * renderer se valida con zod antes de usarse. La hora la pone main (`Date.now()`).
  */
 export function registrarIpc(db: BaseDatos): void {
+  ipcMain.handle(
+    CANALES_IPC.catalogoIngredientes,
+    (): Resultado<ApiChef['catalogo']['ingredientes']> => listarIngredientes(db)
+  )
+
   ipcMain.handle(CANALES_IPC.recetasListar, (): Resultado<ApiChef['recetas']['listar']> =>
     listarRecetas(db)
   )

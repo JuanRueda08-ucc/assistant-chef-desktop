@@ -12,6 +12,9 @@ function crearVentana(): void {
   const ventana = new BrowserWindow({
     width: 1200,
     height: 800,
+    // Por debajo de este tamaño las pantallas dejan de caber (docs/diseno.md).
+    minWidth: 1100,
+    minHeight: 720,
     show: false,
     autoHideMenuBar: true,
     title: 'Chef digital',

@@ -166,6 +166,7 @@ describe('buscarRecetas: cobertura y "qué falta"', () => {
   it('calcula la cobertura con los básicos de despensa como presentes', () => {
     // 12 obligatorios (guisantes es opcional). Presentes: pollo, arroz + aceite, sal, pimienta.
     const [r] = buscarRecetas(conPolloYArroz, [arroz()], conExtra, []).resultados
+    expect(r?.ingredientesObligatorios).toBe(12)
     expect(r?.cobertura).toBe(0.416667) // 5 / 12
     expect(r?.coberturaConSustituciones).toBe(0.416667)
     expect(r?.puntuacion).toBe(-0.283333) // 5/12 − 7 × 0,1

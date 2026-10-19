@@ -16,8 +16,8 @@ Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x
 - [x] 9. Temporizadores basados en reloj (sobreviven a reinicios)
 
 ## Interfaz
-- [ ] 10. Preparar: ingredientes por categoría y búsqueda, preferencias
-- [ ] 11. Elegir: carrusel de recetas y panel "qué falta"
+- [x] 10. Preparar: ingredientes por categoría y búsqueda, preferencias
+- [x] 11. Elegir: carrusel de recetas y panel "qué falta"
 - [ ] 12. Cocinar: paso actual, ingredientes del paso, temporizadores, botones grandes
 - [ ] 13. Componente `Avatar` con la interfaz `EstadoAvatar` (marcador estático primero, Rive después)
 

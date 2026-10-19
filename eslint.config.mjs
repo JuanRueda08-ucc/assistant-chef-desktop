@@ -8,7 +8,8 @@ export default defineConfig(
   tseslint.configs.recommended,
   eslintPluginSvelte.configs['flat/recommended'],
   {
-    files: ['**/*.svelte'],
+    // Los módulos con runas (*.svelte.ts) también pasan por el parser de Svelte con TypeScript.
+    files: ['**/*.svelte', '**/*.svelte.ts'],
     languageOptions: {
       parserOptions: {
         parser: tseslint.parser
