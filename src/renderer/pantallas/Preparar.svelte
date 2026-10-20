@@ -250,7 +250,10 @@
     </div>
 
     {#if app.error}<p class="error" role="alert">{app.error}</p>{/if}
-    <Boton ancho disabled={app.ocupado} onclick={() => app.buscar()}>
+    {#if marcadosElegibles === 0}
+      <p class="ayuda" role="status">Selecciona al menos un ingrediente para ver recetas.</p>
+    {/if}
+    <Boton ancho disabled={app.ocupado || marcadosElegibles === 0} onclick={() => app.buscar()}>
       {marcadosElegibles === 0
         ? 'Ver recetas'
         : `Ver recetas con ${marcadosElegibles} ${marcadosElegibles === 1 ? 'ingrediente' : 'ingredientes'}`}

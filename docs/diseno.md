@@ -73,12 +73,15 @@ Componentes en `src/renderer/componentes/` (`Boton`, `Chip`, `Globo`, `ChefBlob`
   - Las 8 categorías del catálogo, cada una con un contador de los ingredientes marcados en ella.
   - La búsqueda ignora tildes y busca también en los sinónimos (`buscarIngredientes`).
   - Los básicos de despensa no se marcan: se nombran debajo de la rejilla.
+  - Sin ingredientes marcados, «Ver recetas» está desactivado y se muestra «Selecciona al menos un ingrediente para ver recetas». Los básicos asumidos no habilitan la búsqueda.
+  - Volver a Preparar invalida los resultados anteriores; es necesario buscar de nuevo con la selección actual antes de entrar a Elegir.
   - En el panel: porciones de 1 a 20, tiempo (30 min / 1 hora / sin prisa) y "Recetas" (fáciles / fáciles y medias / todas, que es el filtro de `nivel`).
   - Alergias y equipo muestran las opciones frecuentes, con "Ver todas" o "Ver todo" para el resto. Si no se marca equipo, no se filtra por equipo.
 - **Elegir:**
   - Carrusel de una tarjeta, con flechas, puntos y las teclas ← y →.
   - En las cápsulas, las porciones son las del usuario.
   - "Qué te falta" muestra la cantidad ya escalada en medida casera, con la exacta entre paréntesis ("3 ¼ tazas (750 ml)"), y las sustituciones posibles.
+  - La cobertura se presenta como ingredientes disponibles, con el desglose «seleccionados por ti + básicos de despensa» y los nombres de los básicos asumidos. No se confunden con los ingredientes marcados en Preparar.
   - Las recetas descartadas por restricciones, tiempo o equipo se cuentan en el subtítulo; las no revisadas no se mencionan.
   - Si no hay resultados, el chef lo dice y ofrece cambiar ingredientes.
 - **Cocinar:**

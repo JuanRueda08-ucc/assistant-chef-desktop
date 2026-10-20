@@ -152,6 +152,17 @@ describe('catálogo y búsqueda en la base', () => {
     expect(listarSustituciones(db)).toEqual([])
   })
 
+  it('sin ingredientes seleccionados no devuelve recetas aunque estén revisadas', () => {
+    db.prepare("UPDATE recetas SET estado_revision = 'revisada'").run()
+    for (const ingredientes of [[], ['sal', 'aceite_oliva'], ['no_existe']])
+      expect(buscarEnBase(db, { ...preferencias, ingredientes })).toEqual({
+        resultados: [],
+        descartadas: [],
+        ofrecerGenerada: false
+      })
+    expect(buscarEnBase(db, preferencias).resultados).toHaveLength(1)
+  })
+
   it('la receta en borrador queda descartada y se ofrece una generada', () => {
     expect(buscarEnBase(db, preferencias)).toEqual({
       resultados: [],

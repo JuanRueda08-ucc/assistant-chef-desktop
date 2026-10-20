@@ -1,5 +1,6 @@
 <script lang="ts">
   import { escalarReceta } from '@shared/recetas/escalado'
+  import { recuentoDisponibilidad } from '@shared/recetas/disponibilidad'
   import { aUnidadCasera, formatearMedida } from '@shared/recetas/unidades'
   import { NOMBRE_ALERGENO, NOMBRE_DIETA, NOMBRE_DIFICULTAD, NOMBRE_EQUIPO } from '@shared/textos'
   import type { Receta } from '@shared/types/receta'
@@ -43,6 +44,11 @@
     })
   })
   const escalada = $derived(recetaActual ? escalarReceta(recetaActual, porciones).receta : null)
+  const disponibilidad = $derived(
+    recetaActual
+      ? recuentoDisponibilidad(recetaActual, app.preferencias.ingredientes, app.catalogo)
+      : null
+  )
 
   function cantidadDe(ingredienteId: string): string | null {
     const ir = escalada?.ingredientes.find((i) => i.ingredienteId === ingredienteId)
@@ -187,13 +193,23 @@
       {#if app.globo}<Globo cola="abajo"><p>{app.globo}</p></Globo>{/if}
       <div class="cobertura">
         <span
-          >Tienes {actual.ingredientesObligatorios - actual.faltantes.length} de {actual.ingredientesObligatorios}
-          ingredientes</span
+          >{actual.ingredientesObligatorios - actual.faltantes.length} de {actual.ingredientesObligatorios}
+          ingredientes disponibles</span
         >
+        {#if disponibilidad}
+          <small
+            >{disponibilidad.seleccionados} seleccionados por ti{disponibilidad.basicos.length
+              ? ` + ${disponibilidad.basicos.length} básicos de despensa`
+              : ''}.</small
+          >
+          {#if disponibilidad.basicos.length}
+            <small>Damos por disponibles: {disponibilidad.basicos.join(', ')}.</small>
+          {/if}
+        {/if}
         <div
           class="barra"
           role="progressbar"
-          aria-label="Ingredientes que tienes"
+          aria-label="Ingredientes disponibles, incluidos los básicos de despensa"
           aria-valuemin="0"
           aria-valuemax={actual.ingredientesObligatorios}
           aria-valuenow={actual.ingredientesObligatorios - actual.faltantes.length}

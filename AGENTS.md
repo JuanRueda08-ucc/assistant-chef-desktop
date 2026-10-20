@@ -79,6 +79,7 @@ docs/            documentación (empieza por docs/README.md)
 ## Reglas del dominio
 
 - **Lo calculable se calcula en código** (escalado, unidades, filtros, temporizadores). El LLM elige herramientas y habla; no hace aritmética.
+- **Buscar recetas exige selección explícita:** al menos un ingrediente conocido que no sea básico de despensa. `buscarEnBase` devuelve resultados vacíos sin esa selección; botón y chat lo explican. Usa `hayIngredientesSeleccionados` y `recuentoDisponibilidad` en `src/shared/recetas/disponibilidad.ts`; distingue ingredientes marcados de básicos asumidos en la interfaz.
 - El estado de la cocina (`SesionCocina`) solo cambia a través de las funciones de herramientas, validadas antes de aplicarse. El chef nunca afirma un cambio que no hizo.
 - Recetas revisadas y generadas comparten esquema. Las generadas se validan (esquema + seguridad alimentaria) y se etiquetan "Receta generada" en la interfaz.
 - Dietas y alérgenos de una receta se derivan del catálogo de ingredientes, nunca se escriben a mano ni se aceptan del modelo.

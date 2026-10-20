@@ -142,6 +142,8 @@ Una sustitución aplicada vive en la **sesión**, no modifica la receta guardada
 
 ## Elegir recetas (búsqueda híbrida)
 
+La búsqueda desde la app requiere al menos un ingrediente del catálogo seleccionado por el usuario, además de los básicos asumidos. Con selección vacía, desconocida o solo de básicos, main devuelve resultados vacíos y no ofrece generar una receta. Preparar desactiva «Ver recetas» y explica qué falta; la herramienta del chat pide ingredientes y conserva Preparar. Los básicos no se consideran una selección explícita. En Elegir se desglosa el total disponible entre ingredientes seleccionados y básicos de despensa, nombrando estos últimos.
+
 1. **Filtros duros:** restricciones y alergias del usuario, `estadoRevision = revisada`, equipo disponible, tiempo máximo.
 2. **Puntuación:** cobertura de ingredientes que el usuario tiene (los básicos de despensa cuentan como presentes), menos penalización por cada faltante no opcional, más bonus si un faltante tiene sustitución con algo que el usuario sí tiene.
 3. **Resultado:** lista ordenada con el panel "qué falta" (faltantes y sustituciones posibles) para cada una.

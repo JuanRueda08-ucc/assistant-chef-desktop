@@ -12,6 +12,10 @@ import { aplicarSeleccion, ARGUMENTOS_SELECCION, type NombreSeleccion } from '@s
 import type { ContenidoChat } from '@shared/ia/chat'
 import { ejecutarTurnoChat } from '../lib/chat'
 import { interpretarOrden } from '@shared/ia/ordenes'
+import {
+  hayIngredientesSeleccionados,
+  MENSAJE_SIN_INGREDIENTES
+} from '@shared/recetas/disponibilidad'
 import type { ResultadoBusqueda } from '@shared/types/busqueda'
 import type { Ingrediente } from '@shared/types/receta'
 import type { EstadoAvatar, Preferencias, SesionCocina } from '@shared/types/sesion'
@@ -197,6 +201,13 @@ class EstadoApp {
 
   /** Busca recetas con las preferencias actuales y pasa a Elegir. */
   async buscar(): Promise<void> {
+    if (!hayIngredientesSeleccionados(this.preferencias.ingredientes, this.catalogo)) {
+      this.busqueda = null
+      this.recetaVisibleId = null
+      this.pantalla = 'preparar'
+      this.decir(MENSAJE_SIN_INGREDIENTES)
+      return
+    }
     await this.tarea(async () => {
       // Los proxies de $state no se pueden enviar por IPC: se manda una copia plana.
       this.busqueda = await window.api.recetas.buscar($state.snapshot(this.preferencias))
@@ -276,7 +287,11 @@ class EstadoApp {
 
   /** Se puede ir a una pantalla si ya hay datos para ella. */
   puedeIrA(pantalla: Pantalla): boolean {
-    if (pantalla === 'elegir') return this.busqueda !== null
+    if (pantalla === 'elegir')
+      return (
+        this.busqueda !== null &&
+        hayIngredientesSeleccionados(this.preferencias.ingredientes, this.catalogo)
+      )
     if (pantalla === 'cocinar') return this.sesion !== null && this.sesion.fase === 'cocinar'
     return true
   }
@@ -284,6 +299,10 @@ class EstadoApp {
   irA(pantalla: Pantalla): void {
     if (this.puedeIrA(pantalla)) {
       if (pantalla !== this.pantalla) this.resultadoChef = null
+      if (pantalla === 'preparar') {
+        this.busqueda = null
+        this.recetaVisibleId = null
+      }
       this.pantalla = pantalla
     }
   }

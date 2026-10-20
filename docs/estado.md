@@ -14,6 +14,13 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-10-20 · Selección vacía y recuento de despensa (25)
+- Revisada la grabación del autor: la receta con cero marcados mostraba «Tienes 3 de 12» porque aceite, sal y pimienta se dan por disponibles. Se mantiene esa regla documentada, pero se distingue de la selección explícita.
+- Preparar desactiva «Ver recetas» sin ingredientes marcados y muestra ayuda. Main no devuelve recetas ni ofrece generarlas con selección vacía, desconocida o solo de básicos. El chat pide seleccionar ingredientes sin pasar a Elegir; el acceso a resultados anteriores tampoco permite entrar con selección vacía.
+- En Elegir, el total disponible se desglosa en ingredientes marcados por el usuario y básicos asumidos, con sus nombres. Helpers puros y pruebas de recuento, opcionales, duplicados y búsqueda sobre SQLite.
+- Validación: 356 tests, tipos, lint y formato aprobados; compilación correcta. Prueba en Electron: cero seleccionados deja el botón desactivado y main sin resultados; dos seleccionados muestran el desglose con tres básicos; volver a Preparar invalida resultados y desmarcar todo bloquea la búsqueda otra vez. Sin errores de consola ni llamadas a Google durante esa prueba. App abierta con selección vacía.
+- La conexión Gemini sigue configurada; falta la prueba del autor con micrófono real. Próximo desarrollo: recetas generadas (17).
+
 ### 2026-10-20 · Conexión real con Gemini y corrección REST del token Live
 - Backend iniciado con la clave configurada por el autor, sin mostrarla ni versionarla. Verificación manual real: chat HTTP 200 (`simulado: false`), narración WAV HTTP 200 y token Live HTTP 200. WebSocket con token efímero: `setupComplete`, 26 fragmentos PCM y fin de turno; no se almacenaron tokens ni audio.
 - Comprobado también con el mismo cliente `GeminiLive` del renderer y las nueve herramientas declaradas: conexión aceptada y respuesta de audio completa, sin ejecutar acciones ni abrir el micrófono. App de prueba abierta para la prueba del autor. Pasan los 350 tests sin red, tipos, lint y formato.

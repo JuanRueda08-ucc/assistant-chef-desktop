@@ -20,6 +20,7 @@ Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x
 - [x] 11. Elegir: carrusel de recetas y panel "qué falta"
 - [x] 12. Cocinar: paso actual, ingredientes del paso, temporizadores, botones grandes
 - [x] 13. Componente `Avatar` con la interfaz `EstadoAvatar` (marcador estático primero, Rive después)
+- [x] 25. Impedir búsquedas sin ingredientes seleccionados y distinguir selección de básicos de despensa (feedback del autor)
 
 ## IA y voz
 - [x] 24. Narración automática al entrar y avanzar, Gemini TTS con voz natural y respaldo local (feedback del autor, decisión 0009)

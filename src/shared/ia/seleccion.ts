@@ -2,6 +2,7 @@ import { z } from 'zod'
 import { esquemaId } from '../esquemas/receta'
 import { esquemaPreferencias } from '../esquemas/sesion'
 import { buscarIngredientes, normalizarTexto } from '../recetas/catalogo'
+import { hayIngredientesSeleccionados, MENSAJE_SIN_INGREDIENTES } from '../recetas/disponibilidad'
 import type { Ingrediente } from '../types/receta'
 import type { Preferencias } from '../types/sesion'
 import type { ResultadoBusqueda } from '../types/busqueda'
@@ -28,7 +29,7 @@ const descripciones: Record<NombreSeleccion, string> = {
   cambiar_preferencias:
     'Cambia solo las preferencias solicitadas. Las listas reemplazan su campo completo: conserva las restricciones y alergias previas salvo petición explícita. No inventes equipo disponible.',
   buscar_recetas:
-    'Busca recetas con las preferencias actuales y abre Elegir. Los filtros y cantidades los calcula la app. Hazlo después de actualizar ingredientes/preferencias.',
+    'Busca recetas con las preferencias actuales y abre Elegir. Requiere al menos un ingrediente seleccionado, además de los básicos de despensa. Los filtros y cantidades los calcula la app. Hazlo después de actualizar ingredientes/preferencias.',
   ver_receta: 'Muestra una de las recetas devueltas por buscar_recetas.',
   elegir_receta:
     'Empieza a cocinar una receta de los resultados actuales, solo cuando el usuario la elige.'
@@ -115,6 +116,8 @@ export function aplicarSeleccion(
     )
   }
   if (nombre === 'buscar_recetas') {
+    if (!hayIngredientesSeleccionados(estado.preferencias.ingredientes, catalogo))
+      return fallo(MENSAJE_SIN_INGREDIENTES)
     if (!ARGUMENTOS_SELECCION.buscar_recetas.safeParse(argumentos).success || !busqueda)
       return fallo('No pude completar la búsqueda.')
     return exito(

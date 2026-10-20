@@ -30,6 +30,16 @@ const busqueda: ResultadoBusqueda = {
 }
 
 describe('herramientas puras de selección', () => {
+  it('el chat pide ingredientes antes de buscar y conserva la pantalla sin selección', () => {
+    for (const ingredientes of [[], ['sal']]) {
+      const antes = { ...estado(), preferencias: preferencias({ ingredientes }) }
+      const r = aplicarSeleccion(antes, 'buscar_recetas', {}, catalogo, busqueda)
+      expect(r.ok).toBe(false)
+      expect(r.estado).toBe(antes)
+      expect(r.decir).toContain('Selecciona al menos un ingrediente')
+      expect(r.iniciarRecetaId).toBeNull()
+    }
+  })
   it('resuelve sinónimos, añade sin duplicados y conserva alergias sin mutar', () => {
     const antes = estado()
     const copia = structuredClone(antes)
