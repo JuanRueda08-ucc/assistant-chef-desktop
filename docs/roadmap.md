@@ -25,7 +25,7 @@ Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x
 - [x] 24. Narración automática al entrar y avanzar, Gemini TTS con voz natural y respaldo local (feedback del autor, decisión 0009)
 - [x] 14. `server/`: `POST /voz/token`, `POST /recetas/generar`, `POST /sustituciones/sugerir`
 - [x] 15. Órdenes cortas locales con Vosk (chef, siguiente, atrás, repite, pausa, listo)
-- [x] 16. Sesión de voz en tiempo real con Gemini Live y las herramientas del chef (adaptador `gemini` en `server/`)
+- [x] 16. Sesión de voz en tiempo real con Gemini Live y las herramientas del chef (adaptador `gemini` en `server/`; token, conexión y audio reales comprobados el 2026-10-20)
 - [ ] 17. Recetas generadas: validación, reintento y etiqueta en la interfaz
 
 ## Chat con el chef (decisión 0007)

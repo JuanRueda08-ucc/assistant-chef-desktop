@@ -129,9 +129,16 @@ export class ProveedorGemini implements ProveedorIA {
       uses: 1,
       expireTime: new Date(ahora + 30 * 60_000).toISOString(),
       newSessionExpireTime: expiraEn,
-      liveConnectConstraints: {
+      // La API REST usa BidiGenerateContentSetup. liveConnectConstraints es una opción
+      // del SDK y no existe en el JSON de auth_tokens. La máscara deja libres herramientas,
+      // instrucciones y detección de actividad que envía la app al conectar.
+      fieldMask: 'model,generationConfig',
+      bidiGenerateContentSetup: {
         model: `models/${MODELO_GEMINI_LIVE}`,
-        config: { responseModalities: ['AUDIO'] }
+        generationConfig: {
+          responseModalities: ['AUDIO'],
+          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOZ_GEMINI } } }
+        }
       }
     })
     const token = esquemaTokenGoogle.safeParse(bruto)

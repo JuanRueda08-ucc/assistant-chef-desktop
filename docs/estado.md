@@ -6,13 +6,20 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 Roadmap, tarea 17: integrar recetas generadas en la app, completar validación de seguridad alimentaria y etiqueta visible, y después ampliar la semilla revisada (18). Las tareas 15–16 y 21–24 están implementadas. No cambiar Gemini/Vosk ni la narración natural con respaldo local sin consultar las decisiones 0007–0010.
 
-Antes de dar la voz por validada para usuarios: probar una conversación real con Gemini cuando el autor configure su clave en `.env` (no se ha solicitado ni usado para llamar a Google); medir ruido y latencia en cocina (20); ejecutar las pruebas nativas en macOS/Linux y revisar sus instaladores (19). La integración de Gemini tiene tests de transporte simulado, sin llamadas a Google.
+Conexión real con Gemini comprobada: chat, narración TTS, token efímero y respuesta de audio por WebSocket Live. Antes de dar la voz por validada para usuarios: probar con la voz/micrófono del autor, medir ruido y latencia en cocina (20), ejecutar las pruebas nativas en macOS/Linux y revisar sus instaladores (19). Los tests automáticos siguen simulando el proveedor, sin llamadas a Google.
 
-Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app con `npm run dev`. Con `PROVEEDOR_IA=falso` funcionan órdenes y narración locales y las frases de demostración del chat («tengo pollo y arroz», «somos 2», «busca recetas»). El historial indica modo de prueba. Para Gemini real, el autor configura `.env` con proveedor y clave y reinicia el backend; no se ha solicitado ni usado la clave. «Activar micrófono» solo aparece en Cocinar y empieza apagado.
+Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app con `npm run dev`. El autor ya configuró Gemini en `.env`; la clave solo se usa en el backend y no se muestra. Con `PROVEEDOR_IA=falso` siguen funcionando órdenes/narración locales y frases de demostración del chat («tengo pollo y arroz», «somos 2», «busca recetas»). «Activar micrófono» solo aparece en Cocinar y empieza apagado.
 
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-10-20 · Conexión real con Gemini y corrección REST del token Live
+- Backend iniciado con la clave configurada por el autor, sin mostrarla ni versionarla. Verificación manual real: chat HTTP 200 (`simulado: false`), narración WAV HTTP 200 y token Live HTTP 200. WebSocket con token efímero: `setupComplete`, 26 fragmentos PCM y fin de turno; no se almacenaron tokens ni audio.
+- Comprobado también con el mismo cliente `GeminiLive` del renderer y las nueve herramientas declaradas: conexión aceptada y respuesta de audio completa, sin ejecutar acciones ni abrir el micrófono. App de prueba abierta para la prueba del autor. Pasan los 350 tests sin red, tipos, lint y formato.
+- Corregido un error del adaptador: `liveConnectConstraints` es una opción del SDK, rechazada en REST con HTTP 400. `auth_tokens` usa `bidiGenerateContentSetup` y `fieldMask: model,generationConfig`. Restringe modelo/audio/Sulafat y conserva instrucciones, herramientas y detección de actividad del cliente. Test del contrato HTTP actualizado según la referencia REST; no cambia proveedor, motor ni decisiones.
+- Google respondió intermitentemente HTTP 503 `UNAVAILABLE` por alta demanda del modelo de texto. Se comprobó con una petición mínima sin herramientas y también se obtuvo una respuesta válida del chat; no se cambió el modelo ni se añadieron reintentos automáticos de acciones.
+- Pendiente: prueba del autor con micrófono real y gusto de la voz, ruido/latencia, instaladores de otras plataformas. La generación integrada de recetas (17) sigue siendo el próximo desarrollo.
 
 ### 2026-10-20 · Preparación de la conexión real a Gemini
 - Creado `.env` local a partir de `.env.example`, con `PROVEEDOR_IA=gemini`, clave vacía y backend en localhost:8787. Confirmado que Git lo ignora; no se versiona ni se solicita la clave.

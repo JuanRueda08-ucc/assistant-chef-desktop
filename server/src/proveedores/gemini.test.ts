@@ -57,9 +57,13 @@ describe('ProveedorGemini (transporte simulado, sin red)', () => {
       uses: 1,
       expireTime: new Date(T0 + 30 * 60_000).toISOString(),
       newSessionExpireTime: new Date(T0 + 60_000).toISOString(),
-      liveConnectConstraints: {
+      fieldMask: 'model,generationConfig',
+      bidiGenerateContentSetup: {
         model: `models/${MODELO_GEMINI_LIVE}`,
-        config: { responseModalities: ['AUDIO'] }
+        generationConfig: {
+          responseModalities: ['AUDIO'],
+          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Sulafat' } } }
+        }
       }
     })
   })
