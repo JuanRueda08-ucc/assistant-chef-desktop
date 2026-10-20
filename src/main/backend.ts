@@ -2,6 +2,7 @@ import { esquemaTokenVoz } from '@shared/esquemas/voz'
 import type { RespuestaTokenVoz } from '@shared/types/voz'
 import type { AudioNarracion } from '@shared/types/voz'
 import { esquemaRespuestaNarracion } from '@shared/esquemas/voz'
+import { esquemaRespuestaChat, type PeticionChat, type RespuestaChat } from '@shared/ia/chat'
 
 /** Solo main hace HTTP al backend. Nunca acepta una URL del renderer. */
 export function crearClienteBackend(
@@ -12,6 +13,7 @@ export function crearClienteBackend(
 ): {
   pedirTokenVoz: () => Promise<RespuestaTokenVoz>
   narrar: (texto: string) => Promise<AudioNarracion | null>
+  conversar: (peticion: PeticionChat) => Promise<RespuestaChat>
 } {
   const base = new URL(apiUrl)
   if (
@@ -29,6 +31,34 @@ export function crearClienteBackend(
   const url = new URL(`${base.pathname.replace(/\/$/, '')}/voz/token`, base.origin)
   const cache = new Map<string, AudioNarracion>()
   return {
+    async conversar(peticion) {
+      let respuesta: Response
+      try {
+        respuesta = await solicitar(
+          new URL(`${base.pathname.replace(/\/$/, '')}/chat`, base.origin),
+          {
+            method: 'POST',
+            headers: { 'content-type': 'application/json', 'x-instalacion': instalacion },
+            body: JSON.stringify(peticion),
+            redirect: 'error',
+            signal: AbortSignal.timeout(30_000)
+          }
+        )
+      } catch {
+        throw new Error('No pude conectar con el chef. Comprueba que el backend esté iniciado.')
+      }
+      if (respuesta.status === 429)
+        throw new Error(
+          'Has llegado al límite de consultas de hoy. Los botones siguen disponibles.'
+        )
+      if (!respuesta.ok)
+        throw new Error(
+          'El chef no pudo responder. Revisa la configuración del backend e inténtalo de nuevo.'
+        )
+      const resultado = esquemaRespuestaChat.safeParse(await respuesta.json())
+      if (!resultado.success) throw new Error('El chef devolvió una respuesta inválida.')
+      return resultado.data
+    },
     async narrar(texto) {
       if (cache.has(texto)) return cache.get(texto)!
       const respuesta = await solicitar(

@@ -15,7 +15,12 @@
     (app.busqueda?.descartadas ?? []).filter((d) => !d.motivos.includes('no_revisada')).length
   )
 
-  let indice = $state(0)
+  const indice = $derived(
+    Math.max(
+      0,
+      resultados.findIndex((r) => r.receta.id === app.recetaVisibleId)
+    )
+  )
   const actual = $derived(resultados[Math.min(indice, resultados.length - 1)])
   const porciones = $derived(app.preferencias.porciones)
 
@@ -58,7 +63,8 @@
 
   function mover(paso: number): void {
     if (resultados.length === 0) return
-    indice = (indice + paso + resultados.length) % resultados.length
+    app.recetaVisibleId =
+      resultados[(indice + paso + resultados.length) % resultados.length]!.receta.id
   }
   function teclas(evento: KeyboardEvent): void {
     if (evento.key === 'ArrowLeft') mover(-1)
@@ -164,7 +170,7 @@
               type="button"
               aria-label="Ver {r.receta.titulo}"
               aria-current={i === indice ? 'true' : undefined}
-              onclick={() => (indice = i)}
+              onclick={() => (app.recetaVisibleId = r.receta.id)}
             ></button>
           {/each}
         </div>
@@ -178,6 +184,7 @@
           {actual.faltantes.length === 0 ? 'Tienes todo lo necesario' : 'Qué te falta'}
         </h2>
       </div>
+      {#if app.globo}<Globo cola="abajo"><p>{app.globo}</p></Globo>{/if}
       <div class="cobertura">
         <span
           >Tienes {actual.ingredientesObligatorios - actual.faltantes.length} de {actual.ingredientesObligatorios}
@@ -225,7 +232,7 @@
       <ChefBlob pose="busto" tamano={160} />
       <Globo cola="izquierda">
         <h1>Con lo que marcaste no encuentro recetas</h1>
-        <p>Prueba a marcar más ingredientes o a quitar alguna restricción, tiempo o equipo.</p>
+        <p>{app.globo ?? 'Prueba a marcar más ingredientes o a ajustar tus preferencias.'}</p>
       </Globo>
       <Boton onclick={() => app.irA('preparar')}>Cambiar ingredientes</Boton>
     </section>

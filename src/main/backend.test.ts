@@ -5,6 +5,32 @@ const AHORA = Date.UTC(2026, 9, 19)
 const credencial = { token: 'auth_tokens/test', expiraEn: new Date(AHORA + 60_000).toISOString() }
 
 describe('cliente backend en main (sin red)', () => {
+  it('consulta el chat con la instalación y oculta errores HTTP', async () => {
+    const peticion = {
+      pantalla: 'cocinar' as const,
+      contexto: 'paso_actual: corta',
+      mensajes: [{ role: 'user' as const, parts: [{ text: 'técnica' }] }]
+    }
+    const solicitar = vi.fn<typeof fetch>().mockImplementation(
+      async () =>
+        new Response(
+          JSON.stringify({
+            contenido: { role: 'model', parts: [{ text: 'Usa el cuchillo con cuidado.' }] },
+            simulado: true
+          })
+        )
+    )
+    const cliente = crearClienteBackend('http://localhost:8787', 'instalacion-test', solicitar)
+    expect((await cliente.conversar(peticion)).simulado).toBe(true)
+    expect(String(solicitar.mock.calls[0]![0])).toBe('http://localhost:8787/chat')
+    expect(solicitar.mock.calls[0]![1]?.headers).toMatchObject({
+      'x-instalacion': 'instalacion-test'
+    })
+    solicitar.mockResolvedValue(new Response('detalle privado', { status: 429 }))
+    await expect(cliente.conversar(peticion)).rejects.toThrow('límite')
+    solicitar.mockResolvedValue(new Response('detalle privado', { status: 502 }))
+    await expect(cliente.conversar(peticion)).rejects.toThrow('configuración del backend')
+  })
   it('hace POST con id de instalación y valida el token', async () => {
     const solicitar = vi
       .fn<typeof fetch>()

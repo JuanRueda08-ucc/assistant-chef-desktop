@@ -19,7 +19,7 @@
   import Icono from '../componentes/Icono.svelte'
   import { app } from '../estado/app.svelte'
 
-  const prefs = app.preferencias
+  const prefs = $derived(app.preferencias)
 
   // Los básicos de despensa se dan por presentes: no se muestran para marcar.
   const elegibles = $derived(app.catalogo.filter((i) => !i.esBasicoDespensa))
@@ -89,7 +89,9 @@
       <ChefBlob pose="busto" tamano={112} />
       <Globo cola="izquierda">
         <h1 id="titulo-preparar">¿Qué tienes hoy en la cocina?</h1>
-        <p>Marca lo que tengas y te digo qué podemos preparar.</p>
+        <p>
+          {app.globo ?? 'Marca lo que tengas o escríbelo al chef y te digo qué podemos preparar.'}
+        </p>
       </Globo>
     </div>
 

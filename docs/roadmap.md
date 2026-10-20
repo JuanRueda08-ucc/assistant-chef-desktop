@@ -29,9 +29,9 @@ Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x
 - [ ] 17. Recetas generadas: validación, reintento y etiqueta en la interfaz
 
 ## Chat con el chef (decisión 0007)
-- [ ] 21. Chat de texto en Cocinar con las 9 herramientas actuales
-- [ ] 22. Herramientas de Preparar y Elegir (marcar ingredientes, preferencias, buscar, ver y elegir receta) con su reductor puro y tests
-- [ ] 23. Chat de texto en Preparar y Elegir
+- [x] 21. Chat de texto en Cocinar con las 9 herramientas actuales
+- [x] 22. Herramientas de Preparar y Elegir (marcar ingredientes, preferencias, buscar, ver y elegir receta) con su reductor puro y tests
+- [x] 23. Chat de texto en Preparar y Elegir
 
 ## Entrega
 - [ ] 18. Semilla de 15–30 recetas revisadas con fotos licenciadas

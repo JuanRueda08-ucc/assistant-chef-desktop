@@ -15,6 +15,7 @@ import type { ProveedorIA } from './proveedor'
 import { filtrarSugerencias } from './sugerencias'
 import { validarRecetaGenerada } from './validar-receta'
 import { esquemaPeticionNarracion, esquemaRespuestaNarracion } from '@shared/esquemas/voz'
+import { esquemaPeticionChat, esquemaRespuestaChat } from '@shared/ia/chat'
 
 export interface Dependencias {
   proveedor: ProveedorIA
@@ -84,6 +85,17 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
   }
 
   const rutas: Record<string, Ruta> = {
+    '/chat': {
+      grupo: 'chat',
+      esquema: esquemaPeticionChat,
+      manejar: async (cuerpo: z.output<typeof esquemaPeticionChat>) =>
+        delProveedor(async () =>
+          esquemaRespuestaChat.parse({
+            contenido: await dep.proveedor.conversar(cuerpo),
+            simulado: dep.proveedor.nombre === 'falso'
+          })
+        )
+    },
     '/voz/narrar': {
       grupo: 'voz',
       esquema: esquemaPeticionNarracion,

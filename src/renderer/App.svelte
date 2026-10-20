@@ -2,6 +2,7 @@
   import { onMount } from 'svelte'
   import busto from './assets/chef/chef_busto.png'
   import Momentos from './componentes/Momentos.svelte'
+  import ChatChef from './componentes/ChatChef.svelte'
   import { app } from './estado/app.svelte'
   import Cocinar from './pantallas/Cocinar.svelte'
   import Elegir from './pantallas/Elegir.svelte'
@@ -26,13 +27,14 @@
   {:else}
     <Cocinar />
   {/if}
+  <ChatChef />
 </div>
 
 <style>
   .app {
     height: 100vh;
     display: grid;
-    grid-template-rows: 72px 1fr;
+    grid-template-rows: 72px minmax(0, 1fr) auto;
     min-height: 0;
     overflow: hidden;
   }

@@ -36,13 +36,14 @@ src/main/        proceso principal de Electron: ventana, SQLite, IPC
   ipc.ts         handlers de los canales IPC
   cocina.ts      sesión de cocina: iniciar, retomar y aplicar herramientas guardando en SQLite
   instalacion.ts UUID persistente en userData/instalacion-id
-  backend.ts     cliente HTTP del backend (CHEF_API_URL), token de voz con errores tipados
+  backend.ts     cliente HTTP del backend (CHEF_API_URL): chat, narración y token de voz
   voz/           Vosk por API C/Koffi en worker; lector del sistema para repetir sin IA
                  Narración automática Gemini TTS por backend, con lector local de respaldo (0009)
 src/preload/     puente seguro (contextBridge) con API tipada
 src/renderer/    interfaz Svelte 5 (App.svelte elige la pantalla según el estado)
   estado/        app.svelte.ts: estado de la interfaz con runas (pantalla, catálogo, preferencias…)
   componentes/   piezas del diseño Mostaza: Boton, Chip, Globo, ChefBlob, Avatar, Panel, Icono, Momentos
+                 ChatChef (entrada común, historial plegable y errores de consulta)
   lib/           lógica pura de la interfaz con tests (cómo se muestra un ingrediente)
   pantallas/     Preparar, Elegir y Cocinar (con la pantalla final)
   voz/           captura AudioWorklet, PCM, ControlVoz y WebSocket Gemini Live
@@ -57,6 +58,7 @@ src/shared/      tipos y lógica pura compartida (sin dependencias de Electron n
   cocina/        reductor aplicarHerramienta, temporizadores por reloj, crear y adaptar la sesión
   ia/            herramientas.ts (contrato de herramientas del chef: argumentos zod y JSON Schema)
                  ordenes.ts, contexto.ts, vosk.ts y configuración pública gemini.ts
+                 seleccion.ts (reductor de Preparar/Elegir) y chat.ts (esquemas de transporte)
 server/src/      backend: app.ts (manejador Request → Response), rutas, proveedor (ProveedorIA),
                  proveedores/ (falso, gemini), limite.ts, servidor-node.ts y principal.ts (arranque local)
 db/              schema.sql y semillas JSON (db/seed/, ver db/seed/README.md)
@@ -124,6 +126,8 @@ curl -X POST http://localhost:8787/voz/token -H "x-instalacion: prueba-local-000
 ```
 
 Todas las rutas son `POST`, necesitan la cabecera `X-Instalacion` (8 a 64 caracteres `A-Z a-z 0-9 -`) y responden JSON. Detalle de rutas, errores y límites en `docs/ia-chef.md`, "Backend mínimo".
+
+**Chat:** `window.api.chef.conversar` → `chef:conversar` valida pantalla, preferencias e historial; main construye contexto desde la base y llama `POST /chat`. Las instrucciones y herramientas se fijan en el servidor. Preparar/Elegir usan `aplicarSeleccion`; Cocinar usa `sesion.aplicar` con `confirmado: false` para el modelo. Solo órdenes locales exactas escritas («listo»/«siguiente») confirman desde la app. La conversación vive en memoria; no la registres ni reintentes automáticamente un turno que pudo aplicar herramientas. Gemini, chat y narración se activan poniendo `PROVEEDOR_IA=gemini` y la clave local en `.env` y reiniciando el backend; `falso` ofrece demostraciones sin red.
 
 **App → backend:** main usa `CHEF_API_URL` (por defecto `http://localhost:8787`), incorporada desde `.env` al desarrollar/compilar y sobrescribible en el entorno al arrancar. Solo esa URL pública entra en el bundle de main; la clave de Google no se incorpora. HTTP se admite solo en localhost; fuera se exige HTTPS. `window.api.voz.token({})` funciona solo con una sesión cocinando y devuelve un resultado tipado, sin exponer id de instalación ni URLs al renderer.
 

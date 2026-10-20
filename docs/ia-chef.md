@@ -46,7 +46,7 @@ Todas devuelven `{ ok: true, estado, decir? }` o `{ ok: false, error, decir? }`.
 | `sustituir_ingrediente` | `ingredienteId`, `sustitutoId?` | ingrediente en la receta; sustituto no rompe restricciones | sin `sustitutoId` devuelve opciones; con él, aplica en la sesión y recalcula | `hablar` |
 | `terminar_receta` | — | último paso | estado `terminado`; pantalla final | `celebrar` (completa) |
 
-"Repetir" es local: vuelve a leer `textoVoz` del paso sin pasar por el modelo.
+"Repetir" vuelve a leer `textoVoz ?? texto` del paso, sin que el modelo reescriba su contenido.
 
 Actualizado por decisión 0009: el texto sigue saliendo del paso (`textoVoz ?? texto`), sin que el modelo lo reescriba. Se narra automáticamente al entrar/cambiar de paso y al pulsar Repetir, usando Gemini TTS con lector del sistema de respaldo. Main pide `/voz/narrar` y valida el audio WAV; el proveedor falso devuelve `audio: null`. `voz:narrar` valida sesión/paso contra SQLite; `voz:callar` detiene el lector sin cerrar el micrófono. Caché de hasta doce audios en memoria y descarte de respuestas tardías. El control «Voz del chef» permite silenciar la narración. Ver [generación de voz de Google](https://ai.google.dev/gemini-api/docs/speech-generation), verificada el 2026-10-19.
 
@@ -146,7 +146,7 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
 ### En el código (`server/src/`)
 
 - **Manejador:** `crearApp({ proveedor, limitador })` en `app.ts` devuelve un manejador `Request → Response` (API web estándar). `servidor-node.ts` lo sirve con Node; en una plataforma serverless se exporta tal cual. Ver decisión 0006.
-- **Proveedor:** `ProveedorIA` (`proveedor.ts`) tiene tres métodos: `crearTokenVoz`, `generarReceta(peticion, errorAnterior)` y `sugerirSustituciones`. Devuelve JSON en bruto, que el backend valida siempre.
+- **Proveedor:** `ProveedorIA` (`proveedor.ts`) tiene `crearTokenVoz`, `narrar`, `conversar`, `generarReceta(peticion, errorAnterior)` y `sugerirSustituciones`. Devuelve JSON en bruto, que el backend valida siempre.
   - `crearProveedor` (`proveedores/index.ts`) elige según `PROVEEDOR_IA`: `falso` (por defecto, respuestas deterministas sin red) o `gemini` (exige `PROVEEDOR_IA_API_KEY` solo en el backend).
   - `gemini.ts` usa REST `v1beta/auth_tokens`: un uso, un minuto para abrir la conexión y treinta minutos de vigencia, restringido a audio y `gemini-3.8-live`. `expiraEn` es el límite para abrir la conexión. Recetas y sustituciones usan JSON de `gemini-3.8-flash`, con la validación existente en el backend. Timeout de 20 s; los errores no incluyen clave ni cuerpos de Google. Fetch y reloj se simulan en tests sin red.
   - Referencias verificadas el 2026-10-19: [tokens efímeros](https://ai.google.dev/gemini-api/docs/live-api/ephemeral-tokens), [WebSocket](https://ai.google.dev/gemini-api/docs/live-api/get-started-websocket) y [modelos](https://ai.google.dev/gemini-api/docs/models).
@@ -156,6 +156,8 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   | Ruta | Cuerpo | Respuesta 200 |
   |---|---|---|
   | `/voz/token` | `{}` | `{ token, expiraEn }` |
+  | `/voz/narrar` | `{ texto }` (máx. 2000 caracteres) | `{ audio: { datos, mimeType: 'audio/wav' } \| null }` |
+  | `/chat` | `{ pantalla, contexto, mensajes }` | `{ contenido: { role: 'model', parts }, simulado }` |
   | `/recetas/generar` | `{ preferencias, catalogo, tecnicas? }` | `{ receta }` |
   | `/sustituciones/sugerir` | `{ ingredienteId, recetaId?, tituloReceta?, preferencias: { ingredientes?, restricciones?, alergias? }, catalogo }` | `{ sustituciones }` |
 
@@ -170,13 +172,43 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   - El resultado son `Sustitucion` con `fuente: generada`. `resuelve` lo calcula el código.
   - Para aplicarlas en la sesión hay que añadirlas a la tabla `sustituciones` (decisión 0004).
 - **Errores:** `{ error: { codigo, mensaje } }`. 404 `ruta_desconocida`, 405 `metodo_no_permitido`, 400 `instalacion_invalida` / `json_invalido` / `peticion_invalida` / `ingrediente_desconocido`, 413 (cuerpo de más de 2 MB), 429 `limite_superado` (con `Retry-After`), 502 `proveedor_fallo` (sin detalles internos) y 422 `receta_invalida`.
-- **Límite de uso** (`limite.ts`): por instalación, función y día UTC. Por defecto 40 tokens de voz, 20 recetas y 60 sugerencias, configurables con `LIMITE_VOZ`, `LIMITE_RECETAS` y `LIMITE_SUSTITUCIONES`.
+- **Límite de uso** (`limite.ts`): por instalación, función y día UTC. Por defecto 40 peticiones de voz (tokens y narraciones comparten contador), 20 recetas, 60 sugerencias y 120 peticiones de chat, configurables con `LIMITE_VOZ`, `LIMITE_RECETAS`, `LIMITE_SUSTITUCIONES` y `LIMITE_CHAT`. Cada vuelta de herramientas del chat consume una petición.
   - Solo cuentan las peticiones bien formadas. Cada respuesta lleva `X-Limite-Restantes`.
   - El almacén es en memoria, válido para un solo proceso. En serverless con varias instancias hará falta uno compartido que implemente `AlmacenUso`.
-- **Pendiente:**
 - **App de escritorio:** `src/main/instalacion.ts` genera un UUID una vez en `userData/instalacion-id`, con creación exclusiva y lectura en los siguientes arranques. Un archivo corrupto se informa; no se reemplaza silenciosamente.
   - `src/main/backend.ts` pide `POST /voz/token` con `X-Instalacion` desde main. Lee `CHEF_API_URL` (valor incorporado de `.env` al compilar, sobrescribible por entorno al ejecutar); sin CORS en renderer, sin redirecciones y con timeout de 10 s. Solo permite HTTP en loopback; el resto usa HTTPS.
   - Canal `voz:token` / `window.api.voz.token({})`, registrado en contrato, handler y preload. Valida `{}` con zod y requiere una sesión cocinando en SQLite. Devuelve `{ ok: true, credencial: { token, expiraEn } }` o `{ ok: false, error: { codigo, mensaje } }` para fase, desconexión, límite, servicio o respuesta inválida/caducada. No propaga errores internos.
 - **Pendiente:**
   - Las llamadas de generación de recetas se integran en la tarea 17.
   - No hay autenticación más allá del id de instalación.
+
+## Chat e interpretación de ingredientes (21–23, decisión 0010)
+
+`ChatChef.svelte` ofrece una entrada común en Preparar, Elegir y Cocinar. La respuesta aparece en el globo y en un historial plegable de hasta doce intercambios. El micrófono sigue siendo exclusivo de Cocinar y nunca se activa por escribir. La conversación solo vive en memoria, con dos turnos completos de contexto para el proveedor; se desactiva la entrada al terminar una receta hasta cocinar otra.
+
+`window.api.chef.conversar({ pantalla, preferencias, mensajes })` → `chef:conversar` (zod en main) → `POST /chat`. Main construye el contexto: sesión de SQLite con `contextoCompacto` en Cocinar; preferencias validadas, catálogo y resultados recalculados en Preparar/Elegir. El catálogo de chat se acota a 300 entradas y los resultados a diez; se indica si el catálogo es parcial. La búsqueda manual sigue siendo local; las frases como «tengo pollo y arroz, somos dos» se interpretan por el agente y se convierten en ingredientes marcados y preferencias usando herramientas.
+
+| Herramienta de selección | Validación y efecto |
+|---|---|
+| `marcar_ingredientes` | `{ ingredientes: string[], accion: anadir \| quitar \| reemplazar }`. Id, nombre o sinónimo inequívoco del catálogo. Falla todo el lote ante desconocidos o ambigüedad. |
+| `cambiar_preferencias` | Campos parciales de preferencias, sin ingredientes. Porciones 1–20; listas cerradas. Conserva los campos omitidos. |
+| `buscar_recetas` | `{}`. Búsqueda en código con preferencias actuales; abre Elegir. |
+| `ver_receta` | `{ recetaId }` de los resultados vigentes; mueve el carrusel. |
+| `elegir_receta` | `{ recetaId }` de los resultados vigentes; inicia con `sesion.iniciar`. |
+
+Cambiar ingredientes/preferencias invalida resultados previos. `aplicarSeleccion` es puro y no modifica `SesionCocina`. En Cocinar el modelo recibe las nueve herramientas de cocina, nunca las de selección. Cada llamada se valida y ejecuta con `sesion.aplicar(... confirmado: false)`. Las órdenes cortas exactas escritas («listo», «siguiente», «atrás») se resuelven localmente; solo las dos primeras confirman desde la app.
+
+El bucle conserva partes y firmas del proveedor, entrega resultados reales y deduplica acciones. Máximo cuatro respuestas/ocho acciones. Descarta respuestas si el usuario cambia pantalla, receta, paso o preferencias mientras espera; los fallos no reintentan acciones aplicadas. Técnica y sustituciones abren sus paneles. Elegir/terminar comunica el resultado real sin otra petición del turno anterior; el contexto conversacional se reinicia al cambiar de pantalla para no arrastrar contratos de herramientas de otra fase. El historial visible se conserva.
+
+`INSTRUCCIONES_CHEF` especializa Gemini en cocina y rechaza temas ajenos, intentos de cambiar de rol o revelar instrucciones/secretos. Esas instrucciones se fijan en servidor para chat/generación y se comparten con Live. No se entrenan pesos; la calidad del seguimiento de instrucciones necesita pruebas reales. Las herramientas disponibles solo pueden actuar sobre cocina/selección.
+
+### Configurar y probar Gemini
+
+1. Copiar `.env.example` a `.env` si no existe, sin sobrescribir una configuración previa.
+2. Poner `PROVEEDOR_IA=gemini` y configurar `PROVEEDOR_IA_API_KEY` localmente. Nunca pegarla en chats ni versionarla.
+3. Arrancar/reiniciar `npm run server:dev`. La app usa `CHEF_API_URL` (por defecto localhost:8787); si cambias la URL, reinicia `npm run dev` o recompila.
+4. En Preparar probar «tengo pollo y arroz, somos dos». En Cocinar, probar porciones y técnica, y verificar que una petición del modelo no evita la confirmación del paso. Para conversación Live activar el micrófono y decir «Chef». La narración de pasos y Live usan Sulafat; si falla TTS, se usa el lector instalado.
+
+Con `PROVEEDOR_IA=falso` no hay red: admite las demostraciones «tengo pollo y arroz», «somos 2», «busca recetas», «elige esta receta» y, en Cocinar, «para 3»/«técnica». El historial indica «Modo de prueba»; no simula un modelo general. La semilla sigue en borrador y no aparece en búsquedas: no confundir la falta de recetas revisadas con un fallo del chat. La generación integrada es la tarea 17.
+
+Tests del reductor, esquemas, bucle, proveedor, ruta y canal IPC usan transporte simulado. Referencias verificadas: [generateContent](https://ai.google.dev/api/generate-content), [herramientas](https://ai.google.dev/gemini-api/docs/function-calling) y [voz Live](https://ai.google.dev/gemini-api/docs/live-api/capabilities).

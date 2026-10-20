@@ -2,6 +2,16 @@
 // (`PROVEEDOR_IA=falso`) mientras no haya un proveedor real elegido.
 
 import type { PeticionReceta, PeticionSustitucion, ProveedorIA, TokenVoz } from '../proveedor'
+import type { ContenidoChat, PeticionChat } from '@shared/ia/chat'
+import { normalizarTexto } from '@shared/recetas/catalogo'
+import { z } from 'zod'
+
+const contextoDemo = z.object({
+  catalogo: z.array(
+    z.object({ id: z.string(), nombre: z.string(), sinonimos: z.array(z.string()) })
+  ),
+  recetas: z.array(z.object({ id: z.string(), titulo: z.string() }))
+})
 
 export interface OpcionesProveedorFalso {
   /** Respuestas de `generarReceta`, en orden; al agotarse se genera una receta sencilla. */
@@ -19,6 +29,79 @@ export class ProveedorFalso implements ProveedorIA {
   readonly llamadasReceta: { peticion: PeticionReceta; errorAnterior: string | null }[] = []
   readonly llamadasSustitucion: PeticionSustitucion[] = []
   private tokens = 0
+  /** Unas frases de demostración, sin fingir comprensión general ni acceder a la red. */
+  async conversar(peticion: PeticionChat): Promise<ContenidoChat> {
+    this.fallarSiToca()
+    const decir = (text: string): ContenidoChat => ({ role: 'model', parts: [{ text }] })
+    const ultimo = peticion.mensajes.at(-1)!
+    const respuestas = ultimo.parts.flatMap((p) =>
+      p.functionResponse ? [p.functionResponse.response] : []
+    )
+    if (respuestas.length)
+      return decir(
+        respuestas
+          .map((r) => (typeof r.decir === 'string' ? r.decir : 'Operación completada.'))
+          .join(' ')
+      )
+    const texto = normalizarTexto(ultimo.parts.map((p) => p.text ?? '').join(' '))
+      .replace(/[^a-z0-9\s]/g, ' ')
+      .replace(/\s+/g, ' ')
+      .trim()
+    if (peticion.pantalla === 'cocinar') {
+      const porciones = texto.match(/(?:somos|para|porciones)\s+(\d+)/)?.[1]
+      if (porciones)
+        return {
+          role: 'model',
+          parts: [
+            { functionCall: { name: 'cambiar_porciones', args: { porciones: Number(porciones) } } }
+          ]
+        }
+      if (texto.includes('tecnica'))
+        return { role: 'model', parts: [{ functionCall: { name: 'mostrar_tecnica', args: {} } }] }
+      return decir(
+        'En modo de prueba puedo mostrar la técnica o cambiar porciones («para 2»). Usa los botones para avanzar; configura Gemini para consultas culinarias abiertas.'
+      )
+    }
+    let contexto: z.output<typeof contextoDemo>
+    try {
+      contexto = contextoDemo.parse(JSON.parse(peticion.contexto))
+    } catch {
+      return decir('Modo de prueba: dime qué ingredientes tienes para cocinar.')
+    }
+    const parts: ContenidoChat['parts'] = []
+    if (/\b(tengo|anade|agrega|quita)\b/.test(texto)) {
+      const ingredientes = contexto.catalogo
+        .filter((i) =>
+          [i.id.replace(/_/g, ' '), i.nombre, ...i.sinonimos].some((n) =>
+            ` ${texto} `.includes(` ${normalizarTexto(n)} `)
+          )
+        )
+        .map((i) => i.id)
+      if (ingredientes.length)
+        parts.push({
+          functionCall: {
+            name: 'marcar_ingredientes',
+            args: { ingredientes, accion: texto.includes('quita') ? 'quitar' : 'anadir' }
+          }
+        })
+    }
+    const porciones = texto.match(/(?:somos|para)\s+(\d+)/)?.[1]
+    if (porciones)
+      parts.push({
+        functionCall: { name: 'cambiar_preferencias', args: { porciones: Number(porciones) } }
+      })
+    if (/\b(busca|buscar|recetas|cocinar)\b/.test(texto) && !texto.includes('elige'))
+      parts.push({ functionCall: { name: 'buscar_recetas', args: {} } })
+    if (/\b(elige|cocina esta|empezar)\b/.test(texto) && contexto.recetas[0])
+      parts.push({
+        functionCall: { name: 'elegir_receta', args: { recetaId: contexto.recetas[0].id } }
+      })
+    return parts.length
+      ? { role: 'model', parts }
+      : decir(
+          'Soy tu ayudante de cocina. Modo de prueba: escribe «tengo pollo y arroz», «somos 2» o «busca recetas». Para preguntas abiertas configura Gemini en el backend.'
+        )
+  }
   async narrar(): Promise<null> {
     this.fallarSiToca()
     return null

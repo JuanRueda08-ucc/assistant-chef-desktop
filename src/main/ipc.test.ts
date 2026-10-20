@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
 import { CANALES_IPC } from '@shared/types/ipc'
-import { sesionNueva } from '@shared/cocina/fixtures.test-utils'
+import { preferencias, sesionNueva } from '@shared/cocina/fixtures.test-utils'
 import { abrirBase } from './db/conexion'
 import { guardarSesion } from './db/sesiones'
 import { cargarSemilla, leerSemilla } from './db/semillas'
@@ -12,6 +12,43 @@ import { registrarIpc } from './ipc'
 afterEach(() => handle.mockClear())
 
 describe('voz:token IPC', () => {
+  it('construye el contexto del chat desde la base y rechaza contexto o pantalla adulterados', async () => {
+    const db = abrirBase(':memory:')
+    const conversar = vi.fn().mockResolvedValue({
+      contenido: { role: 'model', parts: [{ text: 'Hola' }] },
+      simulado: true
+    })
+    try {
+      cargarSemilla(db, leerSemilla())
+      registrarIpc(
+        db,
+        { pedirTokenVoz: vi.fn(), narrar: vi.fn(), conversar },
+        { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
+        { leer: vi.fn(), detener: vi.fn() }
+      )
+      const handler = handle.mock.calls.find(([c]) => c === CANALES_IPC.chefConversar)![1] as (
+        _e: unknown,
+        d: unknown
+      ) => Promise<unknown>
+      const datos = {
+        pantalla: 'preparar',
+        preferencias: preferencias(),
+        mensajes: [{ role: 'user', parts: [{ text: 'Tengo pollo' }] }]
+      }
+      await expect(handler({}, { ...datos, contexto: 'inventado' })).rejects.toThrow()
+      await expect(handler({}, { ...datos, pantalla: 'cocinar' })).rejects.toThrow('No hay')
+      await handler({}, datos)
+      expect(JSON.parse(conversar.mock.calls[0]![0].contexto).catalogo).toEqual(
+        expect.arrayContaining([expect.objectContaining({ id: 'pollo_muslo' })])
+      )
+      expect(JSON.parse(conversar.mock.calls[0]![0].contexto).recetas).toEqual([])
+      guardarSesion(db, sesionNueva())
+      await handler({}, { ...datos, pantalla: 'cocinar' })
+      expect(conversar.mock.calls[1]![0].contexto).toContain('paso_actual:')
+    } finally {
+      db.close()
+    }
+  })
   it('limita PCM, asocia la captura a la ventana y libera al terminar la receta', async () => {
     const db = abrirBase(':memory:')
     const voz = {
@@ -24,7 +61,7 @@ describe('voz:token IPC', () => {
     const evento = { sender: { id: 1, once: vi.fn() } }
     try {
       cargarSemilla(db, leerSemilla())
-      registrarIpc(db, { pedirTokenVoz: vi.fn(), narrar: vi.fn() }, voz, lector)
+      registrarIpc(db, { pedirTokenVoz: vi.fn(), narrar: vi.fn(), conversar: vi.fn() }, voz, lector)
       const handler = (canal: string): ((evento: unknown, dato: unknown) => Promise<unknown>) =>
         handle.mock.calls.find(([c]) => c === canal)![1]
       await expect(handler(CANALES_IPC.vozIniciar)(evento, {})).rejects.toThrow('cocinas')
@@ -70,7 +107,7 @@ describe('voz:token IPC', () => {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
         db,
-        { pedirTokenVoz, narrar: vi.fn() },
+        { pedirTokenVoz, narrar: vi.fn(), conversar: vi.fn() },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() }
       )

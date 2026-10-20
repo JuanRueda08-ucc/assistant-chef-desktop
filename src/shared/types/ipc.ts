@@ -5,8 +5,10 @@ import type { ResultadoBusqueda } from './busqueda'
 import type { Ingrediente, Receta } from './receta'
 import type { Preferencias, SesionCocina } from './sesion'
 import type { AudioNarracion, RespuestaTokenVoz, ResultadoVosk, ResultadoVozLocal } from './voz'
+import type { PeticionChatIpc, RespuestaChat } from '../ia/chat'
 
 export const CANALES_IPC = {
+  chefConversar: 'chef:conversar',
   catalogoIngredientes: 'catalogo:ingredientes',
   recetasListar: 'recetas:listar',
   recetasObtener: 'recetas:obtener',
@@ -51,6 +53,7 @@ export type ResumenReceta = Pick<
 
 /** API que el preload expone como `window.api`. */
 export interface ApiChef {
+  chef: { conversar(datos: PeticionChatIpc): Promise<RespuestaChat> }
   voz: {
     /** Main añade X-Instalacion; el renderer no envía URLs ni identificadores. */
     token(datos: Record<string, never>): Promise<RespuestaTokenVoz>

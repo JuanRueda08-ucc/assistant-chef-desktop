@@ -3,6 +3,8 @@ import { z } from 'zod'
 import { esquemaId } from '@shared/esquemas/receta'
 import { PORCIONES_MAX, PORCIONES_MIN, esquemaPreferencias } from '@shared/esquemas/sesion'
 import { esquemaLlamadaHerramienta } from '@shared/ia/herramientas'
+import { esquemaChatIpc } from '@shared/ia/chat'
+import { contextoCompacto } from '@shared/ia/contexto'
 import { esquemaLeerPaso, esquemaPeticionTokenVoz } from '@shared/esquemas/voz'
 import { CANALES_IPC, type ApiChef } from '@shared/types/ipc'
 import { aplicarEnCocina, iniciarCocina, retomarCocina } from './cocina'
@@ -33,6 +35,31 @@ export function registrarIpc(
   voz: VozLocal,
   lector: ReturnType<typeof crearLectorLocal>
 ): void {
+  ipcMain.handle(CANALES_IPC.chefConversar, async (_evento, datos: unknown) => {
+    const peticion = esquemaChatIpc.parse(datos)
+    let contexto: string
+    if (peticion.pantalla === 'cocinar') {
+      const sesion = obtenerSesionCocinando(db)
+      if (!sesion) throw new Error('No hay una receta cocinándose para esta consulta.')
+      contexto = contextoCompacto(sesion, Date.now())
+    } else {
+      const catalogo = listarIngredientes(db)
+      const busqueda = buscarEnBase(db, peticion.preferencias)
+      contexto = JSON.stringify({
+        preferencias: peticion.preferencias,
+        catalogo: catalogo
+          .slice(0, 300)
+          .map(({ id, nombre, sinonimos, alergenos }) => ({ id, nombre, sinonimos, alergenos })),
+        catalogoParcial: catalogo.length > 300,
+        recetas: busqueda.resultados
+          .slice(0, 10)
+          .map((r) => ({ ...r.receta, faltantes: r.faltantes })),
+        aviso:
+          'Las recetas son candidatas calculadas. Usa buscar_recetas para abrir los resultados antes de ver o elegir. Una lista vacía no autoriza a inventar recetas.'
+      })
+    }
+    return backend.conversar({ pantalla: peticion.pantalla, contexto, mensajes: peticion.mensajes })
+  })
   let propietario: number | null = null
   const vigilados = new Set<number>()
   ipcMain.handle(CANALES_IPC.vozCallar, (_evento, datos: unknown) => {

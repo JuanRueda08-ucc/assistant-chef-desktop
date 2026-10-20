@@ -71,7 +71,10 @@ describe('Gemini Live con WebSocket simulado (sin red)', () => {
     expect(socket.enviados[0]).toMatchObject({
       setup: {
         model: 'models/gemini-3.8-live',
-        generationConfig: { responseModalities: ['AUDIO'] },
+        generationConfig: {
+          responseModalities: ['AUDIO'],
+          speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: 'Sulafat' } } }
+        },
         realtimeInputConfig: { automaticActivityDetection: { disabled: true } }
       }
     })

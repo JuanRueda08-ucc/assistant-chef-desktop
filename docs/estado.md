@@ -4,17 +4,24 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-En curso tras la prueba del autor: narración automática y Gemini TTS con respaldo local (24, decisión 0009); integrar el agente de cocina en ingredientes y chat de las tres pantallas (21–23), con instrucciones de dominio y pruebas. La clave sigue siendo configuración local del autor.
-
-Roadmap, tarea 21: chat de texto en Cocinar con las nueve herramientas existentes (decisión 0007). Después, herramientas de Preparar/Elegir (22) y su chat (23). Las tareas 15 y 16 están implementadas en los cuatro pasos del Prompt 9.
+Roadmap, tarea 17: integrar recetas generadas en la app, completar validación de seguridad alimentaria y etiqueta visible, y después ampliar la semilla revisada (18). Las tareas 15–16 y 21–24 están implementadas. No cambiar Gemini/Vosk ni la narración natural con respaldo local sin consultar las decisiones 0007–0010.
 
 Antes de dar la voz por validada para usuarios: probar una conversación real con Gemini cuando el autor configure su clave en `.env` (no se ha solicitado ni usado para llamar a Google); medir ruido y latencia en cocina (20); ejecutar las pruebas nativas en macOS/Linux y revisar sus instaladores (19). La integración de Gemini tiene tests de transporte simulado, sin llamadas a Google.
 
-Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app con `npm run dev`. Con `PROVEEDOR_IA=falso` funcionan las órdenes y la repetición locales; al preguntar al modelo informa que es modo de prueba y conserva los botones. «Activar micrófono» solo aparece en Cocinar y empieza apagado.
+Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app con `npm run dev`. Con `PROVEEDOR_IA=falso` funcionan órdenes y narración locales y las frases de demostración del chat («tengo pollo y arroz», «somos 2», «busca recetas»). El historial indica modo de prueba. Para Gemini real, el autor configura `.env` con proveedor y clave y reinicia el backend; no se ha solicitado ni usado la clave. «Activar micrófono» solo aparece en Cocinar y empieza apagado.
 
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-10-19 · Agente culinario, ingredientes y chat (21–23)
+- Cinco herramientas y reductor puro de selección con tests: marcar ingredientes por id/nombre/sinónimo inequívoco, preferencias, buscar, ver y elegir. Invalida resultados al cambiar preferencias y rechaza recetas ajenas a la búsqueda vigente.
+- `POST /chat` con Gemini de texto y herramientas según pantalla; `chef:conversar` completo (contrato, zod en main, preload). Main toma contexto de SQLite/catálogo y el backend fija instrucciones y herramientas. Clave solo en backend.
+- Chat común en Preparar, Elegir y Cocinar; respuestas en globo, historial plegable, pendientes y errores. En cocina aplica las nueve herramientas con `confirmado: false` para el modelo; «listo»/«siguiente» exactos escritos confirman desde la app. Técnica/sustituciones abren paneles.
+- Bucle acotado, firmas opacas conservadas, acciones deduplicadas, descarte de consultas si cambia el estado y sin reintentos de acciones parcialmente aplicadas. Elegir/terminar finaliza el turno con el resultado real. Historial en memoria; contexto conversacional reiniciado al cambiar de pantalla.
+- Instrucciones comunes de ámbito culinario para texto/Live/generación; configuración del agente, sin entrenar pesos. Sulafat compartida entre TTS y Live. Proveedor falso con frases de demostración y sin llamadas externas; `LIMITE_CHAT` independiente.
+- Decisión 0010; AGENTS, ia-chef, diseño, roadmap y `.env.example` actualizados. La generación de recetas aún no se ofrece desde el chat: pendiente 17.
+- Verificación: 350 tests, tipos sin errores/avisos, lint y formato aprobados; compilación correcta. Prueba de interfaz en Electron con datos aislados: ingredientes/porciones, búsqueda, elección, porciones en cocina, avance local escrito y consulta de técnica. Comprobados narración automática al avanzar, micrófono inicialmente apagado, activación con captura simulada y pantalla final con chat desactivado; acciones e input dentro de 1100 × 720. Consola sin errores. Solo la copia de prueba de la receta se marcó revisada; la semilla original sigue en borrador. Pendiente prueba con clave real y escucha de la voz natural por el autor.
 
 ### 2026-10-19 · Correcciones de voz tras prueba del autor
 - Lectura automática al entrar y al cambiar de paso; Repetir comparte la narración.

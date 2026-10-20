@@ -3,6 +3,7 @@
 
 import type { Ingrediente, Tecnica } from '@shared/types/receta'
 import type { Preferencias } from '@shared/types/sesion'
+import type { PeticionChat } from '@shared/ia/chat'
 
 export interface PeticionReceta {
   preferencias: Preferencias
@@ -29,6 +30,7 @@ export interface ProveedorIA {
   /** Token efímero para que el cliente abra la sesión de voz en tiempo real. */
   crearTokenVoz(instalacion: string): Promise<TokenVoz>
   narrar(texto: string): Promise<AudioNarracion | null>
+  conversar(peticion: PeticionChat): Promise<unknown>
   /**
    * Receta en bruto (JSON del modelo). `errorAnterior` trae el motivo por el que se rechazó el
    * intento anterior, para que el modelo lo corrija en el reintento.

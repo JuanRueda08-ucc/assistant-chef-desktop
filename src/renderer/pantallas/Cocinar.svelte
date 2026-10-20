@@ -198,6 +198,20 @@
   }
 
   let opciones = $state<{ ingredienteId: string; lista: OpcionSustitucion[] } | null>(null)
+  $effect(() => {
+    const ultimo = app.resultadoChef
+    if (!ultimo?.resultado.ok) return
+    const datos = ultimo.resultado.datos
+    if (datos?.tecnica) {
+      tecnica = datos.tecnica
+      panel = 'tecnica'
+    }
+    if (datos?.opciones) {
+      const a = ARGUMENTOS.sustituir_ingrediente.safeParse(ultimo.argumentos)
+      if (a.success) opciones = { ingredienteId: a.data.ingredienteId, lista: datos.opciones }
+      panel = 'ingredientes'
+    }
+  })
   async function verOpciones(ingredienteId: string): Promise<void> {
     const r = await accion('sustituir_ingrediente', { ingredienteId })
     opciones = r?.ok ? { ingredienteId, lista: r.datos?.opciones ?? [] } : null
@@ -455,7 +469,6 @@
 
       <div class="chef">
         <Globo cola="abajo"><span class="globo-texto">{textoGlobo}</span></Globo>
-        <Avatar estado={app.avatar} escuchando={estadoVoz === 'escuchando'} tamano={230} />
         <div class="controles-voz">
           <Chip
             seleccionado={microfonoActivo}
@@ -495,6 +508,7 @@
           {/if}
           {#if errorVoz}<small role="alert">{errorVoz}</small>{/if}
         </div>
+        <Avatar estado={app.avatar} escuchando={estadoVoz === 'escuchando'} tamano={200} />
       </div>
     </div>
 

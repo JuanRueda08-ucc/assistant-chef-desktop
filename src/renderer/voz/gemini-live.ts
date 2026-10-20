@@ -1,6 +1,11 @@
 import { z } from 'zod'
 import { contextoCompacto } from '@shared/ia/contexto'
-import { INSTRUCCIONES_CHEF, MODELO_GEMINI_LIVE, VERSION_GEMINI } from '@shared/ia/gemini'
+import {
+  INSTRUCCIONES_CHEF,
+  MODELO_GEMINI_LIVE,
+  VERSION_GEMINI,
+  VOZ_GEMINI
+} from '@shared/ia/gemini'
 import {
   ARGUMENTOS,
   DEFINICIONES_HERRAMIENTAS,
@@ -90,7 +95,10 @@ export class GeminiLive {
         this.enviar({
           setup: {
             model: `models/${MODELO_GEMINI_LIVE}`,
-            generationConfig: { responseModalities: ['AUDIO'] },
+            generationConfig: {
+              responseModalities: ['AUDIO'],
+              speechConfig: { voiceConfig: { prebuiltVoiceConfig: { voiceName: VOZ_GEMINI } } }
+            },
             systemInstruction: { parts: [{ text: INSTRUCCIONES_CHEF }] },
             tools: [
               {

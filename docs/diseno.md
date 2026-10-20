@@ -85,8 +85,8 @@ Componentes en `src/renderer/componentes/` (`Boton`, `Chip`, `Globo`, `ChefBlob`
   - **Cabecera:** título; botón de porciones, que abre el panel de ingredientes; barra de pasos clicable (`ir_a_paso`); temporizadores con anillo y reloj; botón para el panel de temporizadores.
   - **Tarjeta del paso:** número grande, texto a 36 px, señal de hecho, aviso de seguridad, botón del temporizador sugerido (solo si no hay uno activo con esa etiqueta) e ingredientes del paso. Cada ingrediente lleva el nombre arriba y, debajo, la medida casera con la exacta y la preparación (`src/renderer/lib/medidas.ts`).
   - **Chef:** el globo muestra lo que devolvió la última herramienta (`decir`) o, al cambiar de paso, el consejo del paso.
-  - **Voz:** bajo el avatar, botón explícito de micrófono (apagado inicialmente), «Hablar al chef» y estado de escucha/procesamiento/voz. El avatar escucha durante la ventana abierta. Si Vosk duda, aparecen «Sí, ejecutar» y «No»; si falla el servicio, el aviso conserva botones y órdenes locales. La columna del chef tiene scroll propio para mensajes largos; no invade la cabecera ni la barra. Repetir usa la voz local del sistema y deja el texto en el globo.
-  - **Barra:** Atrás, Repetir (local: el chef vuelve a decir el paso), Ver técnica (desactivado si el paso no tiene) y «Listo, siguiente», que en el último paso pasa a «Terminar receta».
+  - **Voz:** entre el globo y el avatar, botón explícito de micrófono (apagado inicialmente), control independiente «Voz del chef», «Hablar al chef» y estado de escucha/procesamiento/voz. Los controles preceden al avatar para ser accesibles en ventanas bajas. El avatar escucha durante la ventana abierta. Si Vosk duda, aparecen «Sí, ejecutar» y «No»; si falla el servicio, el aviso conserva botones y órdenes locales. La columna del chef tiene scroll propio para mensajes largos; no invade la cabecera ni la barra. Al entrar o cambiar de paso lee automáticamente; Repetir comparte Gemini TTS/Sulafat con respaldo del lector local (0009).
+  - **Barra:** Atrás, Repetir, Ver técnica (desactivado si el paso no tiene) y «Listo, siguiente», que en el último paso pasa a «Terminar receta».
   - **Atajos:** ← y → mientras no haya un panel abierto.
   - **Paneles bajo demanda** (sobre la tarjeta, se cierran con Escape): técnica con sus pasos; temporizadores para pausar, seguir, sumar un minuto, cancelar o crear uno nuevo; ingredientes, con porciones y sustituciones revisadas por ingrediente.
   - Todo pasa por `window.api.sesion.aplicar`, con `confirmado: true` porque es un botón.
@@ -96,6 +96,7 @@ Componentes en `src/renderer/componentes/` (`Boton`, `Chip`, `Globo`, `ChefBlob`
   - Tras hablar o señalar vuelve a «esperando» a los 6 s; la celebración final se queda.
   - Las poses se apilan para cambiar sin parpadeo. Rive sustituirá el interior del componente sin cambiar su interfaz.
 - **Ventana:** mínima de 1100 × 720.
+- **Escribir al chef:** franja inferior común en las tres pantallas, con etiqueta visible, campo de texto y Enviar secundario; Enter envía. Respuesta en globo y conversación plegable sobre la franja (doce intercambios, scroll propio). Indica modo de prueba tras una respuesta del proveedor falso. Muestra consulta pendiente y errores recuperables; no abre micrófono. Se desactiva al terminar hasta cocinar otra. El contenido central ocupa el espacio restante sin desplazar las acciones principales fuera de la ventana.
 
 ### Pendiente
 
