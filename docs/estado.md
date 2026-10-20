@@ -14,6 +14,11 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-10-20 · Preparación de la conexión real a Gemini
+- Creado `.env` local a partir de `.env.example`, con `PROVEEDOR_IA=gemini`, clave vacía y backend en localhost:8787. Confirmado que Git lo ignora; no se versiona ni se solicita la clave.
+- El autor debe introducir su clave de AI Studio localmente y guardar. Después reiniciar el backend anterior (puede seguir ejecutándose el proveedor falso de la prueba), verificar proveedor Gemini y probar chat, narración y Live en Cocinar.
+- Todavía no se han realizado peticiones reales ni validado la disponibilidad de los modelos con la cuenta del autor. La tarea 17 sigue siendo el siguiente desarrollo; la validación real de voz permanece pendiente.
+
 ### 2026-10-19 · Agente culinario, ingredientes y chat (21–23)
 - Cinco herramientas y reductor puro de selección con tests: marcar ingredientes por id/nombre/sinónimo inequívoco, preferencias, buscar, ver y elegir. Invalida resultados al cambiar preferencias y rechaza recetas ajenas a la búsqueda vigente.
 - `POST /chat` con Gemini de texto y herramientas según pantalla; `chef:conversar` completo (contrato, zod en main, preload). Main toma contexto de SQLite/catálogo y el backend fija instrucciones y herramientas. Clave solo en backend.
