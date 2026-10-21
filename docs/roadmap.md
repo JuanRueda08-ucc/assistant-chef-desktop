@@ -4,16 +4,17 @@ Orden pensado para tener pronto algo que se pueda probar en la cocina. Marca `[x
 
 ## Prioridad revisada (2026-10-20)
 
-El autor solicita replantear el flujo y reducir saturación antes de continuar añadiendo funciones. Ver `replanteamiento-v1.md` y decisión 0011. Las casillas anteriores describen lo implementado; las nuevas cubren su revisión y aceptación.
+El autor solicita conservar Mostaza y organizar mejor las pantallas existentes, sin repetir maquetas del flujo completo. Ver `replanteamiento-v1.md` y decisiones 0011–0012. Las casillas anteriores describen lo implementado; las nuevas cubren su revisión y aceptación.
 
 - [x] 26. Registrar requisitos del replanteamiento, prioridad y cuentas reales para la v1
-- [ ] 27. Maquetas del flujo revisado: login, registro, retomar, Preparar, Elegir, Cocinar y final, con acciones fáciles de localizar
+- [ ] 27. Concretar agrupación, jerarquía y posiciones de controles sobre las pantallas existentes, conservando Mostaza y sin repetir maquetas del flujo completo
 - [ ] 28. Selección libre de múltiples ingredientes, gestión de los no reconocidos y revisión de básicos de despensa
 - [ ] 29. Autenticación real: registro, login, sesión persistente, cierre, protección del backend y definición de datos por cuenta (tecnología libre)
-- [ ] 30. Implementar pantallas simplificadas y verificar jerarquía, estados y localización de controles con el autor
+- [ ] 30. Aplicar la organización por pantalla con los componentes actuales y verificar jerarquía, estados y localización de controles con el autor
 - [ ] 31. Prueba del autor del flujo completo de Gemini con micrófono real y registro de su valoración de la voz (pendiente)
+- [x] 32. Comparar herramientas de autenticación real para Electron y el backend, con fuentes oficiales y sin elegir proveedor todavía
 
-Empezar por las maquetas (27), concretar contratos de ingredientes/autenticación y coordinar 28–30. La prueba 31 puede hacerse con la app actual. Retomar 17 sobre el flujo revisado; 18–20 siguen pendientes.
+Empezar por la organización de las pantallas actuales (27), concretar contratos de ingredientes/autenticación y coordinar 28–30. Comparación inicial en `autenticacion-opciones.md`; el autor también investiga. La prueba 31 puede hacerse con la app actual. Retomar 17 sobre los contratos revisados; 18–20 siguen pendientes.
 
 ## Base
 - [x] 1. Proyecto electron-vite con Svelte + TypeScript, Vitest, ESLint, Prettier; comandos en `AGENTS.md`

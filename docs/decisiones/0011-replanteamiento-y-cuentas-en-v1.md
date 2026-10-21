@@ -2,6 +2,8 @@
 
 **Fecha:** 2026-10-20
 
+**Reemplazo parcial:** la exigencia de nuevas maquetas queda sustituida por la decisión [0012](0012-organizar-pantallas-conservando-diseno.md), tras la aclaración explícita del autor. Se mantienen cuentas reales, ingredientes libres y prueba de voz pendiente.
+
 **Contexto:** tras probar el prototipo, el autor pide recuperar la selección libre de ingredientes, considera que las pantallas están sobrecargadas y cuesta localizar acciones al continuar una receta, y añade login/registro por requisito del profesor. Confirma cuentas reales y tecnología libre. La prueba de voz con su micrófono sigue pendiente.
 
 **Decisión:**

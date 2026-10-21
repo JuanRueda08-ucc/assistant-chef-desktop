@@ -12,7 +12,7 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 2. Lee el documento de `docs/` del área que vas a tocar (índice en `docs/README.md`).
 3. Si la tarea contradice una decisión de `docs/decisiones/`, para y pregunta en vez de cambiarla en silencio.
 
-**Prioridad actual (0011):** leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. El autor pidió reducir la saturación, selección libre de ingredientes y login/registro con cuentas reales (tecnología libre). Son requisitos pendientes de implementación; las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. La prueba de Gemini con el micrófono del autor sigue pendiente y no queda completada por los tests o las comprobaciones técnicas del agente.
+**Prioridad actual (0011–0012):** leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. Conservar el diseño Mostaza y organizar las pantallas existentes: agrupación, alineación, jerarquía y controles localizables; el autor no quiere repetir maquetas del flujo completo ni convertirlo en otro estilo. Plantear ingredientes libres por búsqueda o chat, con revisión de la lista antes de elegir receta y cocinar. Login/registro requieren cuentas reales (tecnología libre); comparar opciones en `docs/autenticacion-opciones.md`, sin proveedor decidido todavía. Son requisitos pendientes de implementación; las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. La prueba de Gemini con el micrófono del autor sigue pendiente y no queda completada por los tests o las comprobaciones técnicas del agente.
 
 ## Al terminar una tarea
 

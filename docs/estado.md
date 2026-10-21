@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Prioridad actual: replantear el flujo y preparar maquetas de pantallas más simples (27), según `docs/replanteamiento-v1.md` y decisión 0011. Incorporar selección libre de ingredientes (28), cuentas reales con login/registro (29) e implementación de las pantallas revisadas (30). El autor confirmó tecnología libre para autenticación. Después continuar recetas generadas (17), sobre los nuevos contratos. Las tareas ya marcadas reflejan implementación, no aceptación visual del autor.
+Prioridad actual: organizar las pantallas existentes conservando el diseño Mostaza, sin repetir maquetas del flujo completo (27 y 30), según `docs/replanteamiento-v1.md` y decisiones 0011–0012. Empezar por agrupar y jerarquizar retomar/Cocinar, donde el autor detectó dispersión. Plantear ingredientes libres por búsqueda o chat y revisión de la lista antes de elegir receta (28). Para cuentas reales (29), comparar con la investigación del autor las opciones de `docs/autenticacion-opciones.md` (32 completada); proveedor todavía pendiente. Después continuar recetas generadas (17), sobre los nuevos contratos. Las tareas ya marcadas reflejan implementación, no aceptación visual del autor.
 
 **Pendiente explícito: el autor todavía no ha probado el flujo de voz de Gemini con su micrófono (31).** No confundir las verificaciones técnicas del agente con esa prueba o con la aprobación de la voz. No cambiar Gemini/Vosk ni la narración natural con respaldo local sin consultar las decisiones 0007–0010.
 
@@ -16,7 +16,15 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-10-20 · Conservar el diseño y comparar autenticación (32)
+- El autor aclara que no quiere repetir maquetas del flujo completo ni cambiar de estilo: conservar Mostaza y organizar los elementos de las pantallas existentes. Decisión 0012 sustituye solo ese punto de 0011; plan, roadmap, producto, diseño y AGENTS actualizados.
+- Ingredientes libres siguen por plantear: construir una misma lista desde buscador o chat, revisarla y decidirla antes de elegir receta y recibir la guía paso a paso. No se modifica todavía el catálogo, la despensa ni el código de búsqueda.
+- Investigadas fuentes oficiales de Supabase Auth, Firebase Authentication y Better Auth. Comparación, requisitos de correo, sesión Electron y protección del backend en `docs/autenticacion-opciones.md`. Supabase es una recomendación provisional condicionada a SMTP e integración; no se elige ni instala proveedor. El autor también investiga.
+- Esta entrega cambia documentación; autenticación, organización visual e ingredientes libres siguen pendientes de implementación. La prueba de voz del autor permanece pendiente. Comprobación de GitHub con `git fetch origin`: los diez commits previos siguen locales; no se hace push.
+- Validación antes del commit: 356 tests aprobados; typecheck sin errores ni avisos, lint y format:check correctos.
+
 ### 2026-10-20 · Replanteamiento de la v1 y requisito de autenticación (26)
+> Aclaración posterior: la exigencia de nuevas maquetas de este registro se sustituye por la decisión 0012; conservar el diseño y organizar las pantallas existentes.
 - El autor considera las pantallas sobrecargadas y los elementos difíciles de localizar, especialmente al continuar una receta. Pide replantear todas las pantallas y recuperar la selección libre de múltiples ingredientes que tenía prevista.
 - Login y registro entran en v1 por requisito del profesor. Confirmado: cuentas reales y tecnología libre. Proveedor de identidad, persistencia segura y separación de datos por cuenta pendientes de diseño técnico.
 - Anotado explícitamente que el autor no ha probado Gemini Live con su micrófono. La conexión técnica ya comprobada no completa esa aceptación.

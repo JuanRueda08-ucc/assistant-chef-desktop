@@ -1,19 +1,19 @@
 # Replanteamiento de la v1
 
-**Fecha:** 2026-10-20. Requisitos del autor y propuesta de flujo para preparar las nuevas maquetas. Describe trabajo pendiente; no es una descripción de pantallas ya implementadas.
+**Fecha:** 2026-10-20, con aclaración del autor en la decisión 0012. Organización de las pantallas existentes conservando su diseño; no se volverán a hacer maquetas del flujo completo. Describe trabajo pendiente de implementación.
 
 ## Lo que pidió el autor
 
 - Selección libre de múltiples ingredientes: buscar y añadir sin depender de las categorías o del catálogo pequeño de la semilla.
-- Replantear las pantallas: la interfaz actual resulta sobrecargada y cuesta localizar los elementos, especialmente al continuar una receta.
+- Conservar el diseño Mostaza y organizar mejor las pantallas: la interfaz actual resulta dispersa y cuesta localizar los elementos, especialmente al continuar una receta. No se pide una nueva identidad ni una conversión al minimalismo.
 - Añadir login y registro con **cuentas reales**, requisito del profesor. El autor confirmó que la tecnología es libre.
 - Anotar que **el autor todavía no ha probado el flujo de voz de Gemini con su micrófono**. Las comprobaciones técnicas del agente no sustituyen esa prueba.
 
-## Criterio de diseño propuesto
+## Criterio de organización
 
 La persona está preparando comida o cocinando y necesita saber qué hacer a continuación. El paso o la tarea actual deben dominar la pantalla. El chef acompaña con instrucciones breves; su tamaño y sus controles deben dejar espacio al contenido.
 
-Se propone conservar como punto de partida la identidad existente (chef, tipografías y colores), con menos amarillo simultáneo, menos contornos y menos paneles compitiendo. La distribución y la jerarquía se revisarán en maquetas; una nueva identidad visual requeriría una propuesta concreta.
+Se conservan el chef, los colores, las tipografías, los componentes y el carácter visual Mostaza. El trabajo consiste en agrupar elementos relacionados, alinear bloques, ajustar espacios y establecer posiciones predecibles para las acciones. La jerarquía se comprueba sobre la app existente, pantalla por pantalla; no requiere repetir maquetas del flujo completo. Los formularios nuevos de acceso seguirán el mismo diseño.
 
 | Pantalla o estado | Lo principal | Información o acciones bajo demanda |
 |---|---|---|
@@ -31,7 +31,9 @@ Preparar no debe convertirse en un formulario largo de preferencias; las restric
 
 ## Ingredientes libres
 
-El usuario debe poder añadir uno, varios o seguir buscando sin perder su lista. La semilla actual de trece ingredientes es un dato de prueba, no el alcance del producto. Las categorías pueden servir como ayuda opcional.
+El usuario debe poder añadir uno, varios o seguir buscando sin perder su lista, tanto desde el buscador como diciéndoselo al chef por chat. Ambas entradas deben modificar la misma selección visible y permitir corregirla. La semilla actual de trece ingredientes es un dato de prueba, no el alcance del producto. Las categorías pueden servir como ayuda opcional.
+
+El flujo deseado es: construir la lista por búsqueda o chat → revisar y decidir los ingredientes → buscar y elegir receta → recibir la guía paso a paso del chef. Mencionar un ingrediente en el chat no debe iniciar una receta automáticamente. El chef puede ayudar a concretar la selección antes de cocinar. Este contrato se plantea antes de implementarlo; todavía no cambia la búsqueda actual.
 
 Propuesta: tratar sal, aceite y demás básicos igual que el resto, contando únicamente ingredientes añadidos explícitamente. Este cambio sustituiría la suposición actual de despensa y debe reflejarse en el recuento, la búsqueda, el chat y las pruebas.
 
@@ -55,6 +57,8 @@ Antes de integrar el proveedor de identidad se concretarán:
 
 La tecnología queda a elección de implementación, según lo confirmado por el autor. Se documentará el proveedor y la persistencia elegidos antes de integrarlos. Las cuentas entran en v1; la sincronización entre dispositivos continúa fuera de alcance salvo nuevo requisito.
 
+La comparación de Supabase Auth, Firebase Authentication y Better Auth, con fuentes oficiales y sus implicaciones en Electron, está en `autenticacion-opciones.md`. La recomendación es provisional; el autor también está investigando y todavía no se ha elegido ni instalado un proveedor.
+
 ## Prueba de voz pendiente del autor
 
 La conexión técnica ya se comprobó con Google: chat, TTS, token efímero y audio Live con el cliente de la app. Falta que el autor pruebe y valore:
@@ -69,9 +73,9 @@ No marcar esta aceptación como completada basándose en los tests o en una cone
 
 ## Secuencia de trabajo
 
-1. Revisar maquetas del flujo completo, incluidas las pantallas de acceso y el estado de retomar. Probar si se localizan las acciones sin una explicación del desarrollador.
+1. Concretar los ajustes de agrupación y jerarquía sobre las pantallas existentes, empezando por retomar y Cocinar, donde el autor detectó dispersión. Conservar Mostaza y comprobar en la app si se localizan las acciones, sin repetir maquetas del conjunto.
 2. Definir el contrato de ingredientes libres y el diseño técnico de autenticación; mantener las herramientas y el estado de cocina como fuente de verdad.
-3. Implementar selección, autenticación y pantallas simplificadas en entregas pequeñas, con sus pruebas y documentación.
+3. Aplicar la organización por pantalla e implementar selección y autenticación en entregas pequeñas, con sus pruebas y documentación.
 4. Recoger la prueba de voz del autor y corregir los problemas observados. Puede hacerse antes con la app actual si el autor quiere probarla.
 5. Continuar recetas generadas (17), recetas revisadas y entrega sobre el flujo revisado.
 
