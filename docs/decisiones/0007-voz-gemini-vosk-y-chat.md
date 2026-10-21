@@ -2,6 +2,8 @@
 
 **Fecha:** 2026-10-19
 
+**Reemplazo parcial (2026-10-21):** [0013](0013-separar-consultas-y-ordenes-de-voz.md) separa las preguntas de la gramática local y vuelve a órdenes locales al terminar cada respuesta, con aprobación del autor. La siguiente consulta requiere «Chef» o el botón; no se abre automáticamente tras una pregunta del modelo. Se conservan Gemini, Vosk y el chat con herramientas.
+
 **Contexto:** el Prompt 9 (voz) necesitaba elegir un proveedor de voz en tiempo real y un motor local para la palabra de activación y las órdenes cortas (la Web Speech API está descartada, 0001). El autor tiene una clave de OpenAI, pero prefiere no pagar mientras desarrolla. Además, pidió que la IA también se pueda usar escribiendo, no solo hablando, y en todas las pantallas.
 
 Comparación hecha el 2026-10-19 (precios por 1 M de tokens de audio, entrada / salida):

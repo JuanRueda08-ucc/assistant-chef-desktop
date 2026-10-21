@@ -2,6 +2,24 @@ import { afterEach, beforeEach, describe, expect, it, vi } from 'vitest'
 import { sesionNueva } from '@shared/cocina/fixtures.test-utils'
 import type { ApiChef } from '@shared/types/ipc'
 import { ControlVoz } from './control'
+import type { EventosLive } from './gemini-live'
+
+const live = vi.hoisted(() => ({
+  eventos: null as EventosLive | null,
+  conectar: vi.fn().mockResolvedValue(undefined),
+  enviarTurno: vi.fn(),
+  cerrar: vi.fn()
+}))
+vi.mock('./gemini-live', () => ({
+  GeminiLive: class {
+    constructor(eventos: EventosLive) {
+      live.eventos = eventos
+    }
+    conectar = live.conectar
+    enviarTurno = live.enviarTurno
+    cerrar = live.cerrar
+  }
+}))
 
 const audio = vi.hoisted(() => ({
   recibir: null as ((audio: ArrayBuffer) => void) | null,
@@ -147,9 +165,109 @@ describe('control de voz (sin micro ni red reales)', () => {
     await tick()
     vi.mocked(api.voz.reconocer).mockResolvedValueOnce({ texto: '[unk]', confianza: 0 })
     audio.recibir!(pcm)
+    audio.recibir!(pcm)
+    for (let i = 0; i < 9; i++) audio.recibir!(new Int16Array(1600).buffer)
     await tick()
     expect(api.voz.token).toHaveBeenCalledOnce()
     expect(eventos.error).toHaveBeenCalledWith('Sin conexión')
+    expect(eventos.estado).toHaveBeenLastCalledWith('local')
+    control.detener()
+  })
+  it.each(['repetir', 'atrás', 'siguiente'])(
+    'no convierte una consulta en %s ni descarta PCM por IPC ocupado',
+    async (texto) => {
+      const { control, api, eventos } = banco()
+      vi.mocked(api.voz.token).mockResolvedValue({
+        ok: true,
+        credencial: {
+          token: 'auth_tokens/test',
+          expiraEn: new Date(Date.now() + 60000).toISOString()
+        }
+      })
+      await control.iniciar()
+      vi.mocked(api.voz.reconocer).mockResolvedValueOnce({ texto: 'chef', confianza: 0.99 })
+      audio.recibir!(new Int16Array(1600).fill(5000).buffer)
+      await tick()
+      vi.mocked(api.voz.reconocer).mockResolvedValue({ texto, confianza: 1 })
+      audio.recibir!(new Int16Array(1600).fill(5000).buffer)
+      audio.recibir!(new Int16Array(1600).fill(5000).buffer)
+      // Mientras dura la consulta no hay llamadas a Vosk que puedan bloquear su captura.
+      for (let i = 0; i < 9; i++) audio.recibir!(new Int16Array(1600).buffer)
+      await tick()
+      expect(api.voz.reconocer).toHaveBeenCalledOnce()
+      expect(live.enviarTurno).toHaveBeenCalledOnce()
+      expect(live.enviarTurno.mock.calls[0]![0]).toHaveLength(11)
+      expect(eventos.aplicar).not.toHaveBeenCalled()
+      expect(api.voz.repetir).not.toHaveBeenCalled()
+      live.eventos!.finTurno(true)
+      await vi.advanceTimersByTimeAsync(500)
+      expect(eventos.estado).toHaveBeenLastCalledWith('local')
+      vi.mocked(api.voz.reconocer).mockResolvedValue({ texto: 'ya terminé', confianza: 0.99 })
+      audio.recibir!(new Int16Array(1600).buffer)
+      await tick()
+      expect(eventos.aplicar).toHaveBeenCalledWith({
+        nombre: 'avanzar_paso',
+        argumentos: {},
+        confirmado: true
+      })
+      control.detener()
+    }
+  )
+  it('descarta una orden local pendiente si cambió de paso', async () => {
+    const { control, api, eventos, sesion } = banco()
+    await control.iniciar()
+    let resolver!: (valor: { texto: string; confianza: number }) => void
+    vi.mocked(api.voz.reconocer).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolver = resolve
+        })
+    )
+    audio.recibir!(new Int16Array(1600).buffer)
+    sesion.pasoActual = 2
+    resolver({ texto: 'atrás', confianza: 1 })
+    await tick()
+    expect(eventos.aplicar).not.toHaveBeenCalled()
+    control.detener()
+  })
+  it('callar cancela un token pendiente sin enviar audio ni reactivar el turno', async () => {
+    const { control, api, eventos } = banco()
+    let resolver!: (valor: Awaited<ReturnType<ApiChef['voz']['token']>>) => void
+    vi.mocked(api.voz.token).mockImplementationOnce(
+      () =>
+        new Promise((resolve) => {
+          resolver = resolve
+        })
+    )
+    await control.iniciar()
+    control.activar()
+    audio.recibir!(new Int16Array(3200).fill(5000).buffer)
+    for (let i = 0; i < 9; i++) audio.recibir!(new Int16Array(1600).buffer)
+    await tick()
+    control.callar()
+    resolver({
+      ok: true,
+      credencial: {
+        token: 'auth_tokens/test',
+        expiraEn: new Date(Date.now() + 60000).toISOString()
+      }
+    })
+    await tick()
+    expect(live.enviarTurno).not.toHaveBeenCalled()
+    expect(eventos.estado).toHaveBeenLastCalledWith('local')
+    control.detener()
+  })
+  it('cambiar de paso cancela la consulta aunque no se pida narrar el nuevo paso', async () => {
+    const { control, api, eventos, sesion } = banco()
+    await control.iniciar()
+    control.activar()
+    sesion.pasoActual = 2
+    control.sincronizarPaso()
+    audio.recibir!(new Int16Array(3200).fill(5000).buffer)
+    await vi.advanceTimersByTimeAsync(8000)
+    expect(api.voz.token).not.toHaveBeenCalled()
+    expect(api.voz.narrar).not.toHaveBeenCalled()
+    expect(api.voz.callar).toHaveBeenCalled()
     expect(eventos.estado).toHaveBeenLastCalledWith('local')
     control.detener()
   })

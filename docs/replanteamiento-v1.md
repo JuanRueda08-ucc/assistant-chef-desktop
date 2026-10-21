@@ -59,7 +59,9 @@ La tecnología queda a elección de implementación, según lo confirmado por el
 
 La investigación inicial de Supabase Auth, Firebase Authentication y Better Auth, con fuentes oficiales y sus implicaciones en Electron, está en `autenticacion-opciones.md`. El autor ha dejado **Better Auth y Supabase Auth** como finalistas para comparar después. Todavía no se ha elegido ni instalado un proveedor.
 
-## Prueba de voz pendiente del autor
+## Prueba de voz y repetición pendiente
+
+El 2026-10-21 el autor comunicó su primera prueba: funcionamiento irregular, preguntas confundidas con órdenes, cambios inesperados de paso, dificultad de confirmación y error en el chat. Se registró como prueba realizada, sin aceptación. Las correcciones y la separación de modos aprobada están en 0013; falta repetir la prueba (34) en un lugar adecuado. Mientras está en público no se le pide hablar ni se abre su micrófono para comprobar el código.
 
 La conexión técnica ya se comprobó con Google: chat, TTS, token efímero y audio Live con el cliente de la app. Falta que el autor pruebe y valore:
 
@@ -73,7 +75,7 @@ No marcar esta aceptación como completada basándose en los tests o en una cone
 
 ## Secuencia de trabajo
 
-1. Realizar primero la prueba personal de voz del autor con la app actual y recoger su valoración, por su petición explícita. Corregir los problemas observados antes de reorganizar Retomar/Cocinar; no marcarla por una comprobación técnica del agente.
+1. Repetir la prueba personal tras corregir las incidencias recibidas el 2026-10-21. Hacerlo cuando el autor pueda hablar en un lugar adecuado. Atender los problemas observados antes de reorganizar Retomar/Cocinar; las comprobaciones técnicas no sustituyen su aceptación.
 2. Concretar los ajustes de agrupación y jerarquía sobre las pantallas existentes, empezando por retomar y Cocinar, donde el autor detectó dispersión. Conservar Mostaza y comprobar en la app si se localizan las acciones, sin repetir maquetas del conjunto.
 3. Definir el contrato de ingredientes libres y comparar Better Auth con Supabase Auth para concretar el diseño técnico de autenticación; mantener las herramientas y el estado de cocina como fuente de verdad.
 4. Aplicar la organización por pantalla e implementar selección y autenticación en entregas pequeñas, con sus pruebas y documentación.

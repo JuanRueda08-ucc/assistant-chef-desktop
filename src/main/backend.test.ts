@@ -29,7 +29,29 @@ describe('cliente backend en main (sin red)', () => {
     solicitar.mockResolvedValue(new Response('detalle privado', { status: 429 }))
     await expect(cliente.conversar(peticion)).rejects.toThrow('límite')
     solicitar.mockResolvedValue(new Response('detalle privado', { status: 502 }))
-    await expect(cliente.conversar(peticion)).rejects.toThrow('configuración del backend')
+    await expect(cliente.conversar(peticion)).rejects.toThrow('servicio de IA no pudo responder')
+  })
+  it.each([
+    ['proveedor_timeout', 'tardó demasiado'],
+    ['proveedor_saturado', 'temporalmente ocupada'],
+    ['proveedor_sin_cuota', 'límite de uso'],
+    ['proveedor_sin_conexion', 'no pudo conectar con la IA'],
+    ['proveedor_no_autorizado', 'configuración de acceso']
+  ])('explica %s sin mostrar el mensaje privado ni reintentar', async (codigo, texto) => {
+    const solicitar = vi.fn<typeof fetch>().mockResolvedValue(
+      new Response(JSON.stringify({ error: { codigo, mensaje: 'secreto privado' } }), {
+        status: 502
+      })
+    )
+    const cliente = crearClienteBackend('http://localhost:8787', 'instalacion-test', solicitar)
+    await expect(
+      cliente.conversar({
+        pantalla: 'cocinar',
+        contexto: 'paso 1',
+        mensajes: [{ role: 'user', parts: [{ text: 'Explica el paso' }] }]
+      })
+    ).rejects.toThrow(texto)
+    expect(solicitar).toHaveBeenCalledOnce()
   })
   it('hace POST con id de instalación y valida el token', async () => {
     const solicitar = vi
@@ -50,6 +72,20 @@ describe('cliente backend en main (sin red)', () => {
       redirect: 'error',
       headers: { 'x-instalacion': 'instalacion-test' }
     })
+  })
+  it('distingue un timeout del chat de la falta de backend y no reintenta', async () => {
+    const error = new Error('secreto privado')
+    error.name = 'TimeoutError'
+    const solicitar = vi.fn<typeof fetch>().mockRejectedValue(error)
+    const cliente = crearClienteBackend('http://localhost:8787', 'instalacion-test', solicitar)
+    await expect(
+      cliente.conversar({
+        pantalla: 'cocinar',
+        contexto: 'paso 1',
+        mensajes: [{ role: 'user', parts: [{ text: 'Explica' }] }]
+      })
+    ).rejects.toThrow('tardó demasiado')
+    expect(solicitar).toHaveBeenCalledOnce()
   })
   it.each([
     'http://externo.com',

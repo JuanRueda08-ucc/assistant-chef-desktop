@@ -1,4 +1,5 @@
 import { z } from 'zod'
+import { ErrorProveedor } from '../error-proveedor'
 import { esquemaReceta } from '@shared/esquemas/receta'
 import {
   INSTRUCCIONES_CHEF,
@@ -197,10 +198,20 @@ export class ProveedorGemini implements ProveedorIA {
         body: JSON.stringify(cuerpo),
         signal: AbortSignal.timeout(20_000)
       })
-    } catch {
+    } catch (error) {
       // No propagamos errores de transporte: podrían contener cabeceras con la clave.
-      throw new Error('No se pudo conectar con Gemini a tiempo.')
+      throw new ErrorProveedor(
+        error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name)
+          ? 'proveedor_timeout'
+          : 'proveedor_sin_conexion'
+      )
     }
+    if (respuesta.status === 429) throw new ErrorProveedor('proveedor_sin_cuota')
+    if (respuesta.status === 408 || respuesta.status === 504)
+      throw new ErrorProveedor('proveedor_timeout')
+    if (respuesta.status === 503) throw new ErrorProveedor('proveedor_saturado')
+    if (respuesta.status === 401 || respuesta.status === 403)
+      throw new ErrorProveedor('proveedor_no_autorizado')
     if (!respuesta.ok) throw new Error(`Gemini rechazó la petición (HTTP ${respuesta.status}).`)
     try {
       return await respuesta.json()

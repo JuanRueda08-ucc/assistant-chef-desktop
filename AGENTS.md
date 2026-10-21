@@ -12,7 +12,7 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 2. Lee el documento de `docs/` del área que vas a tocar (índice en `docs/README.md`).
 3. Si la tarea contradice una decisión de `docs/decisiones/`, para y pregunta en vez de cambiarla en silencio.
 
-**Prioridad actual (0011–0012, orden aclarado por el autor el 2026-10-20):** primero la prueba personal de voz con Gemini (31); después organizar Retomar/Cocinar. Leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. Conservar el diseño Mostaza y organizar las pantallas existentes: agrupación, alineación, jerarquía y controles localizables; el autor no quiere repetir maquetas del flujo completo ni convertirlo en otro estilo. Plantear ingredientes libres por búsqueda o chat, con revisión de la lista antes de elegir receta y cocinar. Login/registro requieren cuentas reales (tecnología libre); los finalistas elegidos para comparar más adelante son Better Auth y Supabase Auth (`docs/autenticacion-opciones.md`), sin proveedor decidido todavía. Son requisitos pendientes de implementación; las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. La prueba de Gemini con el micrófono del autor no queda completada por los tests o las comprobaciones técnicas del agente.
+**Prioridad actual (0011–0013):** la primera prueba personal de Gemini (31, 2026-10-21) reveló fallos de reconocimiento, navegación y chat. Corregirlos (33) y repetir la prueba con el autor (34) antes de organizar Retomar/Cocinar. El autor está en público; hacer verificaciones sin abrir su micrófono ni reproducir sonido. Leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. Conservar Mostaza y organizar las pantallas existentes, sin repetir maquetas del flujo completo. Plantear ingredientes libres por búsqueda o chat y revisar la lista antes de elegir receta. Para cuentas reales, comparar después Better Auth y Supabase Auth (`docs/autenticacion-opciones.md`); todavía no hay proveedor elegido. Las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. Las verificaciones técnicas del agente no completan la aceptación personal de voz.
 
 ## Al terminar una tarea
 
@@ -48,7 +48,7 @@ src/renderer/    interfaz Svelte 5 (App.svelte elige la pantalla según el estad
                  ChatChef (entrada común, historial plegable y errores de consulta)
   lib/           lógica pura de la interfaz con tests (cómo se muestra un ingrediente)
   pantallas/     Preparar, Elegir y Cocinar (con la pantalla final)
-  voz/           captura AudioWorklet, PCM, ControlVoz y WebSocket Gemini Live
+  voz/           captura AudioWorklet, PCM, ControlVoz, TurnoConsulta y WebSocket Gemini Live
   assets/chef/   poses del chef en PNG
   styles/        tokens.css (único sitio con colores, tipografías y radios)
 src/shared/      tipos y lógica pura compartida (sin dependencias de Electron ni DOM)
@@ -61,6 +61,7 @@ src/shared/      tipos y lógica pura compartida (sin dependencias de Electron n
   ia/            herramientas.ts (contrato de herramientas del chef: argumentos zod y JSON Schema)
                  ordenes.ts, contexto.ts, vosk.ts y configuración pública gemini.ts
                  seleccion.ts (reductor de Preparar/Elegir) y chat.ts (esquemas de transporte)
+                 errores.ts (códigos y mensajes públicos de fallos del proveedor)
 server/src/      backend: app.ts (manejador Request → Response), rutas, proveedor (ProveedorIA),
                  proveedores/ (falso, gemini), limite.ts, servidor-node.ts y principal.ts (arranque local)
 db/              schema.sql y semillas JSON (db/seed/, ver db/seed/README.md)
@@ -118,7 +119,7 @@ Requiere Node 22 o superior y npm.
 
 Antes del primer uso de voz, ejecuta `npm run voz:preparar`. Los scripts `build:unpack`, `build:win`, `build:mac` y `build:linux` preparan los recursos antes de empaquetar. Windows ARM64 no tiene un binario Vosk fijado; se informa sin sustituir el motor. Repetición local: voz instalada del sistema en Windows/macOS y `espeak-ng` en Linux; si falta, se mantiene el texto y se muestra un aviso.
 
-**Ciclo de voz:** solo Cocinar puede abrir el micrófono y empieza apagado. `ControlVoz` se desmonta al salir y cierra tracks/socket/worker. Las órdenes cortas se ejecutan antes de enviar audio; el modelo solo recibe consultas tras «Chef» o en la ventana de ocho segundos después de una pregunta. Las llamadas del modelo nunca confirman; no copies `confirmado` de sus argumentos/transcripciones. `voz:iniciar/reconocer/reset/detener/repetir` también siguen contrato + zod + preload. PCM por IPC: máximo 6400 bytes, longitud par. No uses Web Speech ni cambies Vosk sin consultar (0007).
+**Ciclo de voz (0013):** solo Cocinar puede abrir el micrófono y empieza apagado. `ControlVoz` se desmonta al salir y cierra tracks/socket/worker. En modo local, Vosk resuelve «Chef» y órdenes cortas. «Chef» o «Hablar al chef» abren una consulta de hasta ocho segundos que no pasa por Vosk; se envía a Gemini tras una pausa. Al terminar cada respuesta se vuelve a órdenes locales, sin escucha abierta automática. Las llamadas del modelo nunca confirman; no copies `confirmado` de sus argumentos/transcripciones. Las frases exactas del intérprete («listo», «siguiente», «ya está», «ya terminé», «hecho», «paso completado») confirman solo en modo local. Descartar respuestas para otra sesión/paso. `voz:iniciar/reconocer/reset/detener/repetir` siguen contrato + zod + preload. PCM por IPC: máximo 6400 bytes, longitud par. No uses Web Speech ni cambies Vosk sin consultar (0007).
 
 Alias de importación: `@shared/*` apunta a `src/shared/*` en main, preload, renderer, server y tests.
 
@@ -130,7 +131,7 @@ curl -X POST http://localhost:8787/voz/token -H "x-instalacion: prueba-local-000
 
 Todas las rutas son `POST`, necesitan la cabecera `X-Instalacion` (8 a 64 caracteres `A-Z a-z 0-9 -`) y responden JSON. Detalle de rutas, errores y límites en `docs/ia-chef.md`, "Backend mínimo".
 
-**Chat:** `window.api.chef.conversar` → `chef:conversar` valida pantalla, preferencias e historial; main construye contexto desde la base y llama `POST /chat`. Las instrucciones y herramientas se fijan en el servidor. Preparar/Elegir usan `aplicarSeleccion`; Cocinar usa `sesion.aplicar` con `confirmado: false` para el modelo. Solo órdenes locales exactas escritas («listo»/«siguiente») confirman desde la app. La conversación vive en memoria; no la registres ni reintentes automáticamente un turno que pudo aplicar herramientas. Gemini, chat y narración se activan poniendo `PROVEEDOR_IA=gemini` y la clave local en `.env` y reiniciando el backend; `falso` ofrece demostraciones sin red.
+**Chat:** `window.api.chef.conversar` → `chef:conversar` valida pantalla, preferencias e historial; main construye contexto desde la base y llama `POST /chat`. Las instrucciones y herramientas se fijan en el servidor. Preparar/Elegir usan `aplicarSeleccion`; Cocinar usa `sesion.aplicar` con `confirmado: false` para el modelo. Solo órdenes escritas exactas del intérprete local confirman desde la app. La conversación vive en memoria; no la registres ni reintentes automáticamente un turno que pudo aplicar herramientas. Los errores distinguen timeout, saturación, cuota y rechazo de acceso del proveedor; nunca muestran su cuerpo privado ni achacan todos los fallos a la configuración local. Gemini, chat y narración se activan poniendo `PROVEEDOR_IA=gemini` y la clave local en `.env` y reiniciando el backend; `falso` ofrece demostraciones sin red.
 
 **App → backend:** main usa `CHEF_API_URL` (por defecto `http://localhost:8787`), incorporada desde `.env` al desarrollar/compilar y sobrescribible en el entorno al arrancar. Solo esa URL pública entra en el bundle de main; la clave de Google no se incorpora. HTTP se admite solo en localhost; fuera se exige HTTPS. `window.api.voz.token({})` funciona solo con una sesión cocinando y devuelve un resultado tipado, sin exponer id de instalación ni URLs al renderer.
 

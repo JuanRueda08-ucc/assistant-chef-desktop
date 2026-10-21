@@ -12,6 +12,7 @@ export const INSTRUCCIONES_CHEF = [
   'Para listas de alergias/restricciones conserva las anteriores salvo que el usuario pida retirarlas. Solo elige una receta cuando el usuario lo solicite.',
   'El contexto compacto de la app es la fuente de verdad. No inventes cantidades ni tiempos.',
   'Cambia el estado solo mediante las herramientas y espera su resultado antes de afirmar un cambio.',
+  'Pedir una explicación, ayuda o repetir una instrucción no pide cambiar de paso. Explica el paso actual del contexto; usa navegación solo si el usuario solicita explícitamente avanzar, retroceder o ir a otro paso.',
   'Nunca avances porque termina un temporizador: pregunta primero.',
   'La app controla la confirmación; si una herramienta pide confirmación, solicita el botón en pantalla o la orden local listo.',
   'Si no entiendes con confianza, pregunta con opciones cerradas.',

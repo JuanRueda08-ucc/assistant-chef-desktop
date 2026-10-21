@@ -16,6 +16,8 @@ import { filtrarSugerencias } from './sugerencias'
 import { validarRecetaGenerada } from './validar-receta'
 import { esquemaPeticionNarracion, esquemaRespuestaNarracion } from '@shared/esquemas/voz'
 import { esquemaPeticionChat, esquemaRespuestaChat } from '@shared/ia/chat'
+import { esquemaCodigoErrorProveedor } from '@shared/ia/errores'
+import { ErrorProveedor } from './error-proveedor'
 
 export interface Dependencias {
   proveedor: ProveedorIA
@@ -37,6 +39,7 @@ export const CODIGOS_ERROR_API = [
   'ingrediente_desconocido',
   'limite_superado',
   'proveedor_fallo',
+  ...esquemaCodigoErrorProveedor.options,
   'receta_invalida'
 ] as const
 export type CodigoErrorApi = (typeof CODIGOS_ERROR_API)[number]
@@ -76,6 +79,7 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
       return await trabajo()
     } catch (error) {
       registrarError(`El proveedor ${dep.proveedor.nombre} falló`, error)
+      if (error instanceof ErrorProveedor) throw new ErrorApi(502, error.codigo, error.message)
       throw new ErrorApi(
         502,
         'proveedor_fallo',

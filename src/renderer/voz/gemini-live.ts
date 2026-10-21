@@ -62,6 +62,14 @@ export class GeminiLive {
   private ejecutadas = new Set<string>()
   private cola: Promise<void> = Promise.resolve()
   private falloConexion: (() => void) | null = null
+  private turno: string | null = null
+
+  private versionSesion(): string | null {
+    const sesion = this.eventos.sesion()
+    return sesion?.fase === 'cocinar'
+      ? JSON.stringify([sesion.id, sesion.pasoActual, sesion.actualizadaEn])
+      : null
+  }
 
   constructor(
     private readonly eventos: EventosLive,
@@ -143,6 +151,7 @@ export class GeminiLive {
   enviarTurno(audio: readonly ArrayBuffer[]): void {
     const sesion = this.eventos.sesion()
     if (!this.listo || this.cerrado || sesion?.fase !== 'cocinar') return
+    this.turno = this.versionSesion()
     this.transcripcion = ''
     this.enviar({
       clientContent: {
@@ -161,6 +170,7 @@ export class GeminiLive {
   cerrar(): void {
     this.cerrado = true
     this.listo = false
+    this.turno = null
     this.falloConexion?.()
     this.falloConexion = null
     this.socket?.close()
@@ -196,7 +206,18 @@ export class GeminiLive {
       this.fallar('El servicio de voz cerró la sesión. Di «Chef» para volver a conectar.')
       return
     }
+    // Una respuesta para el paso anterior no puede hablar ni actuar sobre el nuevo.
+    if (this.turno === null || this.turno !== this.versionSesion()) {
+      if (!mensaje.setupComplete) {
+        this.fallar('El paso o la sesión cambiaron. Haz tu consulta sobre el paso actual.')
+      }
+      return
+    }
     for (const llamada of mensaje.toolCall?.functionCalls ?? []) {
+      if (this.turno !== this.versionSesion()) {
+        this.fallar('El paso o la sesión cambiaron. Haz tu consulta sobre el paso actual.')
+        return
+      }
       if (this.cerrado || this.canceladas.has(llamada.id) || this.ejecutadas.has(llamada.id))
         continue
       this.ejecutadas.add(llamada.id)
@@ -209,14 +230,17 @@ export class GeminiLive {
         const argumentos = ARGUMENTOS[nombre.data].safeParse(llamada.args)
         if (argumentos.success && this.eventos.sesion()?.fase === 'cocinar') {
           // NUNCA se lee confirmado del modelo ni de su transcripción.
-          resultado = (await this.eventos.aplicar({
+          const aplicado = await this.eventos.aplicar({
             nombre: nombre.data,
             argumentos: argumentos.data,
             confirmado: false
-          })) ?? {
+          })
+          resultado = aplicado ?? {
             ok: false,
             error: { codigo: 'ocupado', mensaje: 'Espera a que termine la acción actual.' }
           }
+          // El resultado de esta herramienta puede actualizar la sesión legítimamente.
+          if (aplicado?.ok) this.turno = this.versionSesion()
         }
       }
       const sesion = this.eventos.sesion()
@@ -235,6 +259,10 @@ export class GeminiLive {
             ]
           }
         })
+    }
+    if (this.turno !== this.versionSesion()) {
+      this.fallar('El paso o la sesión cambiaron. Haz tu consulta sobre el paso actual.')
+      return
     }
     const contenido = mensaje.serverContent
     if (!contenido || this.cerrado) return

@@ -33,7 +33,7 @@ afterEach(() => {
   conexiones.splice(0).forEach((c) => c.cerrar())
 })
 
-async function banco(): Promise<{
+async function banco(conTurno = true): Promise<{
   live: GeminiLive
   socket: SocketFalso
   eventos: EventosLive
@@ -61,6 +61,7 @@ async function banco(): Promise<{
   socket.onopen!()
   socket.recibir({ setupComplete: {} })
   await conectado
+  if (conTurno) live.enviarTurno([])
   return { live, socket, eventos, sesion, crearSocket }
 }
 
@@ -83,7 +84,7 @@ describe('Gemini Live con WebSocket simulado (sin red)', () => {
     expect(JSON.stringify(socket.enviados[0])).not.toContain('PROVEEDOR_IA_API_KEY')
   })
   it('envía contexto fresco y PCM en cada turno con límites explícitos de actividad', async () => {
-    const { live, socket, sesion } = await banco()
+    const { live, socket, sesion } = await banco(false)
     live.enviarTurno([new Uint8Array([0, 1]).buffer])
     expect(socket.enviados[1]).toMatchObject({ clientContent: { turnComplete: false } })
     expect(JSON.stringify(socket.enviados[1])).toContain('paso 1 de 9')
@@ -189,6 +190,51 @@ describe('Gemini Live con WebSocket simulado (sin red)', () => {
     socket.onmessage!({ data: '{no JSON' })
     await tick()
     expect(eventos.error).toHaveBeenCalledWith('La sesión de voz recibió un mensaje inválido.')
+    expect(socket.readyState).toBe(3)
+  })
+  it.each(['paso', 'sesion', 'version'])(
+    'descarta herramientas, voz y texto de otro %s',
+    async (cambio) => {
+      const { socket, eventos, sesion } = await banco()
+      if (cambio === 'paso') sesion.pasoActual = 2
+      else if (cambio === 'sesion') sesion.id = 'otra-sesion'
+      else sesion.actualizadaEn = new Date(Date.now() + 1000).toISOString()
+      socket.recibir({
+        toolCall: { functionCalls: [{ id: 'tardia', name: 'retroceder_paso', args: {} }] },
+        serverContent: {
+          outputTranscription: { text: 'Vuelve al paso uno.' },
+          modelTurn: { parts: [{ inlineData: { data: 'AAA=', mimeType: 'audio/pcm;rate=24000' } }] }
+        }
+      })
+      await tick()
+      expect(eventos.aplicar).not.toHaveBeenCalled()
+      expect(eventos.audio).not.toHaveBeenCalled()
+      expect(eventos.texto).not.toHaveBeenCalled()
+      expect(socket.readyState).toBe(3)
+    }
+  )
+  it('no ejecuta una segunda herramienta si cambió el paso mientras esperaba IPC', async () => {
+    const { socket, eventos, sesion } = await banco()
+    let resolver!: () => void
+    eventos.aplicar = vi.fn(
+      () =>
+        new Promise<null>((resolve) => {
+          resolver = () => resolve(null)
+        })
+    )
+    socket.recibir({
+      toolCall: {
+        functionCalls: [
+          { id: 'uno', name: 'retroceder_paso', args: {} },
+          { id: 'dos', name: 'retroceder_paso', args: {} }
+        ]
+      }
+    })
+    await tick()
+    sesion.pasoActual = 2
+    resolver()
+    await tick()
+    expect(eventos.aplicar).toHaveBeenCalledOnce()
     expect(socket.readyState).toBe(3)
   })
 })

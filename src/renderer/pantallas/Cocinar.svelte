@@ -79,6 +79,9 @@
   const claveNarracion = $derived(
     sesion?.fase === 'cocinar' && paso ? `${sesion.id}:${paso.id}` : null
   )
+  $effect(() => {
+    if (claveNarracion) untrack(() => voz.sincronizarPaso())
+  })
   let narracionActiva = $state(true)
   $effect(() => {
     if (claveNarracion && narracionActiva)
@@ -486,9 +489,9 @@
           {#if estadoVoz === 'local'}<Chip onclick={() => voz.activar()}>Hablar al chef</Chip>{/if}
           <small role="status"
             >{estadoVoz === 'local'
-              ? 'Di «Chef» para preguntar, o «siguiente», «atrás», «repite»…'
+              ? 'Órdenes: «listo», «ya terminé», «atrás», «repite». Para preguntar, di «Chef».'
               : estadoVoz === 'escuchando'
-                ? 'Te escucho · hasta 8 segundos'
+                ? 'Te escucho · haz tu pregunta y deja una pausa · hasta 8 segundos'
                 : estadoVoz === 'iniciando'
                   ? 'Preparando el micrófono…'
                   : estadoVoz === 'pensando'

@@ -8,6 +8,10 @@ export const FRASES_ORDENES = [
   'chef',
   'siguiente',
   'listo',
+  'ya está',
+  'ya terminé',
+  'hecho',
+  'paso completado',
   'atrás',
   'repite',
   'repetir',
@@ -38,6 +42,10 @@ export function interpretarOrden(texto: string): LlamadaHerramienta | OrdenLocal
       return { local: 'activar' }
     case 'siguiente':
     case 'listo':
+    case 'ya esta':
+    case 'ya termine':
+    case 'hecho':
+    case 'paso completado':
       return { nombre: 'avanzar_paso', argumentos: {}, confirmado: true }
     case 'atras':
       return { nombre: 'retroceder_paso', argumentos: {}, confirmado: false }

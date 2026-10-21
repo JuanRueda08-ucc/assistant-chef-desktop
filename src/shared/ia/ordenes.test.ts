@@ -4,18 +4,27 @@ import { ARGUMENTOS } from './herramientas'
 import { FRASES_ORDENES, interpretarOrden, resolverTemporizador } from './ordenes'
 
 describe('interpretarOrden', () => {
-  it.each(['siguiente', 'listo', ' ¡Chef, SIGUIENTE! ', 'chef listo'])(
-    '%s confirma solo este avance',
-    (texto) => {
-      expect(interpretarOrden(texto)).toEqual({
-        nombre: 'avanzar_paso',
-        argumentos: {},
-        confirmado: true
-      })
-    }
-  )
+  it.each([
+    'siguiente',
+    'listo',
+    ' ¡Chef, SIGUIENTE! ',
+    'chef listo',
+    'ya está',
+    'ya terminé',
+    'hecho',
+    'paso completado'
+  ])('%s confirma solo este avance', (texto) => {
+    expect(interpretarOrden(texto)).toEqual({
+      nombre: 'avanzar_paso',
+      argumentos: {},
+      confirmado: true
+    })
+  })
   it.each([
     'no estoy listo',
+    'no he terminado',
+    'todavía no está hecho',
+    'no he completado este paso',
     'siguiente receta',
     'chef no avances',
     'repite y siguiente',

@@ -5,7 +5,7 @@ import { interpretarOrden, resolverTemporizador } from '@shared/ia/ordenes'
 import { CONFIANZA_ORDEN_MIN } from '@shared/ia/vosk'
 import { capturarAudio, crearReproductor } from './audio'
 import { GeminiLive } from './gemini-live'
-import { amplitud } from './pcm'
+import { TurnoConsulta } from './turno'
 
 export type EstadoVoz = 'apagado' | 'iniciando' | 'local' | 'escuchando' | 'pensando' | 'hablando'
 interface EventosVoz {
@@ -26,14 +26,29 @@ export class ControlVoz {
   private estado: EstadoVoz = 'apagado'
   private procesando = false
   private silencioHasta = 0
-  private audio: ArrayBuffer[] = []
-  private hayHabla = false
+  private consulta: TurnoConsulta | null = null
+  private versionConsulta: string | null = null
   private reloj: ReturnType<typeof setTimeout> | undefined
   private inactividad: ReturnType<typeof setTimeout> | undefined
   private pendiente: { texto: string; version: string } | null = null
   private lectura = 0
+  private pasoVigente: string
+
+  private versionPaso(): string {
+    const sesion = this.eventos.sesion()
+    return JSON.stringify([sesion?.id, sesion?.fase, sesion?.pasoActual])
+  }
+
+  /** También invalida audio ya encolado cuando la narración automática está silenciada. */
+  sincronizarPaso(): void {
+    const actual = this.versionPaso()
+    if (actual === this.pasoVigente) return
+    this.pasoVigente = actual
+    this.callar()
+  }
   callar(): void {
     this.lectura += 1
+    this.cancelarConsulta()
     this.reproductor?.interrumpir()
     this.silencioHasta = Date.now() + 350
     void this.api.voz.callar({}).catch(() => {})
@@ -43,10 +58,26 @@ export class ControlVoz {
     return this.abort !== null
   }
 
+  private versionSesion(): string {
+    const sesion = this.eventos.sesion()
+    return JSON.stringify([sesion?.id, sesion?.pasoActual, sesion?.actualizadaEn])
+  }
+
+  private cancelarConsulta(): void {
+    clearTimeout(this.reloj)
+    clearTimeout(this.inactividad)
+    this.consulta = null
+    this.versionConsulta = null
+    this.live?.cerrar()
+    this.live = null
+  }
+
   constructor(
     private readonly api: ApiChef,
     private readonly eventos: EventosVoz
-  ) {}
+  ) {
+    this.pasoVigente = this.versionPaso()
+  }
 
   async iniciar(): Promise<void> {
     this.detener()
@@ -81,13 +112,9 @@ export class ControlVoz {
     this.lectura += 1
     this.abort?.abort()
     this.abort = null
-    clearTimeout(this.reloj)
-    clearTimeout(this.inactividad)
-    this.live?.cerrar()
-    this.live = null
+    this.cancelarConsulta()
     this.reproductor?.cerrar()
     this.reproductor = null
-    this.audio = []
     this.pendiente = null
     this.eventos.confirmar(null)
     this.cambiar('apagado')
@@ -101,9 +128,14 @@ export class ControlVoz {
     if (!this.abort || this.abort.signal.aborted || !this.eventos.disponible()) return
     clearTimeout(this.reloj)
     clearTimeout(this.inactividad)
+    this.lectura += 1
+    this.eventos.error(null)
+    this.pendiente = null
+    this.eventos.confirmar(null)
+    void this.api.voz.reset({}).catch(() => {})
     this.reproductor?.interrumpir()
-    this.audio = []
-    this.hayHabla = false
+    this.consulta = new TurnoConsulta()
+    this.versionConsulta = this.versionSesion()
     this.cambiar('escuchando')
     this.reloj = setTimeout(() => {
       void this.enviarConsulta()
@@ -115,6 +147,8 @@ export class ControlVoz {
     const paso = sesion?.recetaAdaptada?.pasos.find((p) => p.orden === sesion.pasoActual)
     if (!paso) return
     const lectura = ++this.lectura
+    this.cancelarConsulta()
+    this.eventos.error(null)
     const vigente = (): boolean =>
       lectura === this.lectura &&
       this.eventos.sesion()?.fase === 'cocinar' &&
@@ -122,7 +156,6 @@ export class ControlVoz {
       this.eventos.sesion()?.pasoActual === paso.orden
     const abort = this.abort
     clearTimeout(this.reloj)
-    this.audio = []
     this.reproductor?.interrumpir()
     this.cambiar('hablando')
     this.eventos.decir(paso.textoVoz ?? paso.texto)
@@ -162,7 +195,7 @@ export class ControlVoz {
     const pendiente = this.pendiente
     this.pendiente = null
     this.eventos.confirmar(null)
-    if (pendiente && pendiente.version === this.eventos.sesion()?.actualizadaEn)
+    if (pendiente && pendiente.version === this.versionSesion())
       await this.ejecutar(pendiente.texto)
     else this.eventos.error('El paso cambió. Usa los controles del paso actual.')
   }
@@ -178,15 +211,17 @@ export class ControlVoz {
       Date.now() < this.silencioHasta ||
       !abort ||
       abort.signal.aborted ||
-      this.procesando ||
       !this.eventos.disponible() ||
       !['local', 'escuchando'].includes(this.estado)
     )
       return
     if (this.estado === 'escuchando') {
-      if (this.audio.length < 80) this.audio.push(audio)
-      if (amplitud(audio) > 0.015) this.hayHabla = true
+      // Una pregunta abierta nunca vuelve a la gramática cerrada de Vosk (0013).
+      if (this.consulta?.agregar(audio)) void this.enviarConsulta()
+      return
     }
+    if (this.procesando) return
+    const version = this.versionSesion()
     this.procesando = true
     try {
       const r = await this.api.voz.reconocer(audio)
@@ -194,19 +229,19 @@ export class ControlVoz {
         abort !== this.abort ||
         abort.signal.aborted ||
         !r ||
-        !['local', 'escuchando'].includes(this.estado)
+        this.estado !== 'local' ||
+        version !== this.versionSesion()
       )
         return
       const orden = interpretarOrden(r.texto)
       if (orden) {
         clearTimeout(this.reloj)
-        this.audio = []
         if (r.confianza < CONFIANZA_ORDEN_MIN) {
-          this.pendiente = { texto: r.texto, version: this.eventos.sesion()!.actualizadaEn }
+          this.pendiente = { texto: r.texto, version: this.versionSesion() }
           this.eventos.confirmar(r.texto)
           this.cambiar('local')
         } else await this.ejecutar(r.texto)
-      } else if (this.estado === 'escuchando' && this.hayHabla) await this.enviarConsulta()
+      }
     } catch {
       if (abort === this.abort && !abort.signal.aborted) {
         this.detener()
@@ -245,36 +280,51 @@ export class ControlVoz {
     clearTimeout(this.reloj)
     const abort = this.abort
     if (!abort || abort.signal.aborted || this.estado !== 'escuchando') return
-    if (!this.hayHabla || !this.audio.length) {
+    const consulta = this.consulta
+    this.consulta = null
+    if (!consulta?.tieneHabla || this.versionConsulta !== this.versionSesion()) {
       this.cambiar('local')
       return
     }
-    const audio = this.audio
-    this.audio = []
+    const audio = consulta.audio
+    const lectura = this.lectura
+    const version = this.versionSesion()
+    const vigente = (): boolean => {
+      if (abort !== this.abort || abort.signal.aborted || lectura !== this.lectura) return false
+      if (version !== this.versionSesion()) {
+        this.cancelarConsulta()
+        this.cambiar('local')
+        return false
+      }
+      return true
+    }
     this.cambiar('pensando')
     try {
       await this.api.voz.reset({})
-      if (abort !== this.abort) return
+      if (!vigente()) return
       if (!this.live) {
         const r = await this.api.voz.token({})
-        if (abort !== this.abort) return
+        if (!vigente()) return
         if (!r.ok) throw new Error(r.error.mensaje)
-        const live = new GeminiLive({
+        const live: GeminiLive = new GeminiLive({
           sesion: this.eventos.sesion,
           aplicar: this.eventos.aplicar,
           texto: this.eventos.decir,
           audio: (base64, frecuencia) => {
+            if (this.live !== live || abort !== this.abort) return
             this.cambiar('hablando')
             this.reproductor?.reproducir(base64, frecuencia)
           },
           interrumpir: () => this.reproductor?.interrumpir(),
-          finTurno: (pregunta) => {
+          finTurno: () => {
+            if (this.live !== live || abort !== this.abort) return
             clearTimeout(this.reloj)
             this.reloj = setTimeout(
               () => {
-                if (abort !== this.abort) return
-                if (pregunta) this.activar()
-                else this.cambiar('local')
+                if (this.live !== live || abort !== this.abort) return
+                this.silencioHasta = Date.now() + 350
+                void this.api.voz.reset({}).catch(() => {})
+                this.cambiar('local')
                 clearTimeout(this.inactividad)
                 this.inactividad = setTimeout(() => {
                   this.live?.cerrar()
@@ -285,7 +335,7 @@ export class ControlVoz {
             )
           },
           error: (mensaje) => {
-            if (abort === this.abort) {
+            if (abort === this.abort && this.live === live) {
               clearTimeout(this.reloj)
               this.live = null
               this.cambiar('local')
@@ -296,7 +346,7 @@ export class ControlVoz {
         this.live = live
         await live.conectar(r.credencial)
       }
-      if (abort !== this.abort) return
+      if (!vigente()) return
       this.live.enviarTurno(audio)
       this.reloj = setTimeout(() => {
         this.live?.cerrar()
@@ -308,7 +358,7 @@ export class ControlVoz {
         )
       }, 45_000)
     } catch (error) {
-      if (abort !== this.abort) return
+      if (!vigente()) return
       this.live?.cerrar()
       this.live = null
       this.cambiar('local')

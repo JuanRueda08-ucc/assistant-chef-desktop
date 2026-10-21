@@ -93,6 +93,40 @@ describe('ProveedorGemini (transporte simulado, sin red)', () => {
       )
     }
   )
+  it.each([
+    [503, 'proveedor_saturado'],
+    [504, 'proveedor_timeout'],
+    [429, 'proveedor_sin_cuota'],
+    [403, 'proveedor_no_autorizado']
+  ])('transporta HTTP %s como %s sin cuerpo privado ni reintentos', async (estado, codigo) => {
+    const solicitar = vi
+      .fn<typeof fetch>()
+      .mockResolvedValue(json({ error: { message: 'solo-test' } }, Number(estado)))
+    const manejar = crearApp({
+      proveedor: new ProveedorGemini('solo-test', { fetch: solicitar }),
+      limitador: new Limitador(new AlmacenMemoria()),
+      registrarError: vi.fn()
+    })
+    const respuesta = await manejar(post('/voz/token'))
+    expect(respuesta.status).toBe(502)
+    const cuerpo = await respuesta.json()
+    expect(cuerpo).toMatchObject({ error: { codigo } })
+    expect(JSON.stringify(cuerpo)).not.toContain('solo-test')
+    expect(solicitar).toHaveBeenCalledOnce()
+  })
+  it.each(['TimeoutError', 'TypeError'])(
+    'distingue el transporte %s sin datos privados',
+    async (nombre) => {
+      const error = new Error('solo-test')
+      error.name = nombre
+      const proveedor = new ProveedorGemini('solo-test', {
+        fetch: vi.fn<typeof fetch>().mockRejectedValue(error)
+      })
+      await expect(proveedor.crearTokenVoz('instalacion-test')).rejects.toMatchObject({
+        codigo: nombre === 'TimeoutError' ? 'proveedor_timeout' : 'proveedor_sin_conexion'
+      })
+    }
+  )
   it('implementa generación, reintento con error y sugerencias en JSON', async () => {
     const solicitar = vi.fn<typeof fetch>().mockImplementation(async () =>
       json({

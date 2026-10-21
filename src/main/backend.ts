@@ -3,6 +3,8 @@ import type { RespuestaTokenVoz } from '@shared/types/voz'
 import type { AudioNarracion } from '@shared/types/voz'
 import { esquemaRespuestaNarracion } from '@shared/esquemas/voz'
 import { esquemaRespuestaChat, type PeticionChat, type RespuestaChat } from '@shared/ia/chat'
+import { z } from 'zod'
+import { ERRORES_PROVEEDOR, esquemaCodigoErrorProveedor } from '@shared/ia/errores'
 
 /** Solo main hace HTTP al backend. Nunca acepta una URL del renderer. */
 export function crearClienteBackend(
@@ -44,17 +46,29 @@ export function crearClienteBackend(
             signal: AbortSignal.timeout(30_000)
           }
         )
-      } catch {
-        throw new Error('No pude conectar con el chef. Comprueba que el backend esté iniciado.')
+      } catch (error) {
+        const timeout =
+          error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name)
+        // eslint-disable-next-line preserve-caught-error -- El transporte original puede contener URL/cabeceras privadas.
+        throw new Error(
+          timeout
+            ? ERRORES_PROVEEDOR.proveedor_timeout
+            : 'No pude conectar con el chef. Comprueba que el backend esté iniciado.'
+        )
       }
       if (respuesta.status === 429)
         throw new Error(
           'Has llegado al límite de consultas de hoy. Los botones siguen disponibles.'
         )
-      if (!respuesta.ok)
+      if (!respuesta.ok) {
+        const error = z
+          .object({ error: z.object({ codigo: esquemaCodigoErrorProveedor }) })
+          .safeParse(await respuesta.json().catch(() => null))
+        if (error.success) throw new Error(ERRORES_PROVEEDOR[error.data.error.codigo])
         throw new Error(
-          'El chef no pudo responder. Revisa la configuración del backend e inténtalo de nuevo.'
+          'El servicio de IA no pudo responder. Puedes seguir con los botones e intentarlo más tarde.'
         )
+      }
       const resultado = esquemaRespuestaChat.safeParse(await respuesta.json())
       if (!resultado.success) throw new Error('El chef devolvió una respuesta inválida.')
       return resultado.data

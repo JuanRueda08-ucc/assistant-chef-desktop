@@ -2,7 +2,7 @@
 
 **Fecha:** 2026-10-19
 
-La regla de repetición exclusivamente local fue reemplazada, con aprobación del autor, por [0009](0009-narracion-natural-del-chef.md): narración automática Gemini y lector local de respaldo. El resto de esta decisión sigue vigente.
+La regla de repetición exclusivamente local fue reemplazada, con aprobación del autor, por [0009](0009-narracion-natural-del-chef.md): narración automática Gemini y lector local de respaldo. [0013](0013-separar-consultas-y-ordenes-de-voz.md) reemplaza la clasificación local durante consultas abiertas y la escucha automática tras preguntas: la pregunta no pasa por Vosk y, al acabar cada respuesta, se vuelve a órdenes locales. El resto de esta decisión sigue vigente.
 
 **Contexto:** implementar las tareas 15–16 manteniendo Gemini Live y Vosk (0007), el renderer aislado y el contrato de confirmación (0004). Las órdenes cortas deben funcionar sin red y no producir efectos duplicados por llegar también al modelo.
 
