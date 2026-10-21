@@ -2,6 +2,8 @@
 
 Investigación del 2026-10-20 para Electron + Svelte 5 + backend Node. El profesor exige cuentas reales; la tecnología es libre. El autor también está investigando. **No se ha elegido ni instalado un proveedor.** Este documento compara alternativas; no sustituye una decisión de integración ni una prueba en Electron.
 
+**Selección posterior del autor:** conservar **Better Auth y Supabase Auth** como los dos candidatos para comparar más adelante. Firebase se mantiene aquí como referencia de la investigación previa, fuera de esa selección. La comparación final y la implementación se retomarán después de la prueba personal de voz con Gemini; no se da por elegida ninguna de las dos herramientas.
+
 ## Qué debe resolver la entrega
 
 Registro con correo y contraseña, acceso, cierre de sesión, recuperación de contraseña, verificación de correo y renovación/vencimiento de sesión. El backend debe comprobar la identidad para acceder a IA. `X-Instalacion` identifica una instalación para los límites actuales; no demuestra quién ha iniciado sesión.

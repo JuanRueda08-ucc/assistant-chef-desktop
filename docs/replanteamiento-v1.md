@@ -57,7 +57,7 @@ Antes de integrar el proveedor de identidad se concretarán:
 
 La tecnología queda a elección de implementación, según lo confirmado por el autor. Se documentará el proveedor y la persistencia elegidos antes de integrarlos. Las cuentas entran en v1; la sincronización entre dispositivos continúa fuera de alcance salvo nuevo requisito.
 
-La comparación de Supabase Auth, Firebase Authentication y Better Auth, con fuentes oficiales y sus implicaciones en Electron, está en `autenticacion-opciones.md`. La recomendación es provisional; el autor también está investigando y todavía no se ha elegido ni instalado un proveedor.
+La investigación inicial de Supabase Auth, Firebase Authentication y Better Auth, con fuentes oficiales y sus implicaciones en Electron, está en `autenticacion-opciones.md`. El autor ha dejado **Better Auth y Supabase Auth** como finalistas para comparar después. Todavía no se ha elegido ni instalado un proveedor.
 
 ## Prueba de voz pendiente del autor
 
@@ -73,10 +73,10 @@ No marcar esta aceptación como completada basándose en los tests o en una cone
 
 ## Secuencia de trabajo
 
-1. Concretar los ajustes de agrupación y jerarquía sobre las pantallas existentes, empezando por retomar y Cocinar, donde el autor detectó dispersión. Conservar Mostaza y comprobar en la app si se localizan las acciones, sin repetir maquetas del conjunto.
-2. Definir el contrato de ingredientes libres y el diseño técnico de autenticación; mantener las herramientas y el estado de cocina como fuente de verdad.
-3. Aplicar la organización por pantalla e implementar selección y autenticación en entregas pequeñas, con sus pruebas y documentación.
-4. Recoger la prueba de voz del autor y corregir los problemas observados. Puede hacerse antes con la app actual si el autor quiere probarla.
+1. Realizar primero la prueba personal de voz del autor con la app actual y recoger su valoración, por su petición explícita. Corregir los problemas observados antes de reorganizar Retomar/Cocinar; no marcarla por una comprobación técnica del agente.
+2. Concretar los ajustes de agrupación y jerarquía sobre las pantallas existentes, empezando por retomar y Cocinar, donde el autor detectó dispersión. Conservar Mostaza y comprobar en la app si se localizan las acciones, sin repetir maquetas del conjunto.
+3. Definir el contrato de ingredientes libres y comparar Better Auth con Supabase Auth para concretar el diseño técnico de autenticación; mantener las herramientas y el estado de cocina como fuente de verdad.
+4. Aplicar la organización por pantalla e implementar selección y autenticación en entregas pequeñas, con sus pruebas y documentación.
 5. Continuar recetas generadas (17), recetas revisadas y entrega sobre el flujo revisado.
 
 El código actual sigue siendo el prototipo funcional. Las casillas de implementación completadas indican lo construido, no la aceptación visual o de voz por parte del autor.

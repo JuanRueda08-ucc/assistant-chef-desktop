@@ -11,10 +11,10 @@ El autor solicita conservar Mostaza y organizar mejor las pantallas existentes, 
 - [ ] 28. Selección libre de múltiples ingredientes, gestión de los no reconocidos y revisión de básicos de despensa
 - [ ] 29. Autenticación real: registro, login, sesión persistente, cierre, protección del backend y definición de datos por cuenta (tecnología libre)
 - [ ] 30. Aplicar la organización por pantalla con los componentes actuales y verificar jerarquía, estados y localización de controles con el autor
-- [ ] 31. Prueba del autor del flujo completo de Gemini con micrófono real y registro de su valoración de la voz (pendiente)
+- [ ] 31. Prueba del autor del flujo completo de Gemini con micrófono real y registro de su valoración de la voz (prioridad actual; app y backend reiniciados tras el apagado, narración y token comprobados, resultado del autor pendiente)
 - [x] 32. Comparar herramientas de autenticación real para Electron y el backend, con fuentes oficiales y sin elegir proveedor todavía
 
-Empezar por la organización de las pantallas actuales (27), concretar contratos de ingredientes/autenticación y coordinar 28–30. Comparación inicial en `autenticacion-opciones.md`; el autor también investiga. La prueba 31 puede hacerse con la app actual. Retomar 17 sobre los contratos revisados; 18–20 siguen pendientes.
+Por petición del autor, hacer primero la prueba 31 con la app actual y atender sus resultados. Después organizar Retomar/Cocinar (27 y 30), concretar contratos de ingredientes/autenticación y coordinar 28–30. Comparación inicial en `autenticacion-opciones.md`; los finalistas para una comparación posterior son Better Auth y Supabase Auth y el autor también investiga. Retomar 17 sobre los contratos revisados; 18–20 siguen pendientes.
 
 ## Base
 - [x] 1. Proyecto electron-vite con Svelte + TypeScript, Vitest, ESLint, Prettier; comandos en `AGENTS.md`

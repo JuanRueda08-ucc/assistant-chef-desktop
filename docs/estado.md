@@ -4,9 +4,9 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Prioridad actual: organizar las pantallas existentes conservando el diseño Mostaza, sin repetir maquetas del flujo completo (27 y 30), según `docs/replanteamiento-v1.md` y decisiones 0011–0012. Empezar por agrupar y jerarquizar retomar/Cocinar, donde el autor detectó dispersión. Plantear ingredientes libres por búsqueda o chat y revisión de la lista antes de elegir receta (28). Para cuentas reales (29), comparar con la investigación del autor las opciones de `docs/autenticacion-opciones.md` (32 completada); proveedor todavía pendiente. Después continuar recetas generadas (17), sobre los nuevos contratos. Las tareas ya marcadas reflejan implementación, no aceptación visual del autor.
+Prioridad actual, por petición del autor: hacer primero su prueba personal de voz con Gemini (31). App y backend preparados para esa prueba; esperar su resultado y atender los problemas observados antes de organizar Retomar/Cocinar. Después organizar las pantallas existentes conservando Mostaza, sin repetir maquetas del flujo completo (27 y 30), según `docs/replanteamiento-v1.md` y decisiones 0011–0012. Plantear ingredientes libres por búsqueda o chat y revisión de la lista antes de elegir receta (28). Para cuentas reales (29), comparar más adelante **Better Auth y Supabase Auth**, los dos candidatos indicados por el autor; la investigación previa está en `docs/autenticacion-opciones.md` (32 completada), sin proveedor elegido. Después continuar recetas generadas (17), sobre los nuevos contratos. Las tareas ya marcadas reflejan implementación, no aceptación visual del autor.
 
-**Pendiente explícito: el autor todavía no ha probado el flujo de voz de Gemini con su micrófono (31).** No confundir las verificaciones técnicas del agente con esa prueba o con la aprobación de la voz. No cambiar Gemini/Vosk ni la narración natural con respaldo local sin consultar las decisiones 0007–0010.
+**Pendiente explícito: recoger el resultado del autor al probar Gemini con su micrófono (31).** La app está preparada para la prueba; todavía no hay aceptación ni valoración comunicada. No confundir las verificaciones técnicas del agente con esa prueba o con la aprobación de la voz. No cambiar Gemini/Vosk ni la narración natural con respaldo local sin consultar las decisiones 0007–0010.
 
 Conexión real con Gemini comprobada: chat, narración TTS, token efímero y respuesta de audio por WebSocket Live. Antes de dar la voz por validada para usuarios: probar con la voz/micrófono del autor, medir ruido y latencia en cocina (20), ejecutar las pruebas nativas en macOS/Linux y revisar sus instaladores (19). Los tests automáticos siguen simulando el proveedor, sin llamadas a Google.
 
@@ -15,6 +15,20 @@ Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-10-20 · Reinicio de la prueba tras apagarse el computador
+- Backend y Electron arrancados de nuevo con la configuración Gemini existente. La sesión de Arroz con pollo se recuperó en el paso 1 desde los mismos datos manuales, sin crear otra sesión ni cambiar la receta.
+- Vosk preparado de nuevo. Comprobadas por el IPC oficial la narración natural del paso (audio WAV presente) y la obtención de token Live, sin mostrar credenciales ni capturar audio del micrófono.
+- La primera narración encontró el backend todavía arrancando y usó respaldo local; comprobado el servicio y recargada la pantalla con el micrófono apagado para reintentar con Gemini. App y backend quedan abiertos para la prueba del autor.
+- Sigue pendiente su resultado de narración, pregunta abierta con «Chef», órdenes locales y valoración de voz/latencia (31). La preparación técnica no completa la aceptación. Después se retomará la organización de Retomar/Cocinar y la comparación de Better Auth con Supabase Auth.
+- Validación de la entrega: 356 tests aprobados, typecheck sin errores ni avisos, lint y format:check correctos. Solo se actualiza documentación; no se modifica la implementación ni se hace push.
+
+### 2026-10-20 · Prueba personal de voz antes de reorganizar la interfaz
+- El autor prioriza probar Gemini con su voz antes de organizar Retomar/Cocinar. Para autenticación deja como finalistas Better Auth y Supabase Auth, con comparación pendiente para después y sin elegir proveedor.
+- Comprobados `.env` con Gemini y clave presente, sin mostrar ni modificar la clave; Vosk preparado con `npm run voz:preparar`. Backend local iniciado en 8787 con proveedor `gemini` y app Electron abierta usando los datos manuales ignorados de `.cache-voz/datos-manual`.
+- No había sesión activa en esos datos: iniciada Arroz con pollo, paso 1, mediante `window.api.sesion.iniciar`, sin modificar la semilla. Micro y conversación quedan en manos del autor; no se simula su voz ni se abre la captura desde el depurador.
+- Guía de prueba: Repetir para valorar narración; «Chef», esperar «Te escucho» y preguntar por el paso para Live; después comprobar «listo»/«atrás» locales y la narración al avanzar. Recoger fallos, voz y latencia antes de marcar 31. La tarea sigue pendiente hasta conocer el resultado del autor.
+- Los once commits anteriores se publicaron en `origin/main` hasta `52004dc`, a nombre del autor. Esta nueva preparación no autoriza otro push.
 
 ### 2026-10-20 · Conservar el diseño y comparar autenticación (32)
 - El autor aclara que no quiere repetir maquetas del flujo completo ni cambiar de estilo: conservar Mostaza y organizar los elementos de las pantallas existentes. Decisión 0012 sustituye solo ese punto de 0011; plan, roadmap, producto, diseño y AGENTS actualizados.
