@@ -1,5 +1,7 @@
 # Arquitectura
 
+**Ampliación pendiente (0011):** v1 incluirá cuentas reales. Se deberá definir proveedor de identidad, persistencia de la sesión en Electron, validación de usuarios en el backend y separación de preferencias/sesión de cocina por cuenta. El diseño actual descrito aquí sigue usando `X-Instalacion` para límites de uso; esa cabecera no autentica a una persona. Ver `replanteamiento-v1.md`. La sincronización entre dispositivos continúa fuera del alcance acordado.
+
 ```
 ┌──────────── Electron ─────────────────────────────┐
 │ Renderer (Svelte)          Main (Node)            │

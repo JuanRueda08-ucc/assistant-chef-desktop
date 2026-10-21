@@ -1,5 +1,7 @@
 # Diseño
 
+**Revisión solicitada el 2026-10-20:** el autor considera sobrecargadas las pantallas actuales y pide replantear su distribución y la localización de controles. La descripción siguiente corresponde al prototipo implementado. La propuesta de flujo, incluidas pantallas de login y registro, está en `replanteamiento-v1.md` (decisión 0011); faltan maquetas y aceptación de la nueva distribución.
+
 ## Flujo
 Tres momentos: **Preparar** (ingredientes y preferencias en una pantalla), **Elegir** (carrusel de recetas y panel "qué falta"), **Cocinar** (paso con sus ingredientes, chef con consejo en su globo, barra inferior con Atrás / Repetir / Ver técnica / Siguiente; listas y atajos en paneles bajo demanda). La pantalla final va dentro de Cocinar. El chef solo habla (con voz) en modo cocina; en Preparar y Elegir aparece en busto con un globo de texto.
 

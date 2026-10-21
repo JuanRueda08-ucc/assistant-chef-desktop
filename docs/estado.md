@@ -4,7 +4,9 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Roadmap, tarea 17: integrar recetas generadas en la app, completar validación de seguridad alimentaria y etiqueta visible, y después ampliar la semilla revisada (18). Las tareas 15–16 y 21–24 están implementadas. No cambiar Gemini/Vosk ni la narración natural con respaldo local sin consultar las decisiones 0007–0010.
+Prioridad actual: replantear el flujo y preparar maquetas de pantallas más simples (27), según `docs/replanteamiento-v1.md` y decisión 0011. Incorporar selección libre de ingredientes (28), cuentas reales con login/registro (29) e implementación de las pantallas revisadas (30). El autor confirmó tecnología libre para autenticación. Después continuar recetas generadas (17), sobre los nuevos contratos. Las tareas ya marcadas reflejan implementación, no aceptación visual del autor.
+
+**Pendiente explícito: el autor todavía no ha probado el flujo de voz de Gemini con su micrófono (31).** No confundir las verificaciones técnicas del agente con esa prueba o con la aprobación de la voz. No cambiar Gemini/Vosk ni la narración natural con respaldo local sin consultar las decisiones 0007–0010.
 
 Conexión real con Gemini comprobada: chat, narración TTS, token efímero y respuesta de audio por WebSocket Live. Antes de dar la voz por validada para usuarios: probar con la voz/micrófono del autor, medir ruido y latencia en cocina (20), ejecutar las pruebas nativas en macOS/Linux y revisar sus instaladores (19). Los tests automáticos siguen simulando el proveedor, sin llamadas a Google.
 
@@ -13,6 +15,13 @@ Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-10-20 · Replanteamiento de la v1 y requisito de autenticación (26)
+- El autor considera las pantallas sobrecargadas y los elementos difíciles de localizar, especialmente al continuar una receta. Pide replantear todas las pantallas y recuperar la selección libre de múltiples ingredientes que tenía prevista.
+- Login y registro entran en v1 por requisito del profesor. Confirmado: cuentas reales y tecnología libre. Proveedor de identidad, persistencia segura y separación de datos por cuenta pendientes de diseño técnico.
+- Anotado explícitamente que el autor no ha probado Gemini Live con su micrófono. La conexión técnica ya comprobada no completa esa aceptación.
+- Añadidos propuesta de flujo y prioridades en `docs/replanteamiento-v1.md`, decisión 0011 y tareas 27–31. Producto actualizado para incluir cuentas; sincronización continúa fuera de v1. La identidad visual existente es la base de las nuevas maquetas, sin dar por aprobado un cambio de paleta/tipografía.
+- Esta entrega documenta el replanteamiento; no implementa autenticación, ingredientes libres ni nuevas pantallas. La próxima tarea es preparar y revisar las maquetas del flujo completo, antes de continuar añadiendo funciones al diseño actual.
 
 ### 2026-10-20 · Selección vacía y recuento de despensa (25)
 - Revisada la grabación del autor: la receta con cero marcados mostraba «Tienes 3 de 12» porque aceite, sal y pimienta se dan por disponibles. Se mantiene esa regla documentada, pero se distingue de la selección explícita.

@@ -1,0 +1,78 @@
+# Replanteamiento de la v1
+
+**Fecha:** 2026-10-20. Requisitos del autor y propuesta de flujo para preparar las nuevas maquetas. Describe trabajo pendiente; no es una descripción de pantallas ya implementadas.
+
+## Lo que pidió el autor
+
+- Selección libre de múltiples ingredientes: buscar y añadir sin depender de las categorías o del catálogo pequeño de la semilla.
+- Replantear las pantallas: la interfaz actual resulta sobrecargada y cuesta localizar los elementos, especialmente al continuar una receta.
+- Añadir login y registro con **cuentas reales**, requisito del profesor. El autor confirmó que la tecnología es libre.
+- Anotar que **el autor todavía no ha probado el flujo de voz de Gemini con su micrófono**. Las comprobaciones técnicas del agente no sustituyen esa prueba.
+
+## Criterio de diseño propuesto
+
+La persona está preparando comida o cocinando y necesita saber qué hacer a continuación. El paso o la tarea actual deben dominar la pantalla. El chef acompaña con instrucciones breves; su tamaño y sus controles deben dejar espacio al contenido.
+
+Se propone conservar como punto de partida la identidad existente (chef, tipografías y colores), con menos amarillo simultáneo, menos contornos y menos paneles compitiendo. La distribución y la jerarquía se revisarán en maquetas; una nueva identidad visual requeriría una propuesta concreta.
+
+| Pantalla o estado | Lo principal | Información o acciones bajo demanda |
+|---|---|---|
+| Iniciar sesión | Formulario de acceso y una acción «Entrar» | Enlace a registro, recuperación y errores del acceso |
+| Registro | Crear una cuenta real con campos mínimos | Enlace para volver a iniciar sesión |
+| Retomar, si existe una receta en curso | Nombre, paso pendiente y «Continuar receta» | Preparar otra receta; el micrófono sigue apagado al entrar |
+| Preparar | Buscador, ingredientes añadidos y «Buscar recetas» | Preferencias agrupadas; resumen visible de porciones y restricciones activas |
+| Elegir | Comparar recetas por nombre, tiempo e ingredientes que faltan | Vista previa con ingredientes, cantidades y detalles; una acción para empezar |
+| Cocinar | «Paso N de M», instrucción actual y «Listo, siguiente» | Ingredientes del paso, técnica, sustituciones y conversación en controles con nombres claros |
+| Final | Confirmación de receta terminada y siguiente acción | Resumen de la sesión |
+
+En Cocinar, Atrás y Repetir mantienen una posición predecible y menor peso que avanzar. Los temporizadores activos y sus avisos siguen visibles. Los controles de micrófono y narración deben distinguirse claramente y mostrar su estado. El chat estará disponible mediante una entrada identificable, sin exigir una franja y un historial permanentes que compitan con el paso. Técnicas, ingredientes y temporizadores deben encontrarse por su nombre, sin depender de adivinar iconos.
+
+Preparar no debe convertirse en un formulario largo de preferencias; las restricciones activas deben poder verse y corregirse aunque el panel de preferencias esté cerrado. Elegir necesita una comparación clara, evitando que grandes cápsulas decorativas y el avatar ocupen más espacio que la receta.
+
+## Ingredientes libres
+
+El usuario debe poder añadir uno, varios o seguir buscando sin perder su lista. La semilla actual de trece ingredientes es un dato de prueba, no el alcance del producto. Las categorías pueden servir como ayuda opcional.
+
+Propuesta: tratar sal, aceite y demás básicos igual que el resto, contando únicamente ingredientes añadidos explícitamente. Este cambio sustituiría la suposición actual de despensa y debe reflejarse en el recuento, la búsqueda, el chat y las pruebas.
+
+Un ingrediente que aún no esté en el catálogo no debe desaparecer ni ser sustituido silenciosamente por otro. La implementación deberá separar el texto introducido de su identificación normalizada, resolver sinónimos/duplicados y pedir precisión cuando haya ambigüedad. La lista del usuario puede aceptar un ingrediente pendiente de identificar; la generación y el cálculo de etiquetas requieren datos validados. No se inventarán alérgenos o dietas para completar un ingrediente desconocido.
+
+«Sin limitación» significa que la experiencia no queda encerrada en una lista de prueba o un número artificial de ingredientes. Los límites técnicos de transporte se tratarán con paginación o procesamiento por lotes, conservando la lista completa del usuario.
+
+Los tipos, esquemas, persistencia, herramientas y generación se diseñarán juntos. La tarea 17 deberá consumir este contrato, para evitar rehacer la generación después.
+
+## Autenticación real
+
+El requisito confirmado es crear cuentas, iniciar sesión, conservar una sesión válida y cerrar sesión. Un formulario que solo cambie la pantalla o acepte cualquier contraseña no cumple el requisito.
+
+Antes de integrar el proveedor de identidad se concretarán:
+
+- Registro, acceso, recuperación y estados de error.
+- Persistencia segura de la sesión en Electron y su vencimiento.
+- Validación del usuario en el backend de IA; `X-Instalacion` es un identificador de uso, no autenticación.
+- Qué preferencias y sesión de cocina pertenecen a cada cuenta; qué se restaura al volver y qué ocurre al cambiar de usuario.
+- Comportamiento sin conexión y al cerrar sesión durante una receta, sin perder o mezclar datos de cuentas.
+
+La tecnología queda a elección de implementación, según lo confirmado por el autor. Se documentará el proveedor y la persistencia elegidos antes de integrarlos. Las cuentas entran en v1; la sincronización entre dispositivos continúa fuera de alcance salvo nuevo requisito.
+
+## Prueba de voz pendiente del autor
+
+La conexión técnica ya se comprobó con Google: chat, TTS, token efímero y audio Live con el cliente de la app. Falta que el autor pruebe y valore:
+
+- Encontrar los controles de voz, activar el micrófono y reconocer su estado.
+- Decir «Chef» y hacer una pregunta abierta sobre un paso.
+- Avanzar con una orden local y escuchar la narración del siguiente paso.
+- Entender cuándo se usa Gemini y cuándo el respaldo local.
+- Calidad y gusto de la voz, latencia, errores y funcionamiento en una cocina real.
+
+No marcar esta aceptación como completada basándose en los tests o en una conexión de audio ejecutada por el agente.
+
+## Secuencia de trabajo
+
+1. Revisar maquetas del flujo completo, incluidas las pantallas de acceso y el estado de retomar. Probar si se localizan las acciones sin una explicación del desarrollador.
+2. Definir el contrato de ingredientes libres y el diseño técnico de autenticación; mantener las herramientas y el estado de cocina como fuente de verdad.
+3. Implementar selección, autenticación y pantallas simplificadas en entregas pequeñas, con sus pruebas y documentación.
+4. Recoger la prueba de voz del autor y corregir los problemas observados. Puede hacerse antes con la app actual si el autor quiere probarla.
+5. Continuar recetas generadas (17), recetas revisadas y entrega sobre el flujo revisado.
+
+El código actual sigue siendo el prototipo funcional. Las casillas de implementación completadas indican lo construido, no la aceptación visual o de voz por parte del autor.
