@@ -10,6 +10,7 @@
 | [arquitectura.md](arquitectura.md) | Procesos, capas y flujo de datos |
 | [modelo-recetas.md](modelo-recetas.md) | Receta, paso, catálogo, escalado, sustituciones, búsqueda |
 | [ia-chef.md](ia-chef.md) | Herramientas del chef, estado de sesión, voz, backend |
+| [ia-orquestacion-opciones.md](ia-orquestacion-opciones.md) | Vosk general frente a gramática cerrada; LangChain y LangGraph, capacidades y evaluación sin adopción |
 | [diseno.md](diseno.md) | Flujo de pantallas y dirección visual «Mostaza»: colores, tipografía, componentes |
 | [diseno/maquetas.html](diseno/maquetas.html) | Maqueta de las tres pantallas (servirla por HTTP, ver diseno.md) |
 | [decisiones/](decisiones/) | Registro de decisiones de arquitectura |

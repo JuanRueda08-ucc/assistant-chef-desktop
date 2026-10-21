@@ -16,6 +16,13 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-10-21 · Investigación Vosk, LangChain y LangGraph (35)
+- Aclarado que Vosk admite reconocimiento general; la gramática de órdenes y el intérprete cerrado son la configuración elegida para esta app, no un límite universal del motor. Las consultas abiertas ya siguen el recorrido separado aprobado en 0013.
+- Consultadas fuentes oficiales de LangChain/LangGraph para JavaScript/TypeScript, persistencia, interrupciones e integración Gemini. Evaluación en `docs/ia-orquestacion-opciones.md`: LangChain simplifica integraciones/bucles; LangGraph interesa si generación y validación requieren un flujo más elaborado. Ninguno resuelve por sí solo los fallos acústicos ni garantiza disponibilidad del modelo.
+- Sin paquetes instalados, cambios de motor, migraciones o nueva decisión de adopción. Se conservan main/IPC/reductor y SQLite como autoridad sobre cocina. Documentación de arquitectura alineada con la separación de modos de 0013.
+- Siguiente paso sigue siendo repetir la prueba personal (34) cuando el autor pueda hablar en un lugar adecuado. La investigación no valida la experiencia de voz ni sustituye esa prueba.
+- Validación del commit documental: 388 tests aprobados, typecheck sin errores ni avisos, lint y format:check correctos. Sin push.
+
 ### 2026-10-21 · Incidencias de la prueba personal y correcciones de voz/chat (31 y 33)
 - Registrado el informe del autor: activación «Chef» funcional, preguntas confundidas con órdenes, retrocesos inesperados, confirmación difícil y chat fallido. Aprobó explícitamente separar preguntas y órdenes locales; decisión 0013 reemplaza solo las reglas de clasificación/ventana de 0007–0008. Gemini, Vosk y confirmación desde la app se mantienen.
 - `ControlVoz` deja de enviar consultas abiertas a Vosk; `TurnoConsulta` conserva el PCM completo sin depender del IPC de reconocimiento, termina tras una pausa y mantiene el máximo de 8 s. Tras cada respuesta vuelve a órdenes locales. Silenciar/narrar cancela consultas; errores de narración anteriores se limpian al reintentar.

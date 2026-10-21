@@ -15,6 +15,7 @@ El autor solicita conservar Mostaza y organizar mejor las pantallas existentes, 
 - [x] 32. Comparar herramientas de autenticación real para Electron y el backend, con fuentes oficiales y sin elegir proveedor todavía
 - [x] 33. Corregir conflicto entre consultas/órdenes, respuestas de otro paso y mensajes de error del chat; comprobar con PCM simulado, Vosk nativo y chat real sin micrófono del autor (0013)
 - [ ] 34. Repetir prueba personal tras 33: explicar sin navegar, confirmar por voz, avanzar con narración y usar chat; registrar voz, latencia y fallos restantes en un lugar adecuado
+- [x] 35. Investigar Vosk general frente a comandos y documentar LangChain/LangGraph para TypeScript, con evaluación del encaje sin adoptar dependencias
 
 Hacer primero la repetición de la prueba personal (34) tras las correcciones de 33; el autor está en público, así que no se le pide usar la voz ahora. Después organizar Retomar/Cocinar (27 y 30), concretar contratos de ingredientes/autenticación y coordinar 28–30. Comparación inicial en `autenticacion-opciones.md`; finalistas Better Auth y Supabase Auth. Retomar 17 sobre los contratos revisados; 18–20 siguen pendientes.
 
