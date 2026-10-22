@@ -40,6 +40,10 @@ const mensaje = (e: unknown): string => (e instanceof Error ? e.message : String
 
 class EstadoApp {
   pantalla = $state<Pantalla>('preparar')
+  /** Al abrir la app con una receta en curso: se muestra Retomar antes de entrar a Cocinar. */
+  retomando = $state(false)
+  /** Panel lateral del chat, abierto desde la cabecera. */
+  chatAbierto = $state(false)
   catalogo = $state<Ingrediente[]>([])
   preferencias = $state<Preferencias>(structuredClone(PREFERENCIAS_INICIALES))
   busqueda = $state<ResultadoBusqueda | null>(null)
@@ -195,8 +199,21 @@ class EstadoApp {
       if (sesion) {
         this.sesion = sesion
         this.pantalla = 'cocinar'
+        this.retomando = true
       }
     })
+  }
+
+  /** Desde Retomar: entra a Cocinar con la receta en curso. */
+  continuarReceta(): void {
+    this.retomando = false
+    this.globo = null
+  }
+
+  /** Desde Retomar: va a Preparar sin descartar la receta en curso (se descarta al empezar otra). */
+  prepararOtra(): void {
+    this.retomando = false
+    this.irA('preparar')
   }
 
   /** Busca recetas con las preferencias actuales y pasa a Elegir. */
@@ -227,6 +244,7 @@ class EstadoApp {
         preferencias
       })
       this.pantalla = 'cocinar'
+      this.retomando = false
       this.globo = null
       this.resultadoChef = null
     })
@@ -298,6 +316,7 @@ class EstadoApp {
 
   irA(pantalla: Pantalla): void {
     if (this.puedeIrA(pantalla)) {
+      this.retomando = false
       if (pantalla !== this.pantalla) this.resultadoChef = null
       if (pantalla === 'preparar') {
         this.busqueda = null

@@ -251,16 +251,11 @@
 {:else if receta && paso && sesion}
   <main class="cocinar">
     <header class="cabeza">
-      <h1>{receta.titulo}</h1>
-      <button
-        type="button"
-        class="porciones"
-        onclick={() => {
-          opciones = null
-          panel = 'ingredientes'
-        }}><Icono nombre="personas" />{sesion.porciones}</button
-      >
-      <ol class="progreso" aria-label="Paso {paso.orden} de {total}">
+      <div class="titulo">
+        <h1>{receta.titulo}</h1>
+        <p class="avance">Paso {paso.orden} de {total}</p>
+      </div>
+      <ol class="progreso" aria-label="Pasos de la receta">
         {#each receta.pasos as p (p.id)}
           <li
             class:hecho={sesion.pasosHechos.includes(p.id) && p.orden !== paso.orden}
@@ -275,7 +270,18 @@
           </li>
         {/each}
       </ol>
-      <div class="temporizadores">
+      <div class="herramientas">
+        <button
+          type="button"
+          class="boton-cabeza"
+          aria-expanded={panel === 'ingredientes'}
+          onclick={() => {
+            opciones = null
+            panel = 'ingredientes'
+          }}
+          ><Icono nombre="personas" />Ingredientes ({sesion.porciones}
+          {sesion.porciones === 1 ? 'porción' : 'porciones'})</button
+        >
         {#each temporizadores as t (t.id)}
           <button
             type="button"
@@ -296,9 +302,9 @@
         {/each}
         <button
           type="button"
-          class="temp nuevo"
-          aria-label="Temporizadores"
-          onclick={abrirTemporizadores}><Icono nombre="reloj" /></button
+          class="boton-cabeza"
+          aria-expanded={panel === 'temporizadores'}
+          onclick={abrirTemporizadores}><Icono nombre="reloj" />Temporizadores</button
         >
       </div>
     </header>
@@ -314,12 +320,19 @@
           {#if paso.seguridad}
             <p class="seguridad"><Icono nombre="aviso" /><span>{paso.seguridad}</span></p>
           {/if}
-          {#if sugerido}
-            <div>
-              <Boton variante="secundario" onclick={ponerSugerido}>
-                <Icono nombre="reloj" />
-                Temporizador de {formatearDuracion(sugerido.segundos)} para {sugerido.etiqueta}
-              </Boton>
+          {#if sugerido || paso.tecnicaId}
+            <div class="apoyos">
+              {#if paso.tecnicaId}
+                <Boton variante="secundario" disabled={app.ocupado} onclick={verTecnica}>
+                  <Icono nombre="tecnica" />Ver cómo se hace
+                </Boton>
+              {/if}
+              {#if sugerido}
+                <Boton variante="secundario" onclick={ponerSugerido}>
+                  <Icono nombre="reloj" />
+                  Temporizador de {formatearDuracion(sugerido.segundos)} para {sugerido.etiqueta}
+                </Boton>
+              {/if}
             </div>
           {/if}
           {#if ingredientesPaso.length > 0}
@@ -472,7 +485,8 @@
 
       <div class="chef">
         <Globo cola="abajo"><span class="globo-texto">{textoGlobo}</span></Globo>
-        <div class="controles-voz">
+        <Avatar estado={app.avatar} escuchando={estadoVoz === 'escuchando'} tamano={110} />
+        <section class="controles-voz" aria-label="Voz">
           <Chip
             seleccionado={microfonoActivo}
             onclick={() => (microfonoActivo ? voz.detener() : voz.iniciar())}
@@ -510,8 +524,7 @@
             >
           {/if}
           {#if errorVoz}<small role="alert">{errorVoz}</small>{/if}
-        </div>
-        <Avatar estado={app.avatar} escuchando={estadoVoz === 'escuchando'} tamano={200} />
+        </section>
       </div>
     </div>
 
@@ -521,16 +534,10 @@
         type="button"
         class="accion"
         disabled={sesion.pasoActual === 1 || app.ocupado}
-        onclick={() => accion('retroceder_paso')}><Icono nombre="atras" tamano={28} />Atrás</button
+        onclick={() => accion('retroceder_paso')}><Icono nombre="atras" />Atrás</button
       >
       <button type="button" class="accion" onclick={repetir}
-        ><Icono nombre="repetir" tamano={28} />Repetir</button
-      >
-      <button
-        type="button"
-        class="accion"
-        disabled={!paso.tecnicaId || app.ocupado}
-        onclick={verTecnica}><Icono nombre="tecnica" tamano={28} />Ver técnica</button
+        ><Icono nombre="repetir" />Repetir</button
       >
       <button type="button" class="accion principal" disabled={app.ocupado} onclick={siguiente}>
         {esUltimo ? 'Terminar receta' : 'Listo, siguiente'}<Icono nombre="siguiente" tamano={28} />
@@ -546,18 +553,22 @@
 
 <style>
   .controles-voz {
+    align-self: stretch;
     display: flex;
     flex-wrap: wrap;
     justify-content: center;
     gap: var(--espacio-2);
     font-size: var(--texto-s);
-    max-width: 340px;
+    padding: var(--espacio-3);
+    background: var(--color-superficie);
+    border: var(--borde) solid var(--color-separador);
+    border-radius: var(--radio-l);
   }
   .controles-voz small {
     flex-basis: 100%;
     text-align: center;
     color: var(--color-tinta-suave);
-    font-size: var(--texto-s);
+    font-size: var(--texto-xs);
   }
   .cocinar {
     display: grid;
@@ -572,11 +583,22 @@
     gap: var(--espacio-4);
     min-width: 0;
   }
+  .titulo {
+    min-width: 0;
+  }
   .cabeza h1 {
     font-size: var(--texto-l);
     white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
   }
-  .porciones {
+  .avance {
+    margin: 2px 0 0;
+    font-size: var(--texto-s);
+    font-weight: var(--peso-fuerte);
+    color: var(--color-tinta-suave);
+  }
+  .boton-cabeza {
     font: inherit;
     font-weight: var(--peso-fuerte);
     display: flex;
@@ -589,12 +611,18 @@
     background: var(--color-superficie);
     color: var(--color-tinta);
     cursor: pointer;
+    white-space: nowrap;
+  }
+  .boton-cabeza[aria-expanded='true'] {
+    border: var(--trazo) solid var(--color-tinta);
+    background: var(--color-acento-suave);
   }
   .progreso {
     display: flex;
     gap: 6px;
     flex: 1;
-    max-width: 420px;
+    min-width: 120px;
+    max-width: 360px;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -619,8 +647,9 @@
     background: var(--color-acento);
     border: var(--trazo) solid var(--color-tinta);
   }
-  .temporizadores {
+  .herramientas {
     display: flex;
+    align-items: center;
     gap: var(--espacio-2);
     margin-left: auto;
   }
@@ -637,11 +666,6 @@
     color: var(--color-tinta);
     cursor: pointer;
     text-align: left;
-  }
-  .temp.nuevo {
-    padding: 0;
-    width: 54px;
-    justify-content: center;
   }
   .temp.listo {
     border: var(--trazo) solid var(--color-tinta);
@@ -686,7 +710,7 @@
 
   .centro {
     display: grid;
-    grid-template-columns: 1fr 340px;
+    grid-template-columns: 1fr 300px;
     gap: var(--espacio-5);
     min-height: 0;
   }
@@ -699,10 +723,10 @@
     background: var(--color-superficie);
     border: var(--borde) solid var(--color-separador);
     border-radius: var(--radio-xl);
-    padding: 28px 34px;
+    padding: 24px 30px;
     display: flex;
     flex-direction: column;
-    gap: 18px;
+    gap: 12px;
     overflow-y: auto;
   }
   .paso-num {
@@ -743,6 +767,11 @@
     padding: var(--espacio-3) var(--espacio-4);
     font-size: var(--texto-m);
   }
+  .apoyos {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacio-2);
+  }
   .paso-ing {
     list-style: none;
     margin: auto 0 0;
@@ -755,12 +784,12 @@
     background: var(--color-fondo);
     border: var(--borde) solid var(--color-separador);
     border-radius: var(--radio-m);
-    padding: 14px var(--espacio-4);
+    padding: 8px 14px;
   }
   .paso-ing b {
     display: block;
     font-family: var(--fuente-titulo);
-    font-size: 22px;
+    font-size: 18px;
   }
   .paso-ing small {
     color: var(--color-tinta-suave);
@@ -771,34 +800,31 @@
     display: flex;
     flex-direction: column;
     align-items: center;
-    justify-content: flex-start;
     gap: var(--espacio-3);
-    padding-bottom: var(--espacio-2);
     min-height: 0;
     overflow-y: auto;
     overflow-x: hidden;
-    padding-top: var(--espacio-1);
+    padding: var(--espacio-1) 4px var(--espacio-2);
   }
   .chef :global(.globo) {
     align-self: stretch;
-    margin-bottom: var(--espacio-2);
   }
   .globo-texto {
-    font-size: 19px;
+    font-size: 17px;
     font-weight: 600;
   }
 
   .acciones {
     display: grid;
-    grid-template-columns: 1fr 1fr 1fr 1.6fr;
+    grid-template-columns: 180px 180px 1fr;
     gap: 14px;
   }
   .accion {
     font: inherit;
     font-family: var(--fuente-titulo);
     font-weight: var(--peso-fuerte);
-    font-size: var(--texto-l);
-    min-height: var(--alto-boton-cocina);
+    font-size: var(--texto-m);
+    min-height: 64px;
     border-radius: var(--radio-l);
     display: flex;
     align-items: center;
@@ -812,6 +838,7 @@
   .accion.principal {
     background: var(--color-acento);
     font-size: 26px;
+    min-height: var(--alto-boton-cocina);
   }
   .accion:disabled {
     opacity: 0.4;

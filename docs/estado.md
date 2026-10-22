@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Prioridad actual: repetir la prueba personal de voz y chat (34) tras las correcciones de los fallos reportados en la primera prueba (31 y 33). El autor está en un espacio público: no pedirle hablar ahora, no abrir su micrófono ni reproducir sonido; las comprobaciones técnicas se hacen con PCM/WAV sintéticos y chat de texto. La decisión 0013, aprobada por el autor, separa preguntas abiertas y órdenes locales. Después de validar esas correcciones, organizar Retomar/Cocinar conservando Mostaza, sin repetir maquetas del flujo completo (27 y 30). Plantear ingredientes libres por búsqueda/chat y revisión de la lista (28), y comparar Better Auth con Supabase Auth para cuentas reales (29), sin proveedor elegido. Después continuar recetas generadas (17). Las casillas de implementación no implican aceptación personal.
+Prioridad actual: que el autor revise la organización de pantallas aplicada el 2026-10-22 (tarea 30; capturas en la conversación, descripción en `diseno.md`, «Organización por pantalla») y corregir lo que pida. La repetición de la prueba de voz (34) queda aplazada por decisión del autor; cuando se retome, no abrir su micrófono ni reproducir sonido mientras esté en público. Básicos de despensa: se siguen asumiendo (0014). Plantear ingredientes libres por búsqueda/chat y revisión de la lista (28), y comparar Better Auth con Supabase Auth para cuentas reales (29), sin proveedor elegido. Después continuar recetas generadas (17). Las casillas de implementación no implican aceptación personal.
 
 **Primera prueba recibida (2026-10-21): resultado irregular y no aceptado.** «Chef» activaba, pero algunas preguntas se interpretaban como repetir/retroceder, hubo cambios de paso inesperados, costaba confirmar y el chat mostraba un error genérico de backend. Correcciones verificadas técnicamente; nueva prueba personal pendiente (34). No confundir tests con aceptación de voz. Se mantienen Gemini/Vosk y narración natural con respaldo local; el cambio de turnos está autorizado en 0013.
 
@@ -15,6 +15,15 @@ Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-10-22 · Organización de pantallas conservando Mostaza (27 y 30)
+- Chat en panel lateral: botón «Escribir al chef» en la cabecera (`app.chatAbierto`, Escape cierra). Sin franja fija abajo; no aparece en Retomar ni en la pantalla final.
+- Nueva pantalla `Retomar.svelte`: al arrancar con una sesión cocinando, `app.retomando = true` muestra receta, paso, temporizadores y «Continuar receta» / «Preparar otra receta» (`continuarReceta`, `prepararOtra`). El micrófono no se abre ahí.
+- Preparar: saludo compacto; «Tu lista» con quitar ingrediente, básicos asumidos, porciones, resumen de preferencias y formulario completo en `Panel`; botón «Buscar recetas con N ingredientes».
+- Elegir reescrita: lista de comparación (tiempo, nivel, «Faltan N») y vista previa con todos los ingredientes escalados y su estado (Lo tienes / Básico / Falta con sustituciones / Opcional) y «Cocinar esta receta» fijo.
+- Cocinar: «Paso N de M», botones con texto «Ingredientes (N porciones)» y «Temporizadores», «Ver cómo se hace» dentro del paso, columna del chef con avatar 110 px y caja de voz agrupada, barra inferior Atrás/Repetir pequeños y «Listo, siguiente» grande. Sin desplazamiento a 1186×763.
+- Decisión 0014: los básicos de despensa se siguen dando por hechos (descarta la propuesta de `replanteamiento-v1.md`).
+- Verificado: `npm test` (388), `typecheck`, `lint`, `format:check`; capturas por CDP con perfil aparte y `--mute-audio`, semilla puesta en `revisada` solo durante la captura y restaurada. Falta la revisión del autor (30); sin prueba de voz.
 
 ### 2026-10-21 · Arranque de app y backend para recorrer los flujos (36)
 - Backend Gemini activo en `http://127.0.0.1:8787` y app Electron en desarrollo con Vite en `http://localhost:5173`. Procesos iniciados en segundo plano; logs y PID en `.cache-voz/{backend,app}-ejecucion.*`. Configuración `.env` existente conservada, sin mostrar credenciales.

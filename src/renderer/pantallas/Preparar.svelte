@@ -17,6 +17,7 @@
   import Chip from '../componentes/Chip.svelte'
   import Globo from '../componentes/Globo.svelte'
   import Icono from '../componentes/Icono.svelte'
+  import Panel from '../componentes/Panel.svelte'
   import { app } from '../estado/app.svelte'
 
   const prefs = $derived(app.preferencias)
@@ -77,6 +78,37 @@
       : EQUIPOS.filter((e) => EQUIPO_FRECUENTE.includes(e) || prefs.equipo.includes(e))
   )
 
+  // Lo que el usuario ha añadido, en el orden en que lo añadió (sin los básicos asumidos).
+  const porId = $derived(new Map(app.catalogo.map((i) => [i.id, i])))
+  const lista = $derived(
+    prefs.ingredientes.flatMap((id) => {
+      const ingrediente = porId.get(id)
+      return ingrediente && !ingrediente.esBasicoDespensa ? [ingrediente] : []
+    })
+  )
+
+  // Resumen de las preferencias, visible aunque el panel esté cerrado (replanteamiento-v1).
+  const resumen = $derived([
+    {
+      nombre: 'Tiempo',
+      valor: TIEMPOS.find((t) => t.valor === prefs.tiempoMaxMin)?.texto ?? 'Sin prisa'
+    },
+    { nombre: 'Recetas', valor: NIVELES.find((n) => n.valor === prefs.nivel)?.texto ?? 'Todas' },
+    {
+      nombre: 'Comemos',
+      valor: prefs.restricciones.map((d) => NOMBRE_DIETA[d]).join(', ') || 'De todo'
+    },
+    {
+      nombre: 'Alergias',
+      valor: prefs.alergias.map((a) => NOMBRE_ALERGENO[a]).join(', ') || 'Ninguna'
+    },
+    {
+      nombre: 'Tengo',
+      valor: prefs.equipo.map((e) => NOMBRE_EQUIPO[e]).join(', ') || 'Cualquier equipo'
+    }
+  ])
+  let panelPreferencias = $state(false)
+
   const unirConY = (nombres: string[]): string =>
     nombres.length <= 1
       ? (nombres[0] ?? '')
@@ -86,11 +118,11 @@
 <main class="preparar">
   <section class="ingredientes" aria-labelledby="titulo-preparar">
     <div class="saludo">
-      <ChefBlob pose="busto" tamano={112} />
+      <ChefBlob pose="busto" tamano={76} />
       <Globo cola="izquierda">
         <h1 id="titulo-preparar">¿Qué tienes hoy en la cocina?</h1>
         <p>
-          {app.globo ?? 'Marca lo que tengas o escríbelo al chef y te digo qué podemos preparar.'}
+          {app.globo ?? 'Busca y añade lo que tengas; con eso te propongo recetas.'}
         </p>
       </Globo>
     </div>
@@ -150,114 +182,160 @@
         Todavía no hay ingredientes de {NOMBRE_CATEGORIA[categoria].toLocaleLowerCase('es')} en el catálogo.
       </p>
     {/if}
-
-    {#if basicos.length > 0}
-      <p class="basicos">{unirConY(basicos)}: damos por hecho que los tienes.</p>
-    {/if}
   </section>
 
-  <aside class="preferencias" aria-labelledby="titulo-preferencias">
-    <h2 id="titulo-preferencias">Para tu receta</h2>
-    <div class="scroll">
-      <div class="porciones">
-        <span id="etiqueta-porciones" class="nombre">Somos</span>
-        <div class="contador" role="group" aria-labelledby="etiqueta-porciones">
-          <button
-            type="button"
-            aria-label="Una porción menos"
-            disabled={prefs.porciones <= PORCIONES_MIN}
-            onclick={() => (prefs.porciones -= 1)}><Icono nombre="menos" /></button
-          >
-          <output aria-live="polite">{prefs.porciones}</output>
-          <button
-            type="button"
-            aria-label="Una porción más"
-            disabled={prefs.porciones >= PORCIONES_MAX}
-            onclick={() => (prefs.porciones += 1)}><Icono nombre="mas" /></button
-          >
-        </div>
+  <aside class="preferencias" aria-labelledby="titulo-lista">
+    <section class="bloque">
+      <h2 id="titulo-lista">Tu lista <span class="cuantos">{lista.length}</span></h2>
+      {#if lista.length > 0}
+        <ul class="lista" aria-label="Ingredientes añadidos">
+          {#each lista as ingrediente (ingrediente.id)}
+            <li>
+              {ingrediente.nombre}
+              <button
+                type="button"
+                aria-label="Quitar {ingrediente.nombre}"
+                onclick={() => alternar(prefs.ingredientes, ingrediente.id)}
+                ><Icono nombre="cerrar" tamano={16} /></button
+              >
+            </li>
+          {/each}
+        </ul>
+      {:else}
+        <p class="ayuda">
+          Aún no has añadido nada. Búscalo, elígelo por categoría o díselo al chef.
+        </p>
+      {/if}
+      {#if basicos.length > 0}
+        <p class="basicos">
+          Damos por hecho que tienes {unirConY(basicos).toLocaleLowerCase('es')}.
+        </p>
+      {/if}
+    </section>
+
+    <div class="porciones">
+      <span id="etiqueta-porciones" class="nombre">Somos</span>
+      <div class="contador" role="group" aria-labelledby="etiqueta-porciones">
+        <button
+          type="button"
+          aria-label="Una porción menos"
+          disabled={prefs.porciones <= PORCIONES_MIN}
+          onclick={() => (prefs.porciones -= 1)}><Icono nombre="menos" /></button
+        >
+        <output aria-live="polite">{prefs.porciones}</output>
+        <button
+          type="button"
+          aria-label="Una porción más"
+          disabled={prefs.porciones >= PORCIONES_MAX}
+          onclick={() => (prefs.porciones += 1)}><Icono nombre="mas" /></button
+        >
       </div>
-
-      <fieldset>
-        <legend>Tiempo que tienes</legend>
-        <div class="chips">
-          {#each TIEMPOS as t (t.texto)}
-            <Chip
-              seleccionado={prefs.tiempoMaxMin === t.valor}
-              onclick={() => (prefs.tiempoMaxMin = t.valor)}>{t.texto}</Chip
-            >
-          {/each}
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Recetas</legend>
-        <div class="chips">
-          {#each NIVELES as n (n.texto)}
-            <Chip seleccionado={prefs.nivel === n.valor} onclick={() => (prefs.nivel = n.valor)}
-              >{n.texto}</Chip
-            >
-          {/each}
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Comemos</legend>
-        <div class="chips">
-          {#each DIETAS as d (d)}
-            <Chip
-              seleccionado={prefs.restricciones.includes(d)}
-              onclick={() => alternar(prefs.restricciones, d)}>{NOMBRE_DIETA[d]}</Chip
-            >
-          {/each}
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Alergias</legend>
-        <div class="chips">
-          {#each alergiasVisibles as a (a)}
-            <Chip
-              seleccionado={prefs.alergias.includes(a)}
-              onclick={() => alternar(prefs.alergias, a)}>{NOMBRE_ALERGENO[a]}</Chip
-            >
-          {/each}
-          {#if !todasLasAlergias}
-            <button type="button" class="mas" onclick={() => (todasLasAlergias = true)}
-              >Ver todas</button
-            >
-          {/if}
-        </div>
-      </fieldset>
-
-      <fieldset>
-        <legend>Tengo</legend>
-        <div class="chips">
-          {#each equipoVisible as e (e)}
-            <Chip seleccionado={prefs.equipo.includes(e)} onclick={() => alternar(prefs.equipo, e)}
-              >{NOMBRE_EQUIPO[e]}</Chip
-            >
-          {/each}
-          {#if !todoElEquipo}
-            <button type="button" class="mas" onclick={() => (todoElEquipo = true)}>Ver todo</button
-            >
-          {/if}
-        </div>
-        {#if prefs.equipo.length === 0}
-          <p class="ayuda">Si no marcas nada, no filtramos por equipo.</p>
-        {/if}
-      </fieldset>
     </div>
 
-    {#if app.error}<p class="error" role="alert">{app.error}</p>{/if}
-    {#if marcadosElegibles === 0}
-      <p class="ayuda" role="status">Selecciona al menos un ingrediente para ver recetas.</p>
+    <section class="bloque" aria-labelledby="titulo-preferencias">
+      <div class="fila">
+        <h2 id="titulo-preferencias">Preferencias</h2>
+        <button type="button" class="mas" onclick={() => (panelPreferencias = true)}
+          >Cambiar preferencias</button
+        >
+      </div>
+      <dl class="resumen">
+        {#each resumen as r (r.nombre)}
+          <dt>{r.nombre}</dt>
+          <dd>{r.valor}</dd>
+        {/each}
+      </dl>
+    </section>
+
+    <div class="pie">
+      {#if app.error}<p class="error" role="alert">{app.error}</p>{/if}
+      {#if marcadosElegibles === 0}
+        <p class="ayuda" role="status">Añade al menos un ingrediente para buscar recetas.</p>
+      {/if}
+      <Boton ancho disabled={app.ocupado || marcadosElegibles === 0} onclick={() => app.buscar()}>
+        {marcadosElegibles === 0
+          ? 'Buscar recetas'
+          : `Buscar recetas con ${marcadosElegibles} ${marcadosElegibles === 1 ? 'ingrediente' : 'ingredientes'}`}
+      </Boton>
+    </div>
+
+    {#if panelPreferencias}
+      <Panel titulo="Preferencias" alCerrar={() => (panelPreferencias = false)}>
+        <div class="campos">
+          <fieldset>
+            <legend>Tiempo que tienes</legend>
+            <div class="chips">
+              {#each TIEMPOS as t (t.texto)}
+                <Chip
+                  seleccionado={prefs.tiempoMaxMin === t.valor}
+                  onclick={() => (prefs.tiempoMaxMin = t.valor)}>{t.texto}</Chip
+                >
+              {/each}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Recetas</legend>
+            <div class="chips">
+              {#each NIVELES as n (n.texto)}
+                <Chip seleccionado={prefs.nivel === n.valor} onclick={() => (prefs.nivel = n.valor)}
+                  >{n.texto}</Chip
+                >
+              {/each}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Comemos</legend>
+            <div class="chips">
+              {#each DIETAS as d (d)}
+                <Chip
+                  seleccionado={prefs.restricciones.includes(d)}
+                  onclick={() => alternar(prefs.restricciones, d)}>{NOMBRE_DIETA[d]}</Chip
+                >
+              {/each}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Alergias</legend>
+            <div class="chips">
+              {#each alergiasVisibles as a (a)}
+                <Chip
+                  seleccionado={prefs.alergias.includes(a)}
+                  onclick={() => alternar(prefs.alergias, a)}>{NOMBRE_ALERGENO[a]}</Chip
+                >
+              {/each}
+              {#if !todasLasAlergias}
+                <button type="button" class="mas" onclick={() => (todasLasAlergias = true)}
+                  >Ver todas</button
+                >
+              {/if}
+            </div>
+          </fieldset>
+
+          <fieldset>
+            <legend>Tengo</legend>
+            <div class="chips">
+              {#each equipoVisible as e (e)}
+                <Chip
+                  seleccionado={prefs.equipo.includes(e)}
+                  onclick={() => alternar(prefs.equipo, e)}>{NOMBRE_EQUIPO[e]}</Chip
+                >
+              {/each}
+              {#if !todoElEquipo}
+                <button type="button" class="mas" onclick={() => (todoElEquipo = true)}
+                  >Ver todo</button
+                >
+              {/if}
+            </div>
+            {#if prefs.equipo.length === 0}
+              <p class="ayuda">Si no marcas nada, no filtramos por equipo.</p>
+            {/if}
+          </fieldset>
+        </div>
+      </Panel>
     {/if}
-    <Boton ancho disabled={app.ocupado || marcadosElegibles === 0} onclick={() => app.buscar()}>
-      {marcadosElegibles === 0
-        ? 'Ver recetas'
-        : `Ver recetas con ${marcadosElegibles} ${marcadosElegibles === 1 ? 'ingrediente' : 'ingredientes'}`}
-    </Boton>
   </aside>
 </main>
 
@@ -283,7 +361,7 @@
     gap: 18px;
   }
   h1 {
-    font-size: 34px;
+    font-size: 28px;
     line-height: 1.1;
   }
   .saludo p {
@@ -427,6 +505,8 @@
   }
 
   .preferencias {
+    position: relative;
+    overflow-y: auto;
     background: var(--color-superficie);
     border: var(--borde) solid var(--color-separador);
     border-radius: var(--radio-xl);
@@ -439,15 +519,87 @@
   .preferencias h2 {
     font-size: var(--texto-l);
   }
-  .scroll {
+  .bloque {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-3);
+  }
+  .cuantos {
+    display: inline-grid;
+    place-items: center;
+    min-width: 28px;
+    height: 28px;
+    padding: 0 8px;
+    margin-left: 6px;
+    border-radius: var(--radio-pildora);
+    background: var(--color-tinta);
+    color: var(--color-superficie);
+    font-size: var(--texto-s);
+    vertical-align: middle;
+  }
+  .lista {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacio-2);
+  }
+  .lista li {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: 4px 4px 4px var(--espacio-4);
+    border-radius: var(--radio-pildora);
+    background: var(--color-acento-suave);
+    border: var(--borde) solid var(--color-tinta);
+    font-weight: 600;
+    font-size: var(--texto-s);
+  }
+  .lista button {
+    width: 32px;
+    height: 32px;
+    border-radius: 50%;
+    border: 0;
+    background: transparent;
+    color: var(--color-tinta);
+    display: grid;
+    place-items: center;
+    cursor: pointer;
+  }
+  .lista button:hover {
+    background: var(--color-superficie);
+  }
+  .fila {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    gap: var(--espacio-2);
+  }
+  .resumen {
+    display: grid;
+    grid-template-columns: auto 1fr;
+    gap: 6px var(--espacio-4);
+    margin: 0;
+    font-size: var(--texto-s);
+  }
+  .resumen dt {
+    color: var(--color-tinta-suave);
+  }
+  .resumen dd {
+    margin: 0;
+    font-weight: 600;
+  }
+  .pie {
+    margin-top: auto;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-2);
+  }
+  .campos {
     display: flex;
     flex-direction: column;
     gap: 18px;
-    overflow-y: auto;
-    min-height: 0;
-    flex: 1;
-    padding: 4px;
-    margin: -4px;
   }
   .porciones {
     display: flex;

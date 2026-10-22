@@ -1,9 +1,19 @@
 # Diseño
 
-**Aclaración del autor, 2026-10-20:** conservar el diseño Mostaza y organizar mejor las pantallas existentes: agrupación, alineación, jerarquía y localización de controles. No se repetirán maquetas del flujo completo ni se buscará otro estilo. Los ajustes y los formularios pendientes de login/registro están en `replanteamiento-v1.md` (decisiones 0011–0012); su implementación y comprobación con el autor siguen pendientes. La descripción siguiente corresponde al prototipo actual y mantiene su identidad visual.
+**Aclaración del autor, 2026-10-20:** conservar el diseño Mostaza y organizar mejor las pantallas existentes: agrupación, alineación, jerarquía y localización de controles. No se repetirán maquetas del flujo completo ni se buscará otro estilo. Los ajustes están en `replanteamiento-v1.md` (decisiones 0011–0012) y aplicados como se describe en «Organización por pantalla» (2026-10-22, tareas 27 y 30); falta revisarlos con el autor. Los formularios de login/registro siguen pendientes.
 
 ## Flujo
-Tres momentos: **Preparar** (ingredientes y preferencias en una pantalla), **Elegir** (carrusel de recetas y panel "qué falta"), **Cocinar** (paso con sus ingredientes, chef con consejo en su globo, barra inferior con Atrás / Repetir / Ver técnica / Siguiente; listas y atajos en paneles bajo demanda). La pantalla final va dentro de Cocinar. El chef solo habla (con voz) en modo cocina; en Preparar y Elegir aparece en busto con un globo de texto.
+Tres momentos: **Preparar** (buscar ingredientes, tu lista y resumen de preferencias), **Elegir** (lista para comparar recetas y vista previa con todos los ingredientes), **Cocinar** (paso con sus ingredientes, chef con su globo y la voz agrupada, barra inferior con Atrás / Repetir / Listo, siguiente; listas en paneles bajo demanda). Al abrir la app con una receta a medias aparece **Retomar** antes de Cocinar. La pantalla final va dentro de Cocinar. El chef solo habla (con voz) en modo cocina; en Preparar aparece en busto con un globo de texto.
+
+## Organización por pantalla (tareas 27 y 30, 2026-10-22)
+
+Sobre los mismos componentes y tokens; sin nuevas maquetas.
+
+- **Cabecera común:** marca, momentos y, a la derecha, «Escribir al chef». El chat (`ChatChef`) es un panel lateral que se abre y cierra desde ese botón o con Escape; ya no ocupa una franja fija abajo. No se ofrece en Retomar ni en la pantalla final.
+- **Retomar** (`pantallas/Retomar.svelte`): tarjeta con la receta, porciones, «Ibas por el paso X de Y» con su texto, temporizadores en marcha y dos acciones: «Continuar receta» (principal) y «Preparar otra receta». Recuerda que el micrófono sigue apagado. El estado vive en `app.retomando`.
+- **Preparar:** saludo compacto (busto 76 px). A la izquierda buscador, categorías e ingredientes. A la derecha «Tu lista» con contador y botón para quitar cada ingrediente, la nota de básicos asumidos (0014), «Somos» con el contador de porciones, el resumen de preferencias (Tiempo, Recetas, Comemos, Alergias, Tengo) y «Cambiar preferencias», que abre el formulario completo en un `Panel`. Abajo, el botón principal «Buscar recetas con N ingredientes».
+- **Elegir:** a la izquierda la lista para comparar (nombre, tiempo, nivel y «Faltan N» o «Tienes todo»; flechas arriba/abajo cambian de receta) y «Cambiar ingredientes». A la derecha la vista previa: plato, título, descripción, píldoras de tiempo/porciones/nivel/equipo, etiquetas de dieta y alérgenos, cobertura («N de M disponibles (X tuyos + Y básicos)») y todos los ingredientes escalados con su estado: Lo tienes, Básico, Falta (con sustituciones) u Opcional. «Cocinar esta receta» queda fijo al pie. Sin cápsulas grandes ni avatar.
+- **Cocinar:** cabecera con título, «Paso N de M» y la barra de pasos; a la derecha «Ingredientes (N porciones)», los temporizadores en marcha y «Temporizadores», todos con texto. «Ver cómo se hace» y el temporizador sugerido van dentro de la tarjeta del paso. Columna derecha (300 px): globo, avatar de 110 px y una caja «Voz» con micrófono, voz del chef y estado. Barra inferior: Atrás y Repetir de 180 px y «Listo, siguiente» grande a la derecha. A 1186×763 ni el paso ni la columna del chef necesitan desplazamiento.
 
 ## Dirección visual: A «Mostaza» (elegida el 2026-10-18)
 

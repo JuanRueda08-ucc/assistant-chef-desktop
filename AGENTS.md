@@ -12,7 +12,7 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 2. Lee el documento de `docs/` del área que vas a tocar (índice en `docs/README.md`).
 3. Si la tarea contradice una decisión de `docs/decisiones/`, para y pregunta en vez de cambiarla en silencio.
 
-**Prioridad actual (0011–0013):** la primera prueba personal de Gemini (31, 2026-10-21) reveló fallos de reconocimiento, navegación y chat. Corregirlos (33) y repetir la prueba con el autor (34) antes de organizar Retomar/Cocinar. El autor está en público; hacer verificaciones sin abrir su micrófono ni reproducir sonido. Leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. Conservar Mostaza y organizar las pantallas existentes, sin repetir maquetas del flujo completo. Plantear ingredientes libres por búsqueda o chat y revisar la lista antes de elegir receta. Para cuentas reales, comparar después Better Auth y Supabase Auth (`docs/autenticacion-opciones.md`); todavía no hay proveedor elegido. Las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. Las verificaciones técnicas del agente no completan la aceptación personal de voz.
+**Prioridad actual (0011–0014):** organización de pantallas aplicada el 2026-10-22 (27); falta la revisión del autor (30). La repetición de la prueba de voz (34) está aplazada por el autor. Los básicos de despensa se siguen asumiendo (0014). El autor está en público; hacer verificaciones sin abrir su micrófono ni reproducir sonido. Leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. Conservar Mostaza y organizar las pantallas existentes, sin repetir maquetas del flujo completo. Plantear ingredientes libres por búsqueda o chat y revisar la lista antes de elegir receta. Para cuentas reales, comparar después Better Auth y Supabase Auth (`docs/autenticacion-opciones.md`); todavía no hay proveedor elegido. Las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. Las verificaciones técnicas del agente no completan la aceptación personal de voz.
 
 ## Al terminar una tarea
 
@@ -45,9 +45,9 @@ src/preload/     puente seguro (contextBridge) con API tipada
 src/renderer/    interfaz Svelte 5 (App.svelte elige la pantalla según el estado)
   estado/        app.svelte.ts: estado de la interfaz con runas (pantalla, catálogo, preferencias…)
   componentes/   piezas del diseño Mostaza: Boton, Chip, Globo, ChefBlob, Avatar, Panel, Icono, Momentos
-                 ChatChef (entrada común, historial plegable y errores de consulta)
+                 ChatChef (panel lateral que se abre desde la cabecera, historial y errores de consulta)
   lib/           lógica pura de la interfaz con tests (cómo se muestra un ingrediente)
-  pantallas/     Preparar, Elegir y Cocinar (con la pantalla final)
+  pantallas/     Preparar, Elegir, Retomar (receta a medias al abrir) y Cocinar (con la pantalla final)
   voz/           captura AudioWorklet, PCM, ControlVoz, TurnoConsulta y WebSocket Gemini Live
   assets/chef/   poses del chef en PNG
   styles/        tokens.css (único sitio con colores, tipografías y radios)

@@ -35,7 +35,7 @@ El usuario debe poder añadir uno, varios o seguir buscando sin perder su lista,
 
 El flujo deseado es: construir la lista por búsqueda o chat → revisar y decidir los ingredientes → buscar y elegir receta → recibir la guía paso a paso del chef. Mencionar un ingrediente en el chat no debe iniciar una receta automáticamente. El chef puede ayudar a concretar la selección antes de cocinar. Este contrato se plantea antes de implementarlo; todavía no cambia la búsqueda actual.
 
-Propuesta: tratar sal, aceite y demás básicos igual que el resto, contando únicamente ingredientes añadidos explícitamente. Este cambio sustituiría la suposición actual de despensa y debe reflejarse en el recuento, la búsqueda, el chat y las pruebas.
+Básicos de despensa: se descartó la propuesta de contarlos solo si se añaden. Sal, aceite, pimienta y agua se siguen dando por hechos y la interfaz los muestra aparte (decisión 0014, 2026-10-22).
 
 Un ingrediente que aún no esté en el catálogo no debe desaparecer ni ser sustituido silenciosamente por otro. La implementación deberá separar el texto introducido de su identificación normalizada, resolver sinónimos/duplicados y pedir precisión cuando haya ambigüedad. La lista del usuario puede aceptar un ingrediente pendiente de identificar; la generación y el cálculo de etiquetas requieren datos validados. No se inventarán alérgenos o dietas para completar un ingrediente desconocido.
 
