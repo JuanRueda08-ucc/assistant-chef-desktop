@@ -38,7 +38,12 @@ export const PREFERENCIAS_INICIALES: Preferencias = {
 const MS_HASTA_ESPERAR = 6000
 const ESPERAR: EstadoAvatar = { accion: 'esperar' }
 
-const mensaje = (e: unknown): string => (e instanceof Error ? e.message : String(e))
+/** Texto para el usuario, sin el prefijo que Electron añade a los errores de ipcRenderer.invoke. */
+const mensaje = (e: unknown): string =>
+  (e instanceof Error ? e.message : String(e)).replace(
+    /^Error invoking remote method '[^']*': (?:\w*Error: )?/,
+    ''
+  )
 
 class EstadoApp {
   /** `null` mientras main comprueba la sesión guardada; sin usuario se muestra Acceso (0016). */

@@ -2,6 +2,17 @@
 export const MODELO_GEMINI_LIVE = 'gemini-3.8-live'
 export const VERSION_GEMINI = 'v1beta'
 export const VOZ_GEMINI = 'Sulafat'
+/**
+ * Modelos de texto (chat y JSON). Si el principal está saturado (503) o no responde a tiempo, el
+ * backend repite la misma petición una vez con el de respaldo, más ligero (comprobado el
+ * 2026-10-22: flash respondía 503 o tardaba más de 80 s; flash-lite, menos de 2 s con las
+ * mismas herramientas).
+ */
+export const MODELO_TEXTO = 'gemini-3.8-flash'
+export const MODELO_TEXTO_RESPALDO = 'gemini-3.5-flash-lite'
+/** Tiempo máximo por intento: los dos juntos quedan por debajo de los 30 s que espera main. */
+export const ESPERA_MODELO_MS = 8_000
+export const ESPERA_RESPALDO_MS = 15_000
 
 export const INSTRUCCIONES_CHEF = [
   'Eres el chef de una app de cocina. Habla en español, en una o dos frases por turno.',

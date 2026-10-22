@@ -2,8 +2,12 @@ import { z } from 'zod'
 import { ErrorProveedor } from '../error-proveedor'
 import { esquemaReceta } from '@shared/esquemas/receta'
 import {
+  ESPERA_MODELO_MS,
+  ESPERA_RESPALDO_MS,
   INSTRUCCIONES_CHEF,
   MODELO_GEMINI_LIVE,
+  MODELO_TEXTO,
+  MODELO_TEXTO_RESPALDO,
   VERSION_GEMINI,
   VOZ_GEMINI
 } from '@shared/ia/gemini'
@@ -39,7 +43,7 @@ export class ProveedorGemini implements ProveedorIA {
   async conversar(peticion: PeticionChat): Promise<ContenidoChat> {
     const herramientas =
       peticion.pantalla === 'cocinar' ? DEFINICIONES_HERRAMIENTAS : DEFINICIONES_SELECCION
-    const bruto = await this.post('models/gemini-3.8-flash:generateContent', {
+    const bruto = await this.generar({
       systemInstruction: {
         parts: [
           { text: INSTRUCCIONES_CHEF },
@@ -172,7 +176,7 @@ export class ProveedorGemini implements ProveedorIA {
   }
 
   private async generarJson(prompt: string): Promise<unknown> {
-    const bruto = await this.post('models/gemini-3.8-flash:generateContent', {
+    const bruto = await this.generar({
       systemInstruction: { parts: [{ text: INSTRUCCIONES_CHEF }] },
       contents: [{ role: 'user', parts: [{ text: prompt }] }],
       generationConfig: { responseMimeType: 'application/json' }
@@ -189,14 +193,34 @@ export class ProveedorGemini implements ProveedorIA {
     }
   }
 
-  private async post(ruta: string, cuerpo: unknown): Promise<unknown> {
+  /**
+   * generateContent con el modelo principal y, si está saturado o no responde a tiempo, una vez
+   * con el de respaldo. Es seguro repetir aquí: la app aún no ha recibido ni aplicado nada.
+   */
+  private async generar(cuerpo: unknown): Promise<unknown> {
+    try {
+      return await this.post(`models/${MODELO_TEXTO}:generateContent`, cuerpo, ESPERA_MODELO_MS)
+    } catch (error) {
+      const reintentable =
+        error instanceof ErrorProveedor &&
+        (error.codigo === 'proveedor_saturado' || error.codigo === 'proveedor_timeout')
+      if (!reintentable) throw error
+      return this.post(
+        `models/${MODELO_TEXTO_RESPALDO}:generateContent`,
+        cuerpo,
+        ESPERA_RESPALDO_MS
+      )
+    }
+  }
+
+  private async post(ruta: string, cuerpo: unknown, esperaMs = 20_000): Promise<unknown> {
     let respuesta: Response
     try {
       respuesta = await this.solicitar(`${ORIGEN}/${ruta}`, {
         method: 'POST',
         headers: { 'content-type': 'application/json', 'x-goog-api-key': this.clave },
         body: JSON.stringify(cuerpo),
-        signal: AbortSignal.timeout(20_000)
+        signal: AbortSignal.timeout(esperaMs)
       })
     } catch (error) {
       // No propagamos errores de transporte: podrían contener cabeceras con la clave.

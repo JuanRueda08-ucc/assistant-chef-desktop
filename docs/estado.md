@@ -16,6 +16,12 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-10-22 · Chat: modelo de respaldo ante saturación de Gemini
+- El autor vio «El chef tardó demasiado en responder». Medido con su clave y el mismo cuerpo de Preparar: `gemini-3.8-flash` respondía 503 UNAVAILABLE o tardaba más de 80 s; `gemini-3.5-flash-lite` respondía en menos de 2 s y llamaba bien a `marcar_ingredientes`, `cambiar_preferencias` y `buscar_recetas`.
+- `server/src/proveedores/gemini.ts`: `generar()` prueba `MODELO_TEXTO` (8 s) y, ante 503 o timeout, repite una vez con `MODELO_TEXTO_RESPALDO` (15 s). Constantes en `src/shared/ia/gemini.ts`. Tests de respaldo y de no repetir 400/429.
+- Renderer: los mensajes de error ya no muestran el prefijo «Error invoking remote method…» de Electron.
+- Verificado con Gemini real por `/chat` (backend en otro puerto, cuenta de prueba temporal): 3 de 3 respuestas con `buscar_recetas`, en 4 s (principal) y 13 s (respaldo, con el límite anterior de 12 s; ahora 8 s). Tests, typecheck y lint correctos.
+
 ### 2026-10-22 · Cuentas reales con Better Auth (29)
 - Backend: `server/src/cuentas.ts` (Better Auth 1.7, plugins `bearer` y `emailOTP`), `correo.ts` (SMTP o consola en desarrollo) y arranque con migraciones en `principal.ts`. `app.ts` delega `/auth/*` y exige sesión verificada en las rutas de IA (401 `no_autenticado`); límites por cuenta.
 - Main: `cuenta.ts` (registro, código, entrar, salir, recuperar; origen `ORIGEN_APP`), `almacen-sesion.ts` (`safeStorage`), canales `cuenta:*` con zod y preload. `backend.ts` envía el token y olvida la sesión ante 401. Sesiones de cocina por `usuario_id` con migración de bases anteriores.
