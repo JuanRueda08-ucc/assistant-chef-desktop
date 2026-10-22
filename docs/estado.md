@@ -16,6 +16,14 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-10-21 · Arranque de app y backend para recorrer los flujos (36)
+- Backend Gemini activo en `http://127.0.0.1:8787` y app Electron en desarrollo con Vite en `http://localhost:5173`. Procesos iniciados en segundo plano; logs y PID en `.cache-voz/{backend,app}-ejecucion.*`. Configuración `.env` existente conservada, sin mostrar credenciales.
+- Recursos preparados con `npm run voz:preparar`; `npm run voz:verificar` aprobó la carga nativa de Vosk en Electron/Windows con PCM, sin capturar micrófono.
+- Comprobados Preparar (13 ingredientes), Elegir con pollo/arroz y Cocinar por IPC. Elegir no ofrece resultados porque la única receta permanece en borrador; no se modifica su revisión. Iniciada la receta de prueba Arroz con pollo por IPC, avance y retroceso correctos, de vuelta al paso 1.
+- Perfil de prueba separado `.cache-voz/datos-ejecucion-20261021`, depuración local en 9336. La ventana queda en Cocinar con micrófono apagado y narración silenciada; además se arrancó con `--mute-audio` para impedir reproducción durante esta comprobación. Para probar sonido en otra ocasión, cerrar esta instancia y arrancar con `npm run dev` sin ese argumento (el perfil por defecto puede tener otra sesión).
+- Gemini devolvió token Live y audio de narración por el IPC oficial, sin imprimirlos ni reproducir audio. El chat real agotó los 20 s y mostró el mensaje de timeout del proveedor; backend y navegación siguen operativos. No se reintenta automáticamente el turno ni se da el chat por validado en este arranque.
+- Sin cambios de implementación ni aceptación personal de voz. Siguiente paso: repetir 34 en un lugar adecuado y revisar disponibilidad/latencia de Gemini si continúa el timeout. Autenticación, ingredientes libres, recetas generadas y catálogo revisado siguen pendientes.
+
 ### 2026-10-21 · Investigación Vosk, LangChain y LangGraph (35)
 - Aclarado que Vosk admite reconocimiento general; la gramática de órdenes y el intérprete cerrado son la configuración elegida para esta app, no un límite universal del motor. Las consultas abiertas ya siguen el recorrido separado aprobado en 0013.
 - Consultadas fuentes oficiales de LangChain/LangGraph para JavaScript/TypeScript, persistencia, interrupciones e integración Gemini. Evaluación en `docs/ia-orquestacion-opciones.md`: LangChain simplifica integraciones/bucles; LangGraph interesa si generación y validación requieren un flujo más elaborado. Ninguno resuelve por sí solo los fallos acústicos ni garantiza disponibilidad del modelo.
