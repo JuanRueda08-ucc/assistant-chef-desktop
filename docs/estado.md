@@ -22,6 +22,7 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 - Renderer: pantalla `Acceso.svelte` (entrar, crear cuenta, código, recuperar) antes de Preparar; nombre y «Salir» en la cabecera. `Boton` admite `tipo="submit"`.
 - Hallazgo: el `fetch` de Node añade `sec-fetch-mode` y Better Auth exige entonces Origin de confianza; el entorno de Vitest no lo reproduce (su `Request` descarta esas cabeceras), así que se comprobó contra el servidor real con curl.
 - Verificado: tests (incluye Better Auth real en memoria y el cliente de main por HTTP local), `typecheck`, `lint`, `format:check`; recorrido real en la app con backend en otro puerto, secreto temporal y base de cuentas en una carpeta temporal, sin tocar `.env`: registro, código desde la consola, entrar, sesión tras reiniciar la app, «Salir», 401 sin token y origen ajeno rechazado. Sin SMTP real ni despliegue.
+- 2026-10-22: el autor configuró `BETTER_AUTH_SECRET` en su `.env` y probó en su equipo crear cuenta y confirmarla con el código de la consola del backend: funciona.
 
 ### 2026-10-22 · Lista libre de ingredientes (28)
 - `src/shared/recetas/lista.ts` con tests: separar «pollo, arroz y cebolla», identificar sin elegir entre varios, resolver en reconocidos/básicos/ambiguos/desconocidos y textos para el usuario.
