@@ -25,6 +25,11 @@ export type EstadoAvatar =
 export interface Preferencias {
   /** Ids del catálogo que el usuario tiene. */
   ingredientes: string[]
+  /**
+   * Lo que el usuario escribió o dijo y no está en el catálogo (decisión 0015). Se muestra en su
+   * lista, pero no cuenta para buscar recetas ni para etiquetas hasta identificarlo.
+   */
+  ingredientesSinIdentificar: string[]
   porciones: number
   restricciones: Dieta[]
   alergias: Alergeno[]

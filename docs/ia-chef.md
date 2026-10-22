@@ -191,8 +191,8 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
 
 | Herramienta de selección | Validación y efecto |
 |---|---|
-| `marcar_ingredientes` | `{ ingredientes: string[], accion: anadir \| quitar \| reemplazar }`. Id, nombre o sinónimo inequívoco del catálogo. Falla todo el lote ante desconocidos o ambigüedad. |
-| `cambiar_preferencias` | Campos parciales de preferencias, sin ingredientes. Porciones 1–20; listas cerradas. Conserva los campos omitidos. |
+| `marcar_ingredientes` | `{ ingredientes: string[], accion: anadir \| quitar \| reemplazar }`. Cada texto puede llevar varios («pollo y arroz»). Añade lo reconocido por id, nombre o sinónimo; guarda lo desconocido en `ingredientesSinIdentificar`; ante ambigüedad no elige y la respuesta pregunta cuál. Solo falla si no hay nada que aplicar (0015). |
+| `cambiar_preferencias` | Campos parciales de preferencias, sin ingredientes ni ingredientes sin identificar. Porciones 1–20; listas cerradas. Conserva los campos omitidos. |
 | `buscar_recetas` | `{}`. Búsqueda en código con preferencias actuales; abre Elegir. |
 | `ver_receta` | `{ recetaId }` de los resultados vigentes; mueve el carrusel. |
 | `elegir_receta` | `{ recetaId }` de los resultados vigentes; inicia con `sesion.iniciar`. |

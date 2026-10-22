@@ -1,13 +1,23 @@
 import { z } from 'zod'
 import { esquemaId } from '../esquemas/receta'
 import { esquemaPreferencias } from '../esquemas/sesion'
-import { buscarIngredientes, normalizarTexto } from '../recetas/catalogo'
 import { hayIngredientesSeleccionados, MENSAJE_SIN_INGREDIENTES } from '../recetas/disponibilidad'
+import {
+  anadirSinIdentificar,
+  explicarPendientes,
+  quitarSinIdentificar,
+  resolverIngredientes,
+  separarIngredientes,
+  unirLista
+} from '../recetas/lista'
 import type { Ingrediente } from '../types/receta'
 import type { Preferencias } from '../types/sesion'
 import type { ResultadoBusqueda } from '../types/busqueda'
 
-const camposPreferencias = esquemaPreferencias.omit({ ingredientes: true }).shape
+const camposPreferencias = esquemaPreferencias.omit({
+  ingredientes: true,
+  ingredientesSinIdentificar: true
+}).shape
 // Los argumentos parciales pertenecen al protocolo de herramientas; Preferencias sigue completa.
 export const ARGUMENTOS_SELECCION = {
   marcar_ingredientes: z.strictObject({
@@ -25,7 +35,7 @@ export const ARGUMENTOS_SELECCION = {
 export type NombreSeleccion = keyof typeof ARGUMENTOS_SELECCION
 const descripciones: Record<NombreSeleccion, string> = {
   marcar_ingredientes:
-    'Añade, quita o reemplaza los ingredientes disponibles. Usa ids o nombres del catálogo; ante ambigüedad pregunta. Reemplazar solo si lo pide el usuario.',
+    'Añade, quita o reemplaza los ingredientes que tiene el usuario, uno por elemento. Usa ids o nombres del catálogo, o el texto del usuario si no está: la app lo guarda como «sin identificar», sin sustituirlo por otro. Si un nombre encaja con varios, la app lo dice y debes preguntar cuál. Reemplazar solo si lo pide el usuario.',
   cambiar_preferencias:
     'Cambia solo las preferencias solicitadas. Las listas reemplazan su campo completo: conserva las restricciones y alergias previas salvo petición explícita. No inventes equipo disponible.',
   buscar_recetas:
@@ -84,26 +94,54 @@ export function aplicarSeleccion(
   if (nombre === 'marcar_ingredientes') {
     const a = ARGUMENTOS_SELECCION.marcar_ingredientes.safeParse(argumentos)
     if (!a.success) return fallo('Indica los ingredientes y si quieres añadirlos o quitarlos.')
-    const ids: string[] = []
-    for (const texto of a.data.ingredientes) {
-      const exactos = catalogo.filter((i) =>
-        [i.id, i.nombre, ...i.sinonimos].some((n) => normalizarTexto(n) === normalizarTexto(texto))
+    const textos = a.data.ingredientes.flatMap(separarIngredientes)
+    const prefs = estado.preferencias
+    if (a.data.accion === 'quitar') {
+      // Al quitar basta con encontrarlo en la lista actual: «pimiento» quita el único que tenga.
+      const enLista = catalogo.filter((i) => prefs.ingredientes.includes(i.id))
+      const ids = resolverIngredientes(enLista, textos).ids
+      const ingredientesSinIdentificar = quitarSinIdentificar(
+        prefs.ingredientesSinIdentificar,
+        textos
       )
-      const candidatos = exactos.length ? exactos : buscarIngredientes(catalogo, texto)
-      if (candidatos.length !== 1)
+      if (
+        !ids.length &&
+        ingredientesSinIdentificar.length === prefs.ingredientesSinIdentificar.length
+      )
         return fallo(
-          `No puedo identificar «${texto}» con certeza. Elígelo en el catálogo o especifica su nombre.`
+          `${unirLista(textos.map((t) => `«${t}»`))} no ${textos.length === 1 ? 'está' : 'están'} en tu lista.`
         )
-      ids.push(candidatos[0]!.id)
+      return exito(
+        invalidar({
+          ...prefs,
+          ingredientes: prefs.ingredientes.filter((id) => !ids.includes(id)),
+          ingredientesSinIdentificar
+        }),
+        'He quitado esos ingredientes de tu lista.'
+      )
     }
-    const anteriores = estado.preferencias.ingredientes
-    const ingredientes =
-      a.data.accion === 'quitar'
-        ? anteriores.filter((id) => !ids.includes(id))
-        : [...new Set([...(a.data.accion === 'anadir' ? anteriores : []), ...ids])]
+    // Lo reconocido entra; lo desconocido queda sin identificar; lo ambiguo se pregunta.
+    const resuelta = resolverIngredientes(catalogo, textos)
+    const reemplazar = a.data.accion === 'reemplazar'
+    const ingredientes = [...new Set([...(reemplazar ? [] : prefs.ingredientes), ...resuelta.ids])]
+    const ingredientesSinIdentificar = anadirSinIdentificar(
+      reemplazar ? [] : prefs.ingredientesSinIdentificar,
+      resuelta.desconocidos
+    )
+    const pendientes = explicarPendientes(resuelta)
+    if (!resuelta.ids.length && !resuelta.desconocidos.length && !reemplazar)
+      return fallo(pendientes || 'No he añadido nada nuevo.')
+    const nombres = resuelta.ids.map((id) => catalogo.find((i) => i.id === id)!.nombre)
     return exito(
-      invalidar({ ...estado.preferencias, ingredientes }),
-      'He actualizado tus ingredientes.'
+      invalidar({ ...prefs, ingredientes, ingredientesSinIdentificar }),
+      [
+        nombres.length
+          ? `He añadido ${unirLista(nombres.map((n) => n.toLocaleLowerCase('es')))}.`
+          : '',
+        pendientes
+      ]
+        .filter(Boolean)
+        .join(' ') || 'He actualizado tus ingredientes.'
     )
   }
   if (nombre === 'cambiar_preferencias') {

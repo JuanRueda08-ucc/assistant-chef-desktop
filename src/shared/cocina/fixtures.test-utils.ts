@@ -68,6 +68,7 @@ export function contexto(): ContextoCocina {
 export function preferencias(campos: Partial<Preferencias> = {}): Preferencias {
   return {
     ingredientes: ['pollo_muslo', 'arroz_blanco'],
+    ingredientesSinIdentificar: [],
     porciones: 4,
     restricciones: [],
     alergias: [],

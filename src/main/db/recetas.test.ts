@@ -133,6 +133,7 @@ describe('repositorio de recetas', () => {
 describe('catálogo y búsqueda en la base', () => {
   const preferencias: Preferencias = {
     ingredientes: ['pollo_muslo', 'arroz_blanco'],
+    ingredientesSinIdentificar: [],
     porciones: 4,
     restricciones: [],
     alergias: [],

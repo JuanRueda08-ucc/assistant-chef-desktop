@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Prioridad actual: el autor aprobó la organización de pantallas (27 y 30, 2026-10-22; descripción en `diseno.md`, «Organización por pantalla»). Siguiente: ingredientes libres por búsqueda o chat (28) y autenticación con Better Auth o Supabase Auth (29). La repetición de la prueba de voz (34) queda aplazada por decisión del autor; cuando se retome, no abrir su micrófono ni reproducir sonido mientras esté en público. Básicos de despensa: se siguen asumiendo (0014). Plantear ingredientes libres por búsqueda/chat y revisión de la lista (28), y comparar Better Auth con Supabase Auth para cuentas reales (29), sin proveedor elegido. Después continuar recetas generadas (17). Las casillas de implementación no implican aceptación personal.
+Prioridad actual: el autor aprobó la organización de pantallas (27 y 30, 2026-10-22; descripción en `diseno.md`, «Organización por pantalla»). Ingredientes libres (28) hechos el 2026-10-22 (0015). Siguiente: autenticación con Better Auth o Supabase Auth (29); ampliar el catálogo de la semilla con dietas y alérgenos revisados queda como trabajo aparte. La repetición de la prueba de voz (34) queda aplazada por decisión del autor; cuando se retome, no abrir su micrófono ni reproducir sonido mientras esté en público. Básicos de despensa: se siguen asumiendo (0014). Plantear ingredientes libres por búsqueda/chat y revisión de la lista (28), y comparar Better Auth con Supabase Auth para cuentas reales (29), sin proveedor elegido. Después continuar recetas generadas (17). Las casillas de implementación no implican aceptación personal.
 
 **Primera prueba recibida (2026-10-21): resultado irregular y no aceptado.** «Chef» activaba, pero algunas preguntas se interpretaban como repetir/retroceder, hubo cambios de paso inesperados, costaba confirmar y el chat mostraba un error genérico de backend. Correcciones verificadas técnicamente; nueva prueba personal pendiente (34). No confundir tests con aceptación de voz. Se mantienen Gemini/Vosk y narración natural con respaldo local; el cambio de turnos está autorizado en 0013.
 
@@ -15,6 +15,13 @@ Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-10-22 · Lista libre de ingredientes (28)
+- `src/shared/recetas/lista.ts` con tests: separar «pollo, arroz y cebolla», identificar sin elegir entre varios, resolver en reconocidos/básicos/ambiguos/desconocidos y textos para el usuario.
+- `Preferencias.ingredientesSinIdentificar` (tipo + zod con `default([])` para sesiones guardadas). No cuenta para buscar ni etiquetas; el chef lo ve en el contexto.
+- Preparar: Intro o «Añadir» añade todo lo escrito; candidatos para elegir si es ambiguo; elementos sin identificar con borde discontinuo, quitar y «buscar con otro nombre».
+- Chat: `marcar_ingredientes` aplica lo reconocido, guarda lo desconocido y pregunta por lo ambiguo; quitar también sirve para los sin identificar. `cambiar_preferencias` no toca listas.
+- Decisión 0015. Verificado: `npm test` (393), `typecheck`, `lint`, `format:check` y el flujo en la app por CDP con perfil aparte y `--mute-audio`. Sin chat real con Gemini en esta comprobación.
 
 ### 2026-10-22 · Organización de pantallas conservando Mostaza (27 y 30)
 - Chat en panel lateral: botón «Escribir al chef» en la cabecera (`app.chatAbierto`, Escape cierra). Sin franja fija abajo; no aparece en Retomar ni en la pantalla final.

@@ -25,6 +25,7 @@ Fuente de verdad de los datos: `db/schema.sql` (tablas) y `src/shared/types/rece
 | `derivarEtiquetas(receta, catalogo)` / `conEtiquetas` | `etiquetas.ts` | dietas compatibles y alérgenos |
 | `aplicarSustitucion(receta, sustitucion, catalogo)` | `sustituciones.ts` | copia con el ingrediente cambiado, ratio aplicado y etiquetas recalculadas |
 | `redondear(valor, paso)` | `redondeo.ts` | múltiplo más cercano de `paso`, nunca menos que `paso` |
+| `resolverIngredientes(catalogo, textos)` y `separarIngredientes(texto)` | `lista.ts` | lista libre (0015): reconocidos, básicos, ambiguos y desconocidos; los desconocidos van a `Preferencias.ingredientesSinIdentificar`, que no cuenta para buscar |
 | `buscarRecetas(preferencias, recetas, catalogo, sustituciones)` | `busqueda.ts` | resultados ordenados con panel "qué falta", descartadas con motivos y `ofrecerGenerada` (tipos en `src/shared/types/busqueda.ts`) |
 | `resumirReceta(receta)` | `resumen.ts` | `ResumenReceta` (cabecera, etiquetas y equipo, sin ingredientes ni pasos) |
 

@@ -40,6 +40,7 @@ const ensalada = (campos: Record<string, unknown> = {}): Receta =>
 
 const preferencias = (campos: Partial<Preferencias> = {}): Preferencias => ({
   ingredientes: [],
+  ingredientesSinIdentificar: [],
   porciones: 4,
   restricciones: [],
   alergias: [],

@@ -24,6 +24,7 @@ export type Pantalla = 'preparar' | 'elegir' | 'cocinar'
 
 export const PREFERENCIAS_INICIALES: Preferencias = {
   ingredientes: [],
+  ingredientesSinIdentificar: [],
   porciones: 4,
   restricciones: [],
   alergias: [],

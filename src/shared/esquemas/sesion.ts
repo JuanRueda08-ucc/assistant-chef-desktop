@@ -12,6 +12,7 @@ import {
   type SustitucionAplicada,
   type Temporizador
 } from '../types/sesion'
+import { MAX_SIN_IDENTIFICAR } from '../recetas/lista'
 import type { Afirmar, Igual } from './coincidencia'
 import {
   esquemaAlergeno,
@@ -37,6 +38,11 @@ export const esquemaEstadoAvatar = z.discriminatedUnion('accion', [
 
 export const esquemaPreferencias = z.strictObject({
   ingredientes: z.array(esquemaId),
+  // Por defecto vacía: las sesiones guardadas antes de la tarea 28 no tienen el campo.
+  ingredientesSinIdentificar: z
+    .array(z.string().trim().min(1).max(100))
+    .max(MAX_SIN_IDENTIFICAR)
+    .default([]),
   porciones: esquemaPorciones,
   restricciones: z.array(esquemaDieta),
   alergias: z.array(esquemaAlergeno),

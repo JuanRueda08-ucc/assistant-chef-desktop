@@ -1,5 +1,15 @@
 <script lang="ts">
   import { agruparPorCategoria, buscarIngredientes } from '@shared/recetas/catalogo'
+  import {
+    anadirSinIdentificar,
+    explicarPendientes,
+    quitarSinIdentificar,
+    resolverIngredientes,
+    separarIngredientes,
+    unirLista,
+    type ListaResuelta
+  } from '@shared/recetas/lista'
+  import type { Ingrediente } from '@shared/types/receta'
   import { NOMBRE_ALERGENO, NOMBRE_CATEGORIA, NOMBRE_DIETA, NOMBRE_EQUIPO } from '@shared/textos'
   import {
     ALERGENOS,
@@ -33,9 +43,56 @@
 
   let categoria = $state<CategoriaIngrediente>('verduras')
   let consulta = $state('')
+  // Con varios ingredientes escritos («pollo, arroz y cebolla») no se filtra la rejilla: Intro
+  // los añade todos (decisión 0015).
+  const textos = $derived(separarIngredientes(consulta))
   const visibles = $derived(
-    consulta.trim() ? buscarIngredientes(elegibles, consulta) : (grupos.get(categoria) ?? [])
+    textos.length > 1
+      ? []
+      : consulta.trim()
+        ? buscarIngredientes(elegibles, consulta)
+        : (grupos.get(categoria) ?? [])
   )
+
+  // Lo que no se pudo añadir directamente tras pulsar Intro: candidatos para elegir y un aviso.
+  let dudas = $state.raw<ListaResuelta['ambiguos']>([])
+  let aviso = $state<string | null>(null)
+  function anadirEscritos(): void {
+    if (!textos.length) return
+    const resuelta = resolverIngredientes(app.catalogo, textos)
+    for (const id of resuelta.ids) if (!prefs.ingredientes.includes(id)) prefs.ingredientes.push(id)
+    prefs.ingredientesSinIdentificar = anadirSinIdentificar(
+      prefs.ingredientesSinIdentificar,
+      resuelta.desconocidos
+    )
+    dudas = resuelta.ambiguos
+    const nombres = resuelta.ids.map((id) => porId.get(id)?.nombre ?? id)
+    aviso =
+      [
+        nombres.length
+          ? `Añadido: ${unirLista(nombres.map((n) => n.toLocaleLowerCase('es')))}.`
+          : '',
+        explicarPendientes({ ...resuelta, ambiguos: [] })
+      ]
+        .filter(Boolean)
+        .join(' ') || null
+    consulta = ''
+  }
+  function elegirDuda(texto: string, ingrediente: Ingrediente): void {
+    if (!prefs.ingredientes.includes(ingrediente.id)) prefs.ingredientes.push(ingrediente.id)
+    dudas = dudas.filter((d) => d.texto !== texto)
+  }
+  function quitarPendiente(texto: string): void {
+    prefs.ingredientesSinIdentificar = quitarSinIdentificar(prefs.ingredientesSinIdentificar, [
+      texto
+    ])
+  }
+  // Buscar un ingrediente sin identificar con otro nombre: se quita y se escribe en el buscador.
+  function corregirPendiente(texto: string): void {
+    quitarPendiente(texto)
+    consulta = texto
+    document.getElementById('buscar-ingrediente')?.focus()
+  }
   const marcados = $derived(new Set(prefs.ingredientes))
   const marcadosElegibles = $derived(elegibles.filter((i) => marcados.has(i.id)).length)
   const marcadosEn = (c: CategoriaIngrediente): number =>
@@ -108,11 +165,6 @@
     }
   ])
   let panelPreferencias = $state(false)
-
-  const unirConY = (nombres: string[]): string =>
-    nombres.length <= 1
-      ? (nombres[0] ?? '')
-      : `${nombres.slice(0, -1).join(', ')} y ${nombres[nombres.length - 1]}`
 </script>
 
 <main class="preparar">
@@ -127,15 +179,44 @@
       </Globo>
     </div>
 
-    <label class="buscar">
+    <form
+      class="buscar"
+      role="search"
+      onsubmit={(e) => {
+        e.preventDefault()
+        anadirEscritos()
+      }}
+    >
       <Icono nombre="buscar" />
-      <span class="oculto">Buscar un ingrediente</span>
+      <label for="buscar-ingrediente" class="oculto">Buscar o escribir ingredientes</label>
       <input
+        id="buscar-ingrediente"
         type="search"
-        placeholder="Busca un ingrediente: cebolla, arroz, pimentón…"
+        placeholder="Busca o escribe varios: pollo, arroz, cebolla…"
+        autocomplete="off"
         bind:value={consulta}
       />
-    </label>
+      {#if textos.length}
+        <button type="submit" class="anadir"
+          >{textos.length > 1 ? `Añadir ${textos.length}` : 'Añadir'}</button
+        >
+      {/if}
+    </form>
+
+    {#if aviso}<p class="aviso" role="status">{aviso}</p>{/if}
+    {#each dudas as duda (duda.texto)}
+      <div class="duda" role="group" aria-label="¿Qué es «{duda.texto}»?">
+        <span>¿«{duda.texto}» es…?</span>
+        {#each duda.candidatos as c (c.id)}
+          <Chip onclick={() => elegirDuda(duda.texto, c)}>{c.nombre}</Chip>
+        {/each}
+        <button
+          type="button"
+          class="mas"
+          onclick={() => (dudas = dudas.filter((d) => d.texto !== duda.texto))}>Ninguno</button
+        >
+      </div>
+    {/each}
 
     {#if !consulta.trim()}
       <div class="categorias" role="group" aria-label="Categorías">
@@ -173,9 +254,14 @@
           </button>
         {/each}
       </div>
+    {:else if textos.length > 1}
+      <p class="vacio">
+        Pulsa Intro para añadir {unirLista(textos.map((t) => `«${t}»`))}.
+      </p>
     {:else if consulta.trim()}
       <p class="vacio">
-        No hay ningún ingrediente que se llame «{consulta.trim()}» en el catálogo.
+        «{consulta.trim()}» no está en el catálogo. Pulsa Intro para añadirlo a tu lista sin
+        identificar.
       </p>
     {:else}
       <p class="vacio">
@@ -186,8 +272,12 @@
 
   <aside class="preferencias" aria-labelledby="titulo-lista">
     <section class="bloque">
-      <h2 id="titulo-lista">Tu lista <span class="cuantos">{lista.length}</span></h2>
-      {#if lista.length > 0}
+      <h2 id="titulo-lista">
+        Tu lista <span class="cuantos"
+          >{lista.length + prefs.ingredientesSinIdentificar.length}</span
+        >
+      </h2>
+      {#if lista.length + prefs.ingredientesSinIdentificar.length > 0}
         <ul class="lista" aria-label="Ingredientes añadidos">
           {#each lista as ingrediente (ingrediente.id)}
             <li>
@@ -200,7 +290,29 @@
               >
             </li>
           {/each}
+          {#each prefs.ingredientesSinIdentificar as texto (texto)}
+            <li class="sin-identificar">
+              <button
+                type="button"
+                class="texto"
+                title="Buscarlo con otro nombre"
+                onclick={() => corregirPendiente(texto)}
+                >{texto} <small>sin identificar</small></button
+              >
+              <button
+                type="button"
+                aria-label="Quitar {texto}"
+                onclick={() => quitarPendiente(texto)}><Icono nombre="cerrar" tamano={16} /></button
+              >
+            </li>
+          {/each}
         </ul>
+        {#if prefs.ingredientesSinIdentificar.length > 0}
+          <p class="ayuda">
+            Lo que está sin identificar no cuenta para buscar recetas. Púlsalo para buscarlo con
+            otro nombre.
+          </p>
+        {/if}
       {:else}
         <p class="ayuda">
           Aún no has añadido nada. Búscalo, elígelo por categoría o díselo al chef.
@@ -208,7 +320,7 @@
       {/if}
       {#if basicos.length > 0}
         <p class="basicos">
-          Damos por hecho que tienes {unirConY(basicos).toLocaleLowerCase('es')}.
+          Damos por hecho que tienes {unirLista(basicos).toLocaleLowerCase('es')}.
         </p>
       {/if}
     </section>
@@ -375,7 +487,7 @@
     background: var(--color-superficie);
     border: var(--borde) solid var(--color-borde-control);
     border-radius: var(--radio-pildora);
-    padding: 0 var(--espacio-5);
+    padding: 0 6px 0 var(--espacio-5);
     color: var(--color-tinta-suave);
   }
   .buscar:focus-within {
@@ -569,6 +681,48 @@
   }
   .lista button:hover {
     background: var(--color-superficie);
+  }
+  .lista .sin-identificar {
+    background: var(--color-superficie);
+    border-style: dashed;
+  }
+  .lista .texto {
+    width: auto;
+    height: auto;
+    border-radius: var(--radio-pildora);
+    font: inherit;
+    font-weight: 600;
+    display: inline;
+    padding: 0;
+  }
+  .lista .texto small {
+    font-weight: 400;
+    color: var(--color-tinta-suave);
+  }
+  .anadir {
+    font: inherit;
+    font-weight: var(--peso-fuerte);
+    font-size: var(--texto-s);
+    padding: 8px var(--espacio-4);
+    border-radius: var(--radio-pildora);
+    border: var(--trazo) solid var(--color-tinta);
+    background: var(--color-acento);
+    color: var(--color-tinta);
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  .aviso {
+    margin: 0;
+    font-size: var(--texto-s);
+    border-left: 4px solid var(--color-acento);
+    padding-left: var(--espacio-3);
+  }
+  .duda {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espacio-2);
+    font-weight: 600;
   }
   .fila {
     display: flex;

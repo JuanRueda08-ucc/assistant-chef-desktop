@@ -54,22 +54,56 @@ describe('herramientas puras de selección', () => {
     expect(r.estado.preferencias.alergias).toEqual(['lacteos'])
     expect(antes).toEqual(copia)
   })
-  it('rechaza todo el lote si un ingrediente es desconocido o ambiguo', () => {
-    const antes = estado()
+  it('añade lo reconocido, guarda lo desconocido y pregunta por lo ambiguo', () => {
+    const antes = { ...estado(), preferencias: preferencias({ ingredientes: [] }) }
     const ampliado = [
       ...catalogo,
       ingrediente({ id: 'arroz_integral', nombre: 'Arroz integral', sinonimos: ['arroz'] })
     ]
-    for (const nombre of ['misterioso', 'arroz']) {
-      const r = aplicarSeleccion(
+    const r = aplicarSeleccion(
+      antes,
+      'marcar_ingredientes',
+      { ingredientes: ['cebolla, tofu', 'arroz'], accion: 'anadir' },
+      ampliado
+    )
+    expect(r.ok).toBe(true)
+    expect(r.estado.preferencias.ingredientes).toEqual(['cebolla'])
+    expect(r.estado.preferencias.ingredientesSinIdentificar).toEqual(['tofu'])
+    expect(r.decir).toContain('He añadido cebolla.')
+    expect(r.decir).toContain('«arroz» puede ser arroz blanco o arroz integral')
+    expect(r.decir).toContain('«tofu» no está en el catálogo')
+    // Solo ambiguo: no cambia nada y pregunta.
+    const ambiguo = aplicarSeleccion(
+      antes,
+      'marcar_ingredientes',
+      { ingredientes: ['arroz'], accion: 'anadir' },
+      ampliado
+    )
+    expect(ambiguo.ok).toBe(false)
+    expect(ambiguo.estado).toBe(antes)
+    expect(ambiguo.decir).toContain('dime cuál')
+  })
+  it('quita ingredientes sin identificar y avisa si no estaban en la lista', () => {
+    const antes = {
+      ...estado(),
+      preferencias: preferencias({ ingredientesSinIdentificar: ['Tofu', 'Yuca'] })
+    }
+    const r = aplicarSeleccion(
+      antes,
+      'marcar_ingredientes',
+      { ingredientes: ['tofu y pollo'], accion: 'quitar' },
+      catalogo
+    )
+    expect(r.estado.preferencias.ingredientesSinIdentificar).toEqual(['Yuca'])
+    expect(r.estado.preferencias.ingredientes).toEqual(['arroz_blanco'])
+    expect(
+      aplicarSeleccion(
         antes,
         'marcar_ingredientes',
-        { ingredientes: ['cebolla', nombre], accion: 'anadir' },
-        ampliado
-      )
-      expect(r.ok).toBe(false)
-      expect(r.estado).toBe(antes)
-    }
+        { ingredientes: ['tomate'], accion: 'quitar' },
+        catalogo
+      ).ok
+    ).toBe(false)
   })
   it('quita y reemplaza ingredientes e invalida los resultados anteriores', () => {
     const antes = { ...estado(), busqueda, recetaVisibleId: 'arroz_con_pollo' }

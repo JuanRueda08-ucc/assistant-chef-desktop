@@ -12,7 +12,7 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 2. Lee el documento de `docs/` del área que vas a tocar (índice en `docs/README.md`).
 3. Si la tarea contradice una decisión de `docs/decisiones/`, para y pregunta en vez de cambiarla en silencio.
 
-**Prioridad actual (0011–0014):** organización de pantallas aplicada y aprobada por el autor el 2026-10-22 (27 y 30). La repetición de la prueba de voz (34) está aplazada por el autor. Los básicos de despensa se siguen asumiendo (0014). El autor está en público; hacer verificaciones sin abrir su micrófono ni reproducir sonido. Leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. Conservar Mostaza y organizar las pantallas existentes, sin repetir maquetas del flujo completo. Plantear ingredientes libres por búsqueda o chat y revisar la lista antes de elegir receta. Para cuentas reales, comparar después Better Auth y Supabase Auth (`docs/autenticacion-opciones.md`); todavía no hay proveedor elegido. Las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. Las verificaciones técnicas del agente no completan la aceptación personal de voz.
+**Prioridad actual (0011–0014):** organización de pantallas aplicada y aprobada por el autor el 2026-10-22 (27 y 30). La repetición de la prueba de voz (34) está aplazada por el autor. Los básicos de despensa se siguen asumiendo (0014). Lista libre de ingredientes hecha (28, 0015); lo «sin identificar» nunca cuenta para buscar ni para etiquetas. Siguiente: autenticación (29). El autor está en público; hacer verificaciones sin abrir su micrófono ni reproducir sonido. Leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. Conservar Mostaza y organizar las pantallas existentes, sin repetir maquetas del flujo completo. Plantear ingredientes libres por búsqueda o chat y revisar la lista antes de elegir receta. Para cuentas reales, comparar después Better Auth y Supabase Auth (`docs/autenticacion-opciones.md`); todavía no hay proveedor elegido. Las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. Las verificaciones técnicas del agente no completan la aceptación personal de voz.
 
 ## Al terminar una tarea
 
@@ -56,7 +56,8 @@ src/shared/      tipos y lógica pura compartida (sin dependencias de Electron n
   types/         receta.ts, sesion.ts, busqueda.ts, ipc.ts (canales y contrato de window.api)
                  voz.ts (credencial efímera y errores de voz; esquemas/voz.ts)
   esquemas/      esquemas zod que espejan types/ (receta, sesion, semilla)
-  recetas/       lógica pura: escalado, unidades caseras, etiquetas, sustituciones, búsqueda, catálogo
+  recetas/       lógica pura: escalado, unidades caseras, etiquetas, sustituciones, búsqueda, catálogo,
+                 lista libre de ingredientes (lista.ts, 0015)
   cocina/        reductor aplicarHerramienta, temporizadores por reloj, crear y adaptar la sesión
   ia/            herramientas.ts (contrato de herramientas del chef: argumentos zod y JSON Schema)
                  ordenes.ts, contexto.ts, vosk.ts y configuración pública gemini.ts

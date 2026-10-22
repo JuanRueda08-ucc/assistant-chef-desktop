@@ -33,7 +33,7 @@ Preparar no debe convertirse en un formulario largo de preferencias; las restric
 
 El usuario debe poder añadir uno, varios o seguir buscando sin perder su lista, tanto desde el buscador como diciéndoselo al chef por chat. Ambas entradas deben modificar la misma selección visible y permitir corregirla. La semilla actual de trece ingredientes es un dato de prueba, no el alcance del producto. Las categorías pueden servir como ayuda opcional.
 
-El flujo deseado es: construir la lista por búsqueda o chat → revisar y decidir los ingredientes → buscar y elegir receta → recibir la guía paso a paso del chef. Mencionar un ingrediente en el chat no debe iniciar una receta automáticamente. El chef puede ayudar a concretar la selección antes de cocinar. Este contrato se plantea antes de implementarlo; todavía no cambia la búsqueda actual.
+El flujo deseado es: construir la lista por búsqueda o chat → revisar y decidir los ingredientes → buscar y elegir receta → recibir la guía paso a paso del chef. Mencionar un ingrediente en el chat no debe iniciar una receta automáticamente. El chef puede ayudar a concretar la selección antes de cocinar. Implementado el 2026-10-22 (tarea 28, decisión 0015): buscador con varios ingredientes, elementos «sin identificar» y chat que aplica lo reconocido.
 
 Básicos de despensa: se descartó la propuesta de contarlos solo si se añaden. Sal, aceite, pimienta y agua se siguen dando por hechos y la interfaz los muestra aparte (decisión 0014, 2026-10-22).
 

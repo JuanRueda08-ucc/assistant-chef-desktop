@@ -14,6 +14,7 @@ const en = (s: number): number => T0 + s * 1000
 
 const preferencias: Preferencias = {
   ingredientes: ['pollo_muslo', 'arroz_blanco'],
+  ingredientesSinIdentificar: [],
   porciones: 4,
   restricciones: [],
   alergias: [],
