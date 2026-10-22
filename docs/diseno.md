@@ -1,6 +1,6 @@
 # Diseño
 
-**Aclaración del autor, 2026-10-20:** conservar el diseño Mostaza y organizar mejor las pantallas existentes: agrupación, alineación, jerarquía y localización de controles. No se repetirán maquetas del flujo completo ni se buscará otro estilo. Los ajustes están en `replanteamiento-v1.md` (decisiones 0011–0012) y aplicados como se describe en «Organización por pantalla» (2026-10-22, tareas 27 y 30); falta revisarlos con el autor. Los formularios de login/registro siguen pendientes.
+**Aclaración del autor, 2026-10-20:** conservar el diseño Mostaza y organizar mejor las pantallas existentes: agrupación, alineación, jerarquía y localización de controles. No se repetirán maquetas del flujo completo ni se buscará otro estilo. Los ajustes están en `replanteamiento-v1.md` (decisiones 0011–0012) y aplicados como se describe en «Organización por pantalla» (2026-10-22, tareas 27 y 30) y aprobados por el autor. Los formularios de login/registro siguen pendientes.
 
 ## Flujo
 Tres momentos: **Preparar** (buscar ingredientes, tu lista y resumen de preferencias), **Elegir** (lista para comparar recetas y vista previa con todos los ingredientes), **Cocinar** (paso con sus ingredientes, chef con su globo y la voz agrupada, barra inferior con Atrás / Repetir / Listo, siguiente; listas en paneles bajo demanda). Al abrir la app con una receta a medias aparece **Retomar** antes de Cocinar. La pantalla final va dentro de Cocinar. El chef solo habla (con voz) en modo cocina; en Preparar aparece en busto con un globo de texto.
