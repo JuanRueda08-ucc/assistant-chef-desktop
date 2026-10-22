@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { banco, leer, post } from './fixtures.test-utils'
+import { banco, cuentasFalsas, leer, post } from './fixtures.test-utils'
 import { ProveedorGemini } from './proveedores/gemini'
 import { crearApp } from './app'
 import { AlmacenMemoria, Limitador } from './limite'
@@ -79,6 +79,7 @@ describe('chat del chef', () => {
     const manejar = crearApp({
       proveedor: new ProveedorGemini('clave-secreta', { fetch: solicitar }),
       limitador: new Limitador(new AlmacenMemoria()),
+      cuentas: cuentasFalsas,
       registrarError: vi.fn()
     })
     const r = await manejar(post('/chat', cuerpo()))

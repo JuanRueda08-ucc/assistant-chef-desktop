@@ -10,6 +10,7 @@ import { cargarSemilla, leerSemilla } from './db/semillas'
 import { obtenerSesion } from './db/sesiones'
 
 const T0 = 1_760_000_000_000
+const U = 'usuario-1'
 const en = (s: number): number => T0 + s * 1000
 
 const preferencias: Preferencias = {
@@ -51,71 +52,75 @@ afterEach(() => {
 
 describe('sesión de cocina en la base', () => {
   it('iniciar crea y guarda la sesión', () => {
-    const sesion = iniciarCocina(db, datos, T0, 's1')
+    const sesion = iniciarCocina(db, U, datos, T0, 's1')
     expect(sesion).toMatchObject({ id: 's1', fase: 'cocinar', pasoActual: 1, porciones: 4 })
-    expect(obtenerSesion(db, 's1')).toEqual(sesion)
-    expect(retomarCocina(db, T0)).toEqual(sesion)
+    expect(obtenerSesion(db, 's1', U)).toEqual(sesion)
+    expect(retomarCocina(db, U, T0)).toEqual(sesion)
   })
 
   it('al iniciar otra receta descarta la sesión cocinando anterior', () => {
-    iniciarCocina(db, datos, T0, 's1')
-    iniciarCocina(db, { ...datos, porciones: 2 }, en(10), 's2')
+    iniciarCocina(db, U, datos, T0, 's1')
+    iniciarCocina(db, U, { ...datos, porciones: 2 }, en(10), 's2')
     expect(contarSesiones()).toBe(1)
-    expect(retomarCocina(db, en(10))?.id).toBe('s2')
+    expect(retomarCocina(db, U, en(10))?.id).toBe('s2')
   })
 
   it('falla si la receta no existe', () => {
-    expect(() => iniciarCocina(db, { ...datos, recetaId: 'no_existe' }, T0)).toThrow(/no_existe/)
+    expect(() => iniciarCocina(db, U, { ...datos, recetaId: 'no_existe' }, T0)).toThrow(/no_existe/)
   })
 
   it('guarda después de cada herramienta que tiene efecto', () => {
-    iniciarCocina(db, datos, T0, 's1')
+    iniciarCocina(db, U, datos, T0, 's1')
     const r = aplicarEnCocina(
       db,
+      U,
       { nombre: 'avanzar_paso', argumentos: {}, confirmado: true },
       en(30)
     )
     expect(r.resultado.ok).toBe(true)
-    expect(obtenerSesion(db, 's1')).toMatchObject({ pasoActual: 2, pasosHechos: ['p1'] })
+    expect(obtenerSesion(db, 's1', U)).toMatchObject({ pasoActual: 2, pasosHechos: ['p1'] })
   })
 
   it('no guarda nada si la herramienta falla', () => {
-    const inicial = iniciarCocina(db, datos, T0, 's1')
+    const inicial = iniciarCocina(db, U, datos, T0, 's1')
     const r = aplicarEnCocina(
       db,
+      U,
       { nombre: 'avanzar_paso', argumentos: {}, confirmado: false },
       en(30)
     )
     expect(r.resultado.ok).toBe(false)
-    expect(obtenerSesion(db, 's1')).toEqual(inicial)
+    expect(obtenerSesion(db, 's1', U)).toEqual(inicial)
   })
 
   it('falla si no hay sesión cocinando', () => {
     expect(() =>
-      aplicarEnCocina(db, { nombre: 'avanzar_paso', argumentos: {}, confirmado: true }, T0)
+      aplicarEnCocina(db, U, { nombre: 'avanzar_paso', argumentos: {}, confirmado: true }, T0)
     ).toThrow(/no hay ninguna sesión/)
   })
 
   it('al terminar la receta ya no hay nada que retomar', () => {
-    iniciarCocina(db, datos, T0, 's1')
-    aplicarEnCocina(db, { nombre: 'ir_a_paso', argumentos: { orden: 9 }, confirmado: false }, T0)
-    aplicarEnCocina(db, { nombre: 'terminar_receta', argumentos: {}, confirmado: false }, en(5))
-    expect(retomarCocina(db, en(10))).toBeNull()
-    expect(obtenerSesion(db, 's1')?.fase).toBe('terminado')
+    iniciarCocina(db, U, datos, T0, 's1')
+    aplicarEnCocina(db, U, { nombre: 'ir_a_paso', argumentos: { orden: 9 }, confirmado: false }, T0)
+    aplicarEnCocina(db, U, { nombre: 'terminar_receta', argumentos: {}, confirmado: false }, en(5))
+    expect(retomarCocina(db, U, en(10))).toBeNull()
+    expect(obtenerSesion(db, 's1', U)?.fase).toBe('terminado')
   })
 })
 
 describe('sobrevive a cerrar y abrir la app', () => {
   it('retoma el paso, las porciones y los temporizadores con el reloj', () => {
-    iniciarCocina(db, datos, T0, 's1')
-    aplicarEnCocina(db, { nombre: 'ir_a_paso', argumentos: { orden: 8 }, confirmado: false }, T0)
+    iniciarCocina(db, U, datos, T0, 's1')
+    aplicarEnCocina(db, U, { nombre: 'ir_a_paso', argumentos: { orden: 8 }, confirmado: false }, T0)
     aplicarEnCocina(
       db,
+      U,
       { nombre: 'cambiar_porciones', argumentos: { porciones: 6 }, confirmado: false },
       T0
     )
     aplicarEnCocina(
       db,
+      U,
       {
         nombre: 'iniciar_temporizador',
         argumentos: { segundos: 1080, etiqueta: 'Arroz' },
@@ -127,7 +132,7 @@ describe('sobrevive a cerrar y abrir la app', () => {
 
     // La app vuelve a abrirse 5 minutos después.
     db = arrancar()
-    const retomada = retomarCocina(db, en(300))
+    const retomada = retomarCocina(db, U, en(300))
     expect(retomada).toMatchObject({ id: 's1', pasoActual: 8, porciones: 6 })
     const arroz = retomada!.temporizadores[0]!
     expect(arroz.estado).toBe('corriendo')
@@ -136,6 +141,7 @@ describe('sobrevive a cerrar y abrir la app', () => {
     // Y se puede seguir cocinando.
     const r = aplicarEnCocina(
       db,
+      U,
       {
         nombre: 'controlar_temporizador',
         argumentos: { etiqueta: 'Arroz', accion: 'pausar' },
@@ -147,9 +153,10 @@ describe('sobrevive a cerrar y abrir la app', () => {
   })
 
   it('un temporizador que acabó con la app cerrada aparece terminado y se guarda así', () => {
-    iniciarCocina(db, datos, T0, 's1')
+    iniciarCocina(db, U, datos, T0, 's1')
     aplicarEnCocina(
       db,
+      U,
       {
         nombre: 'iniciar_temporizador',
         argumentos: { segundos: 60, etiqueta: 'Huevo' },
@@ -160,17 +167,18 @@ describe('sobrevive a cerrar y abrir la app', () => {
     db.close()
 
     db = arrancar()
-    expect(retomarCocina(db, en(120))?.temporizadores[0]).toMatchObject({
+    expect(retomarCocina(db, U, en(120))?.temporizadores[0]).toMatchObject({
       estado: 'terminado',
       restanteSeg: 0
     })
-    expect(obtenerSesion(db, 's1')?.temporizadores[0]?.estado).toBe('terminado')
+    expect(obtenerSesion(db, 's1', U)?.temporizadores[0]?.estado).toBe('terminado')
   })
 
   it('un temporizador pausado sigue pausado con el mismo restante', () => {
-    iniciarCocina(db, datos, T0, 's1')
+    iniciarCocina(db, U, datos, T0, 's1')
     aplicarEnCocina(
       db,
+      U,
       {
         nombre: 'iniciar_temporizador',
         argumentos: { segundos: 600, etiqueta: 'Pasta' },
@@ -180,6 +188,7 @@ describe('sobrevive a cerrar y abrir la app', () => {
     )
     aplicarEnCocina(
       db,
+      U,
       {
         nombre: 'controlar_temporizador',
         argumentos: { id: 't1', accion: 'pausar' },
@@ -190,7 +199,7 @@ describe('sobrevive a cerrar y abrir la app', () => {
     db.close()
 
     db = arrancar()
-    expect(retomarCocina(db, en(5000))?.temporizadores[0]).toMatchObject({
+    expect(retomarCocina(db, U, en(5000))?.temporizadores[0]).toMatchObject({
       estado: 'pausado',
       restanteSeg: 500
     })

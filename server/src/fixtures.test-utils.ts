@@ -8,11 +8,22 @@ import arrozConPollo from '../../db/seed/recetas/arroz-con-pollo.json'
 import { esquemaIngrediente } from '@shared/esquemas/receta'
 import type { Ingrediente } from '@shared/types/receta'
 import { crearApp, type Dependencias } from './app'
+import type { Cuentas } from './cuentas'
 import { AlmacenMemoria, LIMITES_POR_DEFECTO, Limitador, type Grupo } from './limite'
 import { ProveedorFalso, type OpcionesProveedorFalso } from './proveedores/falso'
 
 export const T0 = Date.UTC(2026, 9, 18, 12, 0, 0)
 export const INSTALACION = 'instalacion-de-prueba-1'
+export const TOKEN = 'token-de-prueba'
+
+/** Cuentas simuladas: solo `Bearer token-de-prueba` es una sesión válida. */
+export const cuentasFalsas: Cuentas = {
+  manejar: async () => new Response('{}', { status: 200 }),
+  usuario: async (cabeceras) =>
+    cabeceras.get('authorization') === `Bearer ${TOKEN}`
+      ? { id: 'usuario-prueba', nombre: 'Prueba', email: 'prueba@example.com' }
+      : null
+}
 
 export const ingrediente = (datos: Partial<Ingrediente> & Pick<Ingrediente, 'id'>): Ingrediente =>
   esquemaIngrediente.parse({ nombre: datos.id, categoria: 'despensa', ...datos })
@@ -84,6 +95,7 @@ export function banco(
   const dep: Dependencias = {
     proveedor,
     limitador: new Limitador(new AlmacenMemoria(), { ...LIMITES_POR_DEFECTO, ...limites }),
+    cuentas: cuentasFalsas,
     ahora: () => reloj.ahora,
     nuevoId: () => `gen_${String(++n).padStart(4, '0')}`,
     registrarError: (mensaje) => errores.push(mensaje)
@@ -94,7 +106,10 @@ export function banco(
 export function post(
   ruta: string,
   cuerpo: unknown = {},
-  cabeceras: Record<string, string> = { 'x-instalacion': INSTALACION }
+  cabeceras: Record<string, string> = {
+    'x-instalacion': INSTALACION,
+    authorization: `Bearer ${TOKEN}`
+  }
 ): Request {
   return new Request(`http://localhost${ruta}`, {
     method: 'POST',

@@ -1,3 +1,7 @@
+import { mkdtempSync } from 'node:fs'
+import { tmpdir } from 'node:os'
+import { join } from 'node:path'
+import Database from 'better-sqlite3'
 import { afterEach, beforeEach, describe, expect, it } from 'vitest'
 import { esquemaReceta } from '@shared/esquemas/receta'
 import arrozConPollo from '../../../db/seed/recetas/arroz-con-pollo.json'
@@ -79,12 +83,40 @@ describe('base de datos', () => {
     ).toThrow(/CHECK/)
   })
 
-  it('permite solo una sesión cocinando a la vez', () => {
+  it('permite solo una sesión cocinando a la vez por cuenta', () => {
     const insertar = db.prepare(
-      "INSERT INTO sesiones (id, fase, datos, actualizada_en) VALUES (?, 'cocinar', '{}', '2026-10-18T12:00:00Z')"
+      "INSERT INTO sesiones (id, usuario_id, fase, datos, actualizada_en) VALUES (?, ?, 'cocinar', '{}', '2026-10-18T12:00:00Z')"
     )
-    insertar.run('s1')
-    expect(() => insertar.run('s2')).toThrow(/UNIQUE/)
+    insertar.run('s1', 'ana')
+    expect(() => insertar.run('s2', 'ana')).toThrow(/UNIQUE/)
+    expect(() => insertar.run('s3', 'luis')).not.toThrow()
+  })
+
+  it('migra una base anterior a las cuentas sin perder sus filas', () => {
+    const ruta = join(mkdtempSync(join(tmpdir(), 'chef-')), 'vieja.sqlite')
+    const vieja = new Database(ruta)
+    vieja.exec(`CREATE TABLE sesiones (id TEXT PRIMARY KEY, fase TEXT NOT NULL, datos TEXT NOT NULL,
+        actualizada_en TEXT NOT NULL);
+      CREATE UNIQUE INDEX sesiones_una_cocinando ON sesiones (fase) WHERE fase = 'cocinar';
+      INSERT INTO sesiones VALUES ('antigua', 'cocinar', '{}', '2026-10-18T12:00:00Z');`)
+    vieja.close()
+    const migrada = abrirBase(ruta)
+    try {
+      expect(migrada.prepare('SELECT usuario_id FROM sesiones').get()).toEqual({
+        usuario_id: null
+      })
+      migrada
+        .prepare(
+          "INSERT INTO sesiones (id, usuario_id, fase, datos, actualizada_en) VALUES ('nueva', 'ana', 'cocinar', '{}', '2026-10-22T12:00:00Z')"
+        )
+        .run()
+    } finally {
+      migrada.close()
+    }
+    // Abrirla otra vez no vuelve a migrar ni pierde filas.
+    const otraVez = abrirBase(ruta)
+    expect(otraVez.prepare('SELECT count(*) AS n FROM sesiones').get()).toEqual({ n: 2 })
+    otraVez.close()
   })
 })
 

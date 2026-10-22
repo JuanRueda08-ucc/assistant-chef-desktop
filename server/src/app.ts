@@ -3,6 +3,7 @@
 
 import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
+import { RUTA_CUENTAS, type Cuentas } from './cuentas'
 import type { Limitador, Grupo } from './limite'
 import {
   esquemaInstalacion,
@@ -22,6 +23,8 @@ import { ErrorProveedor } from './error-proveedor'
 export interface Dependencias {
   proveedor: ProveedorIA
   limitador: Limitador
+  /** Cuentas reales (decisión 0016): `/auth/*` y la comprobación del token de cada ruta. */
+  cuentas: Cuentas
   /** Reloj (epoch ms); inyectable para los tests. */
   ahora?: () => number
   /** Ids de lo generado (`gen_…`); inyectable para los tests. */
@@ -34,6 +37,7 @@ export const CODIGOS_ERROR_API = [
   'ruta_desconocida',
   'metodo_no_permitido',
   'instalacion_invalida',
+  'no_autenticado',
   'json_invalido',
   'peticion_invalida',
   'ingrediente_desconocido',
@@ -166,7 +170,9 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
 
   return async function manejar(peticion: Request): Promise<Response> {
     try {
-      const ruta = rutas[new URL(peticion.url).pathname.replace(/\/+$/, '')]
+      const camino = new URL(peticion.url).pathname.replace(/\/+$/, '')
+      if (camino.startsWith(`${RUTA_CUENTAS}/`)) return await dep.cuentas.manejar(peticion)
+      const ruta = rutas[camino]
       if (!ruta) throw new ErrorApi(404, 'ruta_desconocida', 'Esta ruta no existe.')
       if (peticion.method !== 'POST') {
         throw new ErrorApi(405, 'metodo_no_permitido', 'Usa POST.', { allow: 'POST' })
@@ -179,6 +185,12 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
           'instalacion_invalida',
           'Falta la cabecera X-Instalacion o no tiene un formato válido.'
         )
+      }
+
+      // Las rutas de IA son solo para cuentas con sesión y correo verificado.
+      const usuario = await dep.cuentas.usuario(peticion.headers)
+      if (!usuario) {
+        throw new ErrorApi(401, 'no_autenticado', 'Inicia sesión para usar el chef.')
       }
 
       let bruto: unknown
@@ -194,7 +206,8 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
       }
 
       // Se cuenta solo lo que llega bien formado, antes de gastar en el proveedor.
-      const consumo = await dep.limitador.consumir(instalacion.data, ruta.grupo, ahora())
+      // Los límites diarios son por cuenta: cambiar de instalación no los reinicia.
+      const consumo = await dep.limitador.consumir(`usuario:${usuario.id}`, ruta.grupo, ahora())
       if (!consumo.permitido) {
         throw new ErrorApi(
           429,

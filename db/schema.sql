@@ -127,12 +127,16 @@ CREATE INDEX IF NOT EXISTS sustituciones_origen ON sustituciones (ingrediente_or
 
 -- `SesionCocina` completa en `datos` (JSON validado con zod al leer). `fase` y `actualizada_en`
 -- se copian a columnas para consultar sin abrir el JSON.
+-- `usuario_id`: id de la cuenta (decisión 0016). Las bases anteriores a las cuentas lo reciben
+-- con ALTER TABLE en src/main/db/conexion.ts; sus sesiones quedan con NULL y no se muestran.
 CREATE TABLE IF NOT EXISTS sesiones (
   id             TEXT PRIMARY KEY,
+  usuario_id     TEXT,
   fase           TEXT NOT NULL CHECK (fase IN ('preparar', 'elegir', 'cocinar', 'terminado')),
   datos          TEXT NOT NULL CHECK (json_valid(datos)),
   actualizada_en TEXT NOT NULL
 );
 
--- Solo una sesión en fase `cocinar` a la vez.
-CREATE UNIQUE INDEX IF NOT EXISTS sesiones_una_cocinando ON sesiones (fase) WHERE fase = 'cocinar';
+-- Solo una sesión en fase `cocinar` a la vez por cuenta.
+CREATE UNIQUE INDEX IF NOT EXISTS sesiones_una_cocinando_por_usuario
+  ON sesiones (usuario_id) WHERE fase = 'cocinar';

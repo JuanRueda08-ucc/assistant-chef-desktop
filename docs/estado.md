@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-Prioridad actual: el autor aprobó la organización de pantallas (27 y 30, 2026-10-22; descripción en `diseno.md`, «Organización por pantalla»). Ingredientes libres (28) hechos el 2026-10-22 (0015). Siguiente: autenticación con Better Auth o Supabase Auth (29); ampliar el catálogo de la semilla con dietas y alérgenos revisados queda como trabajo aparte. La repetición de la prueba de voz (34) queda aplazada por decisión del autor; cuando se retome, no abrir su micrófono ni reproducir sonido mientras esté en público. Básicos de despensa: se siguen asumiendo (0014). Plantear ingredientes libres por búsqueda/chat y revisión de la lista (28), y comparar Better Auth con Supabase Auth para cuentas reales (29), sin proveedor elegido. Después continuar recetas generadas (17). Las casillas de implementación no implican aceptación personal.
+Prioridad actual: el autor aprobó la organización de pantallas (27 y 30, 2026-10-22; descripción en `diseno.md`, «Organización por pantalla»). Ingredientes libres (28) hechos el 2026-10-22 (0015). Cuentas reales hechas con Better Auth (29, 0016). **Para arrancar el backend ahora hace falta `BETTER_AUTH_SECRET` en `.env`** (ver `.env.example`). Siguiente: configurar SMTP real y desplegar el backend por HTTPS para que otras personas puedan registrarse; ampliar el catálogo de la semilla con dietas y alérgenos revisados queda como trabajo aparte. La repetición de la prueba de voz (34) queda aplazada por decisión del autor; cuando se retome, no abrir su micrófono ni reproducir sonido mientras esté en público. Básicos de despensa: se siguen asumiendo (0014). Plantear ingredientes libres por búsqueda/chat y revisión de la lista (28), y comparar Better Auth con Supabase Auth para cuentas reales (29), sin proveedor elegido. Después continuar recetas generadas (17). Las casillas de implementación no implican aceptación personal.
 
 **Primera prueba recibida (2026-10-21): resultado irregular y no aceptado.** «Chef» activaba, pero algunas preguntas se interpretaban como repetir/retroceder, hubo cambios de paso inesperados, costaba confirmar y el chat mostraba un error genérico de backend. Correcciones verificadas técnicamente; nueva prueba personal pendiente (34). No confundir tests con aceptación de voz. Se mantienen Gemini/Vosk y narración natural con respaldo local; el cambio de turnos está autorizado en 0013.
 
@@ -15,6 +15,13 @@ Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-10-22 · Cuentas reales con Better Auth (29)
+- Backend: `server/src/cuentas.ts` (Better Auth 1.7, plugins `bearer` y `emailOTP`), `correo.ts` (SMTP o consola en desarrollo) y arranque con migraciones en `principal.ts`. `app.ts` delega `/auth/*` y exige sesión verificada en las rutas de IA (401 `no_autenticado`); límites por cuenta.
+- Main: `cuenta.ts` (registro, código, entrar, salir, recuperar; origen `ORIGEN_APP`), `almacen-sesion.ts` (`safeStorage`), canales `cuenta:*` con zod y preload. `backend.ts` envía el token y olvida la sesión ante 401. Sesiones de cocina por `usuario_id` con migración de bases anteriores.
+- Renderer: pantalla `Acceso.svelte` (entrar, crear cuenta, código, recuperar) antes de Preparar; nombre y «Salir» en la cabecera. `Boton` admite `tipo="submit"`.
+- Hallazgo: el `fetch` de Node añade `sec-fetch-mode` y Better Auth exige entonces Origin de confianza; el entorno de Vitest no lo reproduce (su `Request` descarta esas cabeceras), así que se comprobó contra el servidor real con curl.
+- Verificado: tests (incluye Better Auth real en memoria y el cliente de main por HTTP local), `typecheck`, `lint`, `format:check`; recorrido real en la app con backend en otro puerto, secreto temporal y base de cuentas en una carpeta temporal, sin tocar `.env`: registro, código desde la consola, entrar, sesión tras reiniciar la app, «Salir», 401 sin token y origen ajeno rechazado. Sin SMTP real ni despliegue.
 
 ### 2026-10-22 · Lista libre de ingredientes (28)
 - `src/shared/recetas/lista.ts` con tests: separar «pollo, arroz y cebolla», identificar sin elegir entre varios, resolver en reconocidos/básicos/ambiguos/desconocidos y textos para el usuario.

@@ -6,6 +6,7 @@ export interface TokenVoz {
 
 export const CODIGOS_ERROR_VOZ = [
   'fase_incorrecta',
+  'sin_sesion',
   'sin_conexion',
   'limite_superado',
   'servicio_no_disponible',

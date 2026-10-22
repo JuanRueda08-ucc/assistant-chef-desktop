@@ -5,6 +5,8 @@
   // Secundario: píldora con borde de control, para acciones de menor peso.
   interface Props {
     variante?: 'principal' | 'secundario'
+    /** `submit` para el botón que envía un formulario (Intro en un campo lo pulsa). */
+    tipo?: 'button' | 'submit'
     ancho?: boolean
     disabled?: boolean
     onclick?: () => void
@@ -12,6 +14,7 @@
   }
   let {
     variante = 'principal',
+    tipo = 'button',
     ancho = false,
     disabled = false,
     onclick,
@@ -19,7 +22,7 @@
   }: Props = $props()
 </script>
 
-<button type="button" class="boton {variante}" class:ancho {disabled} {onclick}>
+<button type={tipo} class="boton {variante}" class:ancho {disabled} {onclick}>
   {@render children()}
 </button>
 

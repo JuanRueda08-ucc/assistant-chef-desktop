@@ -12,7 +12,7 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 2. Lee el documento de `docs/` del área que vas a tocar (índice en `docs/README.md`).
 3. Si la tarea contradice una decisión de `docs/decisiones/`, para y pregunta en vez de cambiarla en silencio.
 
-**Prioridad actual (0011–0014):** organización de pantallas aplicada y aprobada por el autor el 2026-10-22 (27 y 30). La repetición de la prueba de voz (34) está aplazada por el autor. Los básicos de despensa se siguen asumiendo (0014). Lista libre de ingredientes hecha (28, 0015); lo «sin identificar» nunca cuenta para buscar ni para etiquetas. Siguiente: autenticación (29). El autor está en público; hacer verificaciones sin abrir su micrófono ni reproducir sonido. Leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. Conservar Mostaza y organizar las pantallas existentes, sin repetir maquetas del flujo completo. Plantear ingredientes libres por búsqueda o chat y revisar la lista antes de elegir receta. Para cuentas reales, comparar después Better Auth y Supabase Auth (`docs/autenticacion-opciones.md`); todavía no hay proveedor elegido. Las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. Las verificaciones técnicas del agente no completan la aceptación personal de voz.
+**Prioridad actual (0011–0014):** organización de pantallas aplicada y aprobada por el autor el 2026-10-22 (27 y 30). La repetición de la prueba de voz (34) está aplazada por el autor. Los básicos de despensa se siguen asumiendo (0014). Lista libre de ingredientes hecha (28, 0015); lo «sin identificar» nunca cuenta para buscar ni para etiquetas. Cuentas reales con Better Auth hechas (29, 0016): falta SMTP real y backend desplegado. El autor está en público; hacer verificaciones sin abrir su micrófono ni reproducir sonido. Leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. Conservar Mostaza y organizar las pantallas existentes, sin repetir maquetas del flujo completo. Plantear ingredientes libres por búsqueda o chat y revisar la lista antes de elegir receta. Para cuentas reales, comparar después Better Auth y Supabase Auth (`docs/autenticacion-opciones.md`); todavía no hay proveedor elegido. Las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. Las verificaciones técnicas del agente no completan la aceptación personal de voz.
 
 ## Al terminar una tarea
 
@@ -26,6 +26,7 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 - Electron + Svelte 5 + TypeScript + Vite (electron-vite). **Sin SvelteKit, sin Tauri, sin Python.**
 - SQLite local (better-sqlite3) en el proceso principal; el renderer accede solo por IPC tipado vía `preload`.
 - IA por API con tool calling, detrás de un backend mínimo en `server/` (la clave de la API nunca va en el cliente).
+- Cuentas reales con **Better Auth** en el backend (decisión 0016): correo y contraseña, verificación y recuperación con código de 6 cifras, token Bearer que solo maneja main.
 - Voz: modelo de voz en tiempo real por API (en desarrollo, **Gemini Live con el plan gratuito**); órdenes cortas y palabra «Chef» resueltas en local con **Vosk**. **No usar Web Speech API.** Ver decisión 0007.
 - Chat de texto con el chef en Preparar, Elegir y Cocinar, con las mismas herramientas que la voz (decisión 0007).
 - Avatar: Rive 2D detrás de la interfaz `EstadoAvatar` (`hablar`, `senalar`, `esperar`, `celebrar`) para poder cambiar a 3D sin tocar el resto.
@@ -38,7 +39,9 @@ src/main/        proceso principal de Electron: ventana, SQLite, IPC
   ipc.ts         handlers de los canales IPC
   cocina.ts      sesión de cocina: iniciar, retomar y aplicar herramientas guardando en SQLite
   instalacion.ts UUID persistente en userData/instalacion-id
-  backend.ts     cliente HTTP del backend (CHEF_API_URL): chat, narración y token de voz
+  backend.ts     cliente HTTP del backend (CHEF_API_URL): chat, narración y token de voz, con el token de la cuenta
+  cuenta.ts      cuenta (0016): registro, código, entrar, salir y recuperar contra /auth/*; token solo en main
+  almacen-sesion.ts  token cifrado con safeStorage en userData/cuenta.bin
   voz/           Vosk por API C/Koffi en worker; lector del sistema para repetir sin IA
                  Narración automática Gemini TTS por backend, con lector local de respaldo (0009)
 src/preload/     puente seguro (contextBridge) con API tipada
@@ -47,7 +50,7 @@ src/renderer/    interfaz Svelte 5 (App.svelte elige la pantalla según el estad
   componentes/   piezas del diseño Mostaza: Boton, Chip, Globo, ChefBlob, Avatar, Panel, Icono, Momentos
                  ChatChef (panel lateral que se abre desde la cabecera, historial y errores de consulta)
   lib/           lógica pura de la interfaz con tests (cómo se muestra un ingrediente)
-  pantallas/     Preparar, Elegir, Retomar (receta a medias al abrir) y Cocinar (con la pantalla final)
+  pantallas/     Acceso (entrar/crear cuenta), Preparar, Elegir, Retomar (receta a medias al abrir) y Cocinar
   voz/           captura AudioWorklet, PCM, ControlVoz, TurnoConsulta y WebSocket Gemini Live
   assets/chef/   poses del chef en PNG
   styles/        tokens.css (único sitio con colores, tipografías y radios)
@@ -63,7 +66,7 @@ src/shared/      tipos y lógica pura compartida (sin dependencias de Electron n
                  ordenes.ts, contexto.ts, vosk.ts y configuración pública gemini.ts
                  seleccion.ts (reductor de Preparar/Elegir) y chat.ts (esquemas de transporte)
                  errores.ts (códigos y mensajes públicos de fallos del proveedor)
-server/src/      backend: app.ts (manejador Request → Response), rutas, proveedor (ProveedorIA),
+server/src/      backend: app.ts (manejador Request → Response), cuentas.ts y correo.ts (Better Auth, 0016), rutas, proveedor (ProveedorIA),
                  proveedores/ (falso, gemini), limite.ts, servidor-node.ts y principal.ts (arranque local)
 db/              schema.sql y semillas JSON (db/seed/, ver db/seed/README.md)
 tools/           preparar-voz.mjs, recursos-voz.mjs (URLs/hashes), verificar-voz.cjs y licencia Vosk
@@ -124,13 +127,15 @@ Antes del primer uso de voz, ejecuta `npm run voz:preparar`. Los scripts `build:
 
 Alias de importación: `@shared/*` apunta a `src/shared/*` en main, preload, renderer, server y tests.
 
-**Backend en local:** copia `.env.example` a `.env` (o no crees ninguno: los valores por defecto sirven) y ejecuta `npm run server:dev`. Con `PROVEEDOR_IA=falso` responde sin red y sin clave. Ejemplo:
+**Backend en local:** copia `.env.example` a `.env`, pon un `BETTER_AUTH_SECRET` de 32+ caracteres (obligatorio) y ejecuta `npm run server:dev`. Con `PROVEEDOR_IA=falso` responde sin red y sin clave de IA. Sin SMTP, los códigos de las cuentas salen en la consola del backend. Las rutas de IA exigen `Authorization: Bearer` de una cuenta verificada; sin ella responden 401. Ejemplo:
 
 ```bash
-curl -X POST http://localhost:8787/voz/token -H "x-instalacion: prueba-local-0001"
+curl -X POST http://localhost:8787/voz/token -H "x-instalacion: prueba-local-0001" -H "authorization: Bearer <token>"
 ```
 
-Todas las rutas son `POST`, necesitan la cabecera `X-Instalacion` (8 a 64 caracteres `A-Z a-z 0-9 -`) y responden JSON. Detalle de rutas, errores y límites en `docs/ia-chef.md`, "Backend mínimo".
+El token se obtiene entrando en la app (main lo guarda cifrado) o con `POST /auth/sign-in/email` y la cabecera `Origin: chef-digital://app`; viene en la cabecera de respuesta `set-auth-token`. Sin token, la ruta responde 401 `no_autenticado`.
+
+Las cuentas viven en `/auth/*` (Better Auth). El resto de rutas son `POST`, necesitan `Authorization: Bearer` y la cabecera `X-Instalacion` (8 a 64 caracteres `A-Z a-z 0-9 -`) y responden JSON. Detalle de rutas, errores y límites en `docs/ia-chef.md`, "Backend mínimo".
 
 **Chat:** `window.api.chef.conversar` → `chef:conversar` valida pantalla, preferencias e historial; main construye contexto desde la base y llama `POST /chat`. Las instrucciones y herramientas se fijan en el servidor. Preparar/Elegir usan `aplicarSeleccion`; Cocinar usa `sesion.aplicar` con `confirmado: false` para el modelo. Solo órdenes escritas exactas del intérprete local confirman desde la app. La conversación vive en memoria; no la registres ni reintentes automáticamente un turno que pudo aplicar herramientas. Los errores distinguen timeout, saturación, cuota y rechazo de acceso del proveedor; nunca muestran su cuerpo privado ni achacan todos los fallos a la configuración local. Gemini, chat y narración se activan poniendo `PROVEEDOR_IA=gemini` y la clave local en `.env` y reiniciando el backend; `falso` ofrece demostraciones sin red.
 

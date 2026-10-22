@@ -31,6 +31,28 @@ describe('cliente backend en main (sin red)', () => {
     solicitar.mockResolvedValue(new Response('detalle privado', { status: 502 }))
     await expect(cliente.conversar(peticion)).rejects.toThrow('servicio de IA no pudo responder')
   })
+  it('envía el token de la cuenta y avisa si el backend lo rechaza', async () => {
+    const solicitar = vi.fn<typeof fetch>().mockResolvedValue(new Response('{}', { status: 401 }))
+    const caducada = vi.fn()
+    const cliente = crearClienteBackend(
+      'http://localhost:8787',
+      'instalacion-test',
+      solicitar,
+      () => AHORA,
+      { token: () => 'tok', caducada }
+    )
+    const r = await cliente.pedirTokenVoz()
+    expect(r.ok || r.error.codigo).toBe('sin_sesion')
+    expect(solicitar.mock.calls[0]![1]?.headers).toMatchObject({ authorization: 'Bearer tok' })
+    await expect(
+      cliente.conversar({
+        pantalla: 'preparar',
+        contexto: '{}',
+        mensajes: [{ role: 'user', parts: [{ text: 'hola' }] }]
+      })
+    ).rejects.toThrow('sesión ha caducado')
+    expect(caducada).toHaveBeenCalledTimes(2)
+  })
   it.each([
     ['proveedor_timeout', 'tardó demasiado'],
     ['proveedor_saturado', 'temporalmente ocupada'],

@@ -152,7 +152,8 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   - El JSON REST del token lleva `bidiGenerateContentSetup` y `fieldMask: 'model,generationConfig'`, restringiendo modelo, audio y Sulafat sin reemplazar herramientas/instrucciones/VAD que añade la app. No enviar `liveConnectConstraints`: es una opción del SDK que REST rechaza. Contrato comprobado con la API real el 2026-10-20 y la [referencia AuthToken](https://ai.google.dev/api/generate-content#AuthToken).
   - Referencias verificadas el 2026-10-19: [tokens efímeros](https://ai.google.dev/gemini-api/docs/live-api/ephemeral-tokens), [WebSocket](https://ai.google.dev/gemini-api/docs/live-api/get-started-websocket) y [modelos](https://ai.google.dev/gemini-api/docs/models).
   - Para añadir uno real, crea un adaptador en `proveedores/`, lee la clave de `PROVEEDOR_IA_API_KEY` y regístralo ahí.
-- **Peticiones** (todas `POST` con cabecera `X-Instalacion`; esquemas en `peticiones.ts`):
+- **Cuentas** (decisión 0016, `cuentas.ts`): Better Auth atiende `/auth/*` (registro, entrar, salir, códigos de verificación y recuperación, `get-session`). El resto de rutas exige `Authorization: Bearer <token>` de una cuenta con correo verificado; si falta o caducó, 401 `no_autenticado` sin gastar cupo. Los límites diarios se cuentan por cuenta.
+- **Peticiones** (todas `POST` con cabeceras `X-Instalacion` y `Authorization`; esquemas en `peticiones.ts`):
 
   | Ruta | Cuerpo | Respuesta 200 |
   |---|---|---|
@@ -162,7 +163,7 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   | `/recetas/generar` | `{ preferencias, catalogo, tecnicas? }` | `{ receta }` |
   | `/sustituciones/sugerir` | `{ ingredienteId, recetaId?, tituloReceta?, preferencias: { ingredientes?, restricciones?, alergias? }, catalogo }` | `{ sustituciones }` |
 
-  El catálogo lo manda la app (es la fuente de verdad y puede crecer); el backend no tiene base de datos.
+  El catálogo lo manda la app (es la fuente de verdad y puede crecer); la única base del backend es la de cuentas.
 - **Generar receta** (`validar-receta.ts`):
   - El servidor pone `id` (`gen_…`), `slug`, `origen: generada` y `estadoRevision: borrador`. Ignora `dietas` y `alergenos` del modelo y los deriva del catálogo.
   - Valida con `esquemaReceta` (estricto) y exige que los ingredientes estén en el catálogo y que las técnicas existan.
@@ -172,7 +173,7 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   - Descarta lo que no está en el catálogo, el propio ingrediente, las repetidas y lo que rompe restricciones o alergias (`destinoPermitido`).
   - El resultado son `Sustitucion` con `fuente: generada`. `resuelve` lo calcula el código.
   - Para aplicarlas en la sesión hay que añadirlas a la tabla `sustituciones` (decisión 0004).
-- **Errores:** `{ error: { codigo, mensaje } }`. 404 `ruta_desconocida`, 405 `metodo_no_permitido`, 400 `instalacion_invalida` / `json_invalido` / `peticion_invalida` / `ingrediente_desconocido`, 413 (cuerpo de más de 2 MB), 429 `limite_superado` (con `Retry-After`), 502 `proveedor_fallo` (sin detalles internos) y 422 `receta_invalida`.
+- **Errores:** `{ error: { codigo, mensaje } }`. 404 `ruta_desconocida`, 405 `metodo_no_permitido`, 401 `no_autenticado`, 400 `instalacion_invalida` / `json_invalido` / `peticion_invalida` / `ingrediente_desconocido`, 413 (cuerpo de más de 2 MB), 429 `limite_superado` (con `Retry-After`), 502 `proveedor_fallo` (sin detalles internos) y 422 `receta_invalida`.
 - **Límite de uso** (`limite.ts`): por instalación, función y día UTC. Por defecto 40 peticiones de voz (tokens y narraciones comparten contador), 20 recetas, 60 sugerencias y 120 peticiones de chat, configurables con `LIMITE_VOZ`, `LIMITE_RECETAS`, `LIMITE_SUSTITUCIONES` y `LIMITE_CHAT`. Cada vuelta de herramientas del chat consume una petición.
   - Solo cuentan las peticiones bien formadas. Cada respuesta lleva `X-Limite-Restantes`.
   - El almacén es en memoria, válido para un solo proceso. En serverless con varias instancias hará falta uno compartido que implemente `AlmacenUso`.

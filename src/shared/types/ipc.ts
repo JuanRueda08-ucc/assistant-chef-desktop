@@ -6,8 +6,24 @@ import type { Ingrediente, Receta } from './receta'
 import type { Preferencias, SesionCocina } from './sesion'
 import type { AudioNarracion, RespuestaTokenVoz, ResultadoVosk, ResultadoVozLocal } from './voz'
 import type { PeticionChatIpc, RespuestaChat } from '../ia/chat'
+import type {
+  DatosCodigo,
+  DatosEntrar,
+  DatosRegistro,
+  DatosRestablecer,
+  EstadoCuenta,
+  ResultadoCuenta
+} from './cuenta'
 
 export const CANALES_IPC = {
+  cuentaEstado: 'cuenta:estado',
+  cuentaRegistrar: 'cuenta:registrar',
+  cuentaVerificar: 'cuenta:verificar',
+  cuentaReenviar: 'cuenta:reenviar',
+  cuentaEntrar: 'cuenta:entrar',
+  cuentaSalir: 'cuenta:salir',
+  cuentaRecuperar: 'cuenta:recuperar',
+  cuentaRestablecer: 'cuenta:restablecer',
   chefConversar: 'chef:conversar',
   catalogoIngredientes: 'catalogo:ingredientes',
   recetasListar: 'recetas:listar',
@@ -53,6 +69,17 @@ export type ResumenReceta = Pick<
 
 /** API que el preload expone como `window.api`. */
 export interface ApiChef {
+  /** Cuenta real (decisión 0016). Main guarda el token; aquí solo llegan usuario y resultados. */
+  cuenta: {
+    estado(): Promise<EstadoCuenta>
+    registrar(datos: DatosRegistro): Promise<ResultadoCuenta>
+    verificar(datos: DatosCodigo): Promise<ResultadoCuenta>
+    reenviar(datos: { email: string }): Promise<ResultadoCuenta>
+    entrar(datos: DatosEntrar): Promise<ResultadoCuenta>
+    salir(): Promise<ResultadoCuenta>
+    recuperar(datos: { email: string }): Promise<ResultadoCuenta>
+    restablecer(datos: DatosRestablecer): Promise<ResultadoCuenta>
+  }
   chef: { conversar(datos: PeticionChatIpc): Promise<RespuestaChat> }
   voz: {
     /** Main añade X-Instalacion; el renderer no envía URLs ni identificadores. */
@@ -75,7 +102,7 @@ export interface ApiChef {
     buscar(preferencias: Preferencias): Promise<ResultadoBusqueda>
   }
   sesion: {
-    /** La sesión que estaba cocinando al cerrar la app (temporizadores al día), o `null`. */
+    /** La sesión de la cuenta que estaba cocinando (temporizadores al día), o `null`. */
     retomar(): Promise<SesionCocina | null>
     /** Empieza a cocinar; descarta la sesión cocinando anterior, si había. */
     iniciar(datos: DatosIniciarCocina): Promise<SesionCocina>

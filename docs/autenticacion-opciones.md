@@ -1,6 +1,6 @@
 # Opciones de autenticación real
 
-Investigación del 2026-10-20 para Electron + Svelte 5 + backend Node. El profesor exige cuentas reales; la tecnología es libre. El autor también está investigando. **No se ha elegido ni instalado un proveedor.** Este documento compara alternativas; no sustituye una decisión de integración ni una prueba en Electron.
+Investigación del 2026-10-20 para Electron + Svelte 5 + backend Node. El profesor exige cuentas reales; la tecnología es libre. El autor también está investigando. **Elección del autor (2026-10-22): Better Auth**, integrado según la decisión 0016. Lo que sigue es la comparación previa, que se conserva como referencia.
 
 **Selección posterior del autor:** conservar **Better Auth y Supabase Auth** como los dos candidatos para comparar más adelante. Firebase se mantiene aquí como referencia de la investigación previa, fuera de esa selección. La comparación final y la implementación se retomarán después de la prueba personal de voz con Gemini; no se da por elegida ninguna de las dos herramientas.
 

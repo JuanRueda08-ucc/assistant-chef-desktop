@@ -1,6 +1,6 @@
 import type { Server } from 'node:http'
 import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { banco, cuerpoReceta, INSTALACION } from './fixtures.test-utils'
+import { banco, cuerpoReceta, INSTALACION, TOKEN } from './fixtures.test-utils'
 import { iniciarServidor, MAX_CUERPO_BYTES } from './servidor-node'
 
 let servidor: Server
@@ -19,7 +19,11 @@ describe('servidor HTTP de Node', () => {
     const pedir = (ruta: string, cuerpo: unknown): Promise<Response> =>
       fetch(url + ruta, {
         method: 'POST',
-        headers: { 'content-type': 'application/json', 'x-instalacion': INSTALACION },
+        headers: {
+          'content-type': 'application/json',
+          'x-instalacion': INSTALACION,
+          authorization: `Bearer ${TOKEN}`
+        },
         body: JSON.stringify(cuerpo)
       })
     expect((await pedir('/voz/token', {})).status).toBe(200)

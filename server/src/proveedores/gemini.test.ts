@@ -2,7 +2,7 @@ import { describe, expect, it, vi } from 'vitest'
 import { MODELO_GEMINI_LIVE } from '@shared/ia/gemini'
 import { crearApp } from '../app'
 import { AlmacenMemoria, Limitador } from '../limite'
-import { cuerpoReceta, cuerpoSustitucion, post, T0 } from '../fixtures.test-utils'
+import { cuentasFalsas, cuerpoReceta, cuerpoSustitucion, post, T0 } from '../fixtures.test-utils'
 import { ProveedorGemini } from './gemini'
 import { crearProveedor } from './index'
 import { esquemaPeticionReceta, esquemaPeticionSustitucion } from '../peticiones'
@@ -75,6 +75,7 @@ describe('ProveedorGemini (transporte simulado, sin red)', () => {
     const manejar = crearApp({
       proveedor: new ProveedorGemini('solo-test', { fetch: solicitar }),
       limitador: new Limitador(new AlmacenMemoria()),
+      cuentas: cuentasFalsas,
       registrarError
     })
     const respuesta = await manejar(post('/voz/token'))
@@ -105,6 +106,7 @@ describe('ProveedorGemini (transporte simulado, sin red)', () => {
     const manejar = crearApp({
       proveedor: new ProveedorGemini('solo-test', { fetch: solicitar }),
       limitador: new Limitador(new AlmacenMemoria()),
+      cuentas: cuentasFalsas,
       registrarError: vi.fn()
     })
     const respuesta = await manejar(post('/voz/token'))

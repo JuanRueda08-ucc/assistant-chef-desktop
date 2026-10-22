@@ -6,7 +6,9 @@ import { abrirBase, type BaseDatos } from './db/conexion'
 import { cargarSemilla, leerSemilla } from './db/semillas'
 import { registrarIpc } from './ipc'
 import { obtenerIdInstalacion } from './instalacion'
-import { crearClienteBackend } from './backend'
+import { crearClienteBackend, validarApiUrl } from './backend'
+import { crearAlmacenSesion } from './almacen-sesion'
+import { crearCuenta, type Cuenta } from './cuenta'
 import { crearVozLocal } from './voz/local'
 import { crearLectorLocal } from './voz/lector'
 import { obtenerSesionCocinando } from './db/sesiones'
@@ -14,6 +16,13 @@ import { obtenerSesionCocinando } from './db/sesiones'
 let db: BaseDatos | null = null
 const lector = crearLectorLocal()
 let voz: ReturnType<typeof crearVozLocal> | null = null
+let cuenta: Cuenta | null = null
+
+/** El micrófono solo se concede con una cuenta dentro y una receta cocinándose. */
+function hayCocinaActiva(): boolean {
+  const usuario = cuenta?.estado().usuario
+  return db !== null && !!usuario && obtenerSesionCocinando(db, usuario.id) !== null
+}
 
 function crearVentana(): void {
   const ventana = new BrowserWindow({
@@ -48,8 +57,7 @@ function crearVentana(): void {
           'mediaTypes' in detalles &&
           detalles.mediaTypes?.length === 1 &&
           detalles.mediaTypes[0] === 'audio' &&
-          db !== null &&
-          obtenerSesionCocinando(db) !== null
+          hayCocinaActiva()
       )
     }
   )
@@ -58,8 +66,7 @@ function crearVentana(): void {
       contenido === ventana.webContents &&
       permiso === 'media' &&
       detalles.mediaType === 'audio' &&
-      db !== null &&
-      obtenerSesionCocinando(db) !== null
+      hayCocinaActiva()
   )
   ventana.webContents.on('render-process-gone', () => {
     voz?.detener()
@@ -99,14 +106,21 @@ app.whenReady().then(() => {
     db = abrirBase(join(app.getPath('userData'), 'chef.sqlite'))
     cargarSemilla(db, leerSemilla())
     const instalacion = obtenerIdInstalacion(app.getPath('userData'))
-    const backend = crearClienteBackend(
-      process.env.CHEF_API_URL ?? import.meta.env.CHEF_API_URL ?? 'http://localhost:8787',
-      instalacion
-    )
+    const apiUrl =
+      process.env.CHEF_API_URL ?? import.meta.env.CHEF_API_URL ?? 'http://localhost:8787'
+    const sesionCuenta = crearCuenta({
+      apiUrl: validarApiUrl(apiUrl),
+      almacen: crearAlmacenSesion(app.getPath('userData'))
+    })
+    cuenta = sesionCuenta
+    const backend = crearClienteBackend(apiUrl, instalacion, fetch, Date.now, {
+      token: sesionCuenta.token,
+      caducada: sesionCuenta.caducada
+    })
     voz = crearVozLocal(
       app.isPackaged ? join(process.resourcesPath, 'voz') : join(app.getAppPath(), 'resources/voz')
     )
-    registrarIpc(db, backend, voz, lector)
+    registrarIpc(db, backend, voz, lector, sesionCuenta)
   } catch (error) {
     dialog.showErrorBox(
       'No se pudo preparar la app',

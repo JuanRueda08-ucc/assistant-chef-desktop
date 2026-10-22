@@ -7,7 +7,8 @@ import {
   leer,
   post,
   recetaModelo,
-  T0
+  T0,
+  TOKEN
 } from './fixtures.test-utils'
 
 describe('rutas y errores comunes', () => {
@@ -244,14 +245,40 @@ describe('límite de uso por instalación', () => {
     expect((await r.json()).error.codigo).toBe('limite_superado')
   })
 
-  it('cada instalación y cada función tienen su propio contador', async () => {
+  it('cada cuenta y cada función tienen su propio contador, aunque cambie la instalación', async () => {
     const { manejar } = banco({}, { voz: 1, sustituciones: 1 })
     expect((await manejar(post('/voz/token'))).status).toBe(200)
     expect((await manejar(post('/voz/token'))).status).toBe(429)
     expect(
-      (await manejar(post('/voz/token', {}, { 'x-instalacion': 'otra-instalacion-2' }))).status
-    ).toBe(200)
+      (
+        await manejar(
+          post(
+            '/voz/token',
+            {},
+            { 'x-instalacion': 'otra-instalacion-2', authorization: `Bearer ${TOKEN}` }
+          )
+        )
+      ).status
+    ).toBe(429)
     expect((await manejar(post('/sustituciones/sugerir', cuerpoSustitucion()))).status).toBe(200)
+  })
+
+  it('sin sesión válida responde 401 sin gastar cupo ni llamar al proveedor', async () => {
+    const { manejar } = banco({}, { voz: 1 })
+    for (const authorization of [undefined, 'Bearer otro-token']) {
+      const r = await leer(
+        await manejar(
+          post(
+            '/voz/token',
+            {},
+            { 'x-instalacion': INSTALACION, ...(authorization && { authorization }) }
+          )
+        )
+      )
+      expect(r.estado).toBe(401)
+      expect(r.cuerpo.error.codigo).toBe('no_autenticado')
+    }
+    expect((await manejar(post('/voz/token'))).status).toBe(200)
   })
 
   it('se reinicia al día siguiente', async () => {

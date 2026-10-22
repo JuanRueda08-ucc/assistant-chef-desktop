@@ -4,6 +4,16 @@ import { CANALES_IPC, type ApiChef } from '@shared/types/ipc'
 // API mínima y tipada que ve el renderer. No se expone `ipcRenderer` en bruto: cada canal tiene
 // su función. El contrato vive en src/shared/types/ipc.ts y main lo implementa en src/main/ipc.ts.
 const api: ApiChef = {
+  cuenta: {
+    estado: () => ipcRenderer.invoke(CANALES_IPC.cuentaEstado),
+    registrar: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaRegistrar, datos),
+    verificar: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaVerificar, datos),
+    reenviar: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaReenviar, datos),
+    entrar: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaEntrar, datos),
+    salir: () => ipcRenderer.invoke(CANALES_IPC.cuentaSalir),
+    recuperar: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaRecuperar, datos),
+    restablecer: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaRestablecer, datos)
+  },
   chef: { conversar: (datos) => ipcRenderer.invoke(CANALES_IPC.chefConversar, datos) },
   voz: {
     token: (datos) => ipcRenderer.invoke(CANALES_IPC.vozToken, datos),

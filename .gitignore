@@ -6,6 +6,9 @@ coverage
 .eslintcache
 *.log*
 
+# Base de cuentas del backend en local (decisión 0016)
+.datos/
+
 # Secretos (ver .env.example)
 .env
 .env.*

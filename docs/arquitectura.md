@@ -1,6 +1,6 @@
 # Arquitectura
 
-**Ampliación pendiente (0011):** v1 incluirá cuentas reales. Se deberá definir proveedor de identidad, persistencia de la sesión en Electron, validación de usuarios en el backend y separación de preferencias/sesión de cocina por cuenta. El diseño actual descrito aquí sigue usando `X-Instalacion` para límites de uso; esa cabecera no autentica a una persona. Ver `replanteamiento-v1.md` y la investigación de `autenticacion-opciones.md` (sin proveedor elegido). La sincronización entre dispositivos continúa fuera del alcance acordado.
+**Cuentas (0016):** Better Auth en el backend (`server/src/cuentas.ts`, rutas `/auth/*`, SQLite propia de cuentas). Main (`src/main/cuenta.ts`) guarda el token cifrado con `safeStorage` y lo envía como `Authorization: Bearer`; el renderer solo ve `EstadoCuenta` por `cuenta:*` y muestra Acceso hasta entrar. Las sesiones de cocina de `chef.sqlite` llevan `usuario_id`. `X-Instalacion` se mantiene, pero no autentica. La sincronización entre dispositivos continúa fuera del alcance acordado.
 
 ```
 ┌──────────── Electron ─────────────────────────────┐
@@ -25,7 +25,7 @@
   - `voz/`: AudioWorklet de captura, reproducción PCM, controlador de activación local y WebSocket Live. Solo existe captura en Cocinar con el micrófono activado; se destruye al salir. En modo local Vosk reconoce órdenes y «Chef»; tras activación, la consulta abierta va a Gemini sin pasar por la gramática y al terminar vuelve a órdenes locales (0013).
   - Main aloja el reconocimiento Vosk en un worker de Node (`src/main/voz/`) con Koffi y recursos externos a ASAR. El audio local cruza IPC validado y acotado; SQLite sigue exclusivamente en main. La narración usa Gemini por backend con lector del sistema como respaldo sin red. Ver decisiones 0008–0009 y 0013.
 - **Shared:** lógica pura. El reductor `aplicarHerramienta(sesion, llamada, ahora, contexto) → { sesion, resultado, avatar }` (`src/shared/cocina/aplicar.ts`) es el único sitio donde cambia el estado de cocina; lo usan los botones, las órdenes locales y las llamadas del modelo.
-- **Server:** guarda la clave del proveedor, emite tokens de voz, genera y valida recetas, sugiere sustituciones, limita uso. Manejador `Request → Response` en `server/src/app.ts` con el proveedor detrás de `ProveedorIA` (decisión 0006).
+- **Server:** gestiona las cuentas (Better Auth), guarda la clave del proveedor, emite tokens de voz, genera y valida recetas, sugiere sustituciones, limita uso por cuenta. Manejador `Request → Response` en `server/src/app.ts` con el proveedor detrás de `ProveedorIA` (decisión 0006).
 
 ## Flujo de una orden de voz
 1. En modo local, el micrófono escucha órdenes cortas y «Chef». Una frase desconocida no se transmite automáticamente.

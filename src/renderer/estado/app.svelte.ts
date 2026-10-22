@@ -17,6 +17,7 @@ import {
   MENSAJE_SIN_INGREDIENTES
 } from '@shared/recetas/disponibilidad'
 import type { ResultadoBusqueda } from '@shared/types/busqueda'
+import type { EstadoCuenta } from '@shared/types/cuenta'
 import type { Ingrediente } from '@shared/types/receta'
 import type { EstadoAvatar, Preferencias, SesionCocina } from '@shared/types/sesion'
 
@@ -40,6 +41,8 @@ const ESPERAR: EstadoAvatar = { accion: 'esperar' }
 const mensaje = (e: unknown): string => (e instanceof Error ? e.message : String(e))
 
 class EstadoApp {
+  /** `null` mientras main comprueba la sesión guardada; sin usuario se muestra Acceso (0016). */
+  cuenta = $state.raw<EstadoCuenta | null>(null)
   pantalla = $state<Pantalla>('preparar')
   /** Al abrir la app con una receta en curso: se muestra Retomar antes de entrar a Cocinar. */
   retomando = $state(false)
@@ -187,13 +190,45 @@ class EstadoApp {
       this.chatError = mensaje(e)
       // Un fallo puede haber aplicado herramientas; no se reintenta el turno automáticamente.
       this.turnos = []
+      void this.comprobarCuenta()
     } finally {
       this.chatOcupado = false
     }
   }
 
   /** Carga el catálogo y, si se cerró la app cocinando, vuelve a Cocinar. */
+  /** Al abrir la app: primero la cuenta; sin sesión se queda en Acceso. */
   async arrancar(): Promise<void> {
+    this.cuenta = await window.api.cuenta.estado()
+    if (this.cuenta.usuario) await this.cargar()
+  }
+
+  /** Tras entrar o verificar el correo, con la sesión ya guardada en main. */
+  async alEntrar(estado: EstadoCuenta): Promise<void> {
+    this.cuenta = estado
+    await this.cargar()
+  }
+
+  /** Cierra la sesión y olvida todo lo de la cuenta anterior que hay en la interfaz. */
+  async salir(): Promise<void> {
+    this.cuenta = (await window.api.cuenta.salir()).ok
+      ? { usuario: null, sinConexion: false }
+      : await window.api.cuenta.estado()
+    this.preferencias = structuredClone(PREFERENCIAS_INICIALES)
+    this.cocinarOtra()
+    this.retomando = false
+    this.chatAbierto = false
+    this.error = null
+    this.chatError = null
+  }
+
+  /** Tras un fallo del backend, comprueba si la sesión caducó (main la habrá cerrado). */
+  async comprobarCuenta(): Promise<void> {
+    const estado = await window.api.cuenta.estado()
+    if (!estado.usuario) await this.salir()
+  }
+
+  private async cargar(): Promise<void> {
     await this.tarea(async () => {
       this.catalogo = await window.api.catalogo.ingredientes()
       const sesion = await window.api.sesion.retomar()
@@ -335,6 +370,7 @@ class EstadoApp {
       await trabajo()
     } catch (e) {
       this.error = mensaje(e)
+      void this.comprobarCuenta()
     } finally {
       this.ocupado = false
     }

@@ -15,11 +15,12 @@ import { obtenerReceta } from './db/recetas'
 import { descartarSesionCocinando, guardarSesion, obtenerSesionCocinando } from './db/sesiones'
 
 /**
- * Empieza a cocinar una receta. Si había otra sesión cocinando, se descarta (solo puede haber
- * una). Devuelve la sesión nueva, ya guardada.
+ * Empieza a cocinar una receta. Si la cuenta tenía otra sesión cocinando, se descarta (solo puede
+ * haber una por cuenta). Devuelve la sesión nueva, ya guardada.
  */
 export function iniciarCocina(
   db: BaseDatos,
+  usuarioId: string,
   datos: DatosIniciarCocina,
   ahora: number,
   id: string = randomUUID()
@@ -35,8 +36,8 @@ export function iniciarCocina(
     ahora
   })
   db.transaction(() => {
-    descartarSesionCocinando(db)
-    guardarSesion(db, sesion)
+    descartarSesionCocinando(db, usuarioId)
+    guardarSesion(db, sesion, usuarioId)
   })()
   return sesion
 }
@@ -45,11 +46,15 @@ export function iniciarCocina(
  * La sesión que estaba cocinando al cerrar la app, con los temporizadores puestos al día con el
  * reloj (los que acabaron mientras tanto quedan como terminados). `null` si no hay ninguna.
  */
-export function retomarCocina(db: BaseDatos, ahora: number): SesionCocina | null {
-  const guardada = obtenerSesionCocinando(db)
+export function retomarCocina(
+  db: BaseDatos,
+  usuarioId: string,
+  ahora: number
+): SesionCocina | null {
+  const guardada = obtenerSesionCocinando(db, usuarioId)
   if (!guardada) return null
   const actual = actualizarTemporizadores(guardada, ahora)
-  if (actual !== guardada) guardarSesion(db, actual)
+  if (actual !== guardada) guardarSesion(db, actual, usuarioId)
   return actual
 }
 
@@ -59,13 +64,14 @@ export function retomarCocina(db: BaseDatos, ahora: number): SesionCocina | null
  */
 export function aplicarEnCocina(
   db: BaseDatos,
+  usuarioId: string,
   llamada: LlamadaHerramienta,
   ahora: number
 ): AplicacionHerramienta {
-  const sesion = obtenerSesionCocinando(db)
+  const sesion = obtenerSesionCocinando(db, usuarioId)
   if (!sesion) throw new Error('no hay ninguna sesión de cocina activa')
   const aplicacion = aplicarHerramienta(sesion, llamada, ahora, contextoDe(db, sesion))
-  if (aplicacion.resultado.ok) guardarSesion(db, aplicacion.sesion)
+  if (aplicacion.resultado.ok) guardarSesion(db, aplicacion.sesion, usuarioId)
   return aplicacion
 }
 

@@ -6,17 +6,16 @@ import { esquemaRespuestaChat, type PeticionChat, type RespuestaChat } from '@sh
 import { z } from 'zod'
 import { ERRORES_PROVEEDOR, esquemaCodigoErrorProveedor } from '@shared/ia/errores'
 
-/** Solo main hace HTTP al backend. Nunca acepta una URL del renderer. */
-export function crearClienteBackend(
-  apiUrl: string,
-  instalacion: string,
-  solicitar: typeof fetch = fetch,
-  ahora: () => number = Date.now
-): {
-  pedirTokenVoz: () => Promise<RespuestaTokenVoz>
-  narrar: (texto: string) => Promise<AudioNarracion | null>
-  conversar: (peticion: PeticionChat) => Promise<RespuestaChat>
-} {
+/** Sesión de la cuenta (src/main/cuenta.ts): token para el backend y aviso si lo rechaza. */
+export interface SesionBackend {
+  token(): string | null
+  caducada(): void
+}
+
+export const MENSAJE_SESION_CADUCADA = 'Tu sesión ha caducado. Vuelve a entrar en tu cuenta.'
+
+/** HTTPS, o HTTP solo en localhost; sin credenciales, query ni fragmento. */
+export function validarApiUrl(apiUrl: string): URL {
   const base = new URL(apiUrl)
   if (
     base.username ||
@@ -30,6 +29,30 @@ export function crearClienteBackend(
       'CHEF_API_URL debe usar HTTPS (HTTP solo en localhost), sin credenciales ni query.'
     )
   }
+  return base
+}
+
+/** Solo main hace HTTP al backend. Nunca acepta una URL del renderer. */
+export function crearClienteBackend(
+  apiUrl: string,
+  instalacion: string,
+  solicitar: typeof fetch = fetch,
+  ahora: () => number = Date.now,
+  sesion: SesionBackend = { token: () => null, caducada: () => {} }
+): {
+  pedirTokenVoz: () => Promise<RespuestaTokenVoz>
+  narrar: (texto: string) => Promise<AudioNarracion | null>
+  conversar: (peticion: PeticionChat) => Promise<RespuestaChat>
+} {
+  const base = validarApiUrl(apiUrl)
+  const cabeceras = (): Record<string, string> => {
+    const token = sesion.token()
+    return {
+      'content-type': 'application/json',
+      'x-instalacion': instalacion,
+      ...(token && { authorization: `Bearer ${token}` })
+    }
+  }
   const url = new URL(`${base.pathname.replace(/\/$/, '')}/voz/token`, base.origin)
   const cache = new Map<string, AudioNarracion>()
   return {
@@ -40,7 +63,7 @@ export function crearClienteBackend(
           new URL(`${base.pathname.replace(/\/$/, '')}/chat`, base.origin),
           {
             method: 'POST',
-            headers: { 'content-type': 'application/json', 'x-instalacion': instalacion },
+            headers: cabeceras(),
             body: JSON.stringify(peticion),
             redirect: 'error',
             signal: AbortSignal.timeout(30_000)
@@ -55,6 +78,10 @@ export function crearClienteBackend(
             ? ERRORES_PROVEEDOR.proveedor_timeout
             : 'No pude conectar con el chef. Comprueba que el backend esté iniciado.'
         )
+      }
+      if (respuesta.status === 401) {
+        sesion.caducada()
+        throw new Error(MENSAJE_SESION_CADUCADA)
       }
       if (respuesta.status === 429)
         throw new Error(
@@ -79,12 +106,13 @@ export function crearClienteBackend(
         new URL(`${base.pathname.replace(/\/$/, '')}/voz/narrar`, base.origin),
         {
           method: 'POST',
-          headers: { 'content-type': 'application/json', 'x-instalacion': instalacion },
+          headers: cabeceras(),
           body: JSON.stringify({ texto }),
           redirect: 'error',
           signal: AbortSignal.timeout(25_000)
         }
       )
+      if (respuesta.status === 401) sesion.caducada()
       if (!respuesta.ok) throw new Error('La voz natural no está disponible.')
       const { audio } = esquemaRespuestaNarracion.parse(await respuesta.json())
       if (audio) {
@@ -98,7 +126,7 @@ export function crearClienteBackend(
       try {
         respuesta = await solicitar(url, {
           method: 'POST',
-          headers: { 'content-type': 'application/json', 'x-instalacion': instalacion },
+          headers: cabeceras(),
           body: '{}',
           redirect: 'error',
           signal: AbortSignal.timeout(10_000)
@@ -111,6 +139,13 @@ export function crearClienteBackend(
             mensaje:
               'No pude conectar con el servicio de voz. Las órdenes locales y los botones siguen disponibles.'
           }
+        }
+      }
+      if (respuesta.status === 401) {
+        sesion.caducada()
+        return {
+          ok: false,
+          error: { codigo: 'sin_sesion', mensaje: MENSAJE_SESION_CADUCADA }
         }
       }
       if (respuesta.status === 429)

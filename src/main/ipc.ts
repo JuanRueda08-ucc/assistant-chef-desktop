@@ -6,6 +6,14 @@ import { esquemaLlamadaHerramienta } from '@shared/ia/herramientas'
 import { esquemaChatIpc } from '@shared/ia/chat'
 import { contextoCompacto } from '@shared/ia/contexto'
 import { esquemaLeerPaso, esquemaPeticionTokenVoz } from '@shared/esquemas/voz'
+import {
+  esquemaCodigo,
+  esquemaEmail,
+  esquemaEntrar,
+  esquemaRegistro,
+  esquemaRestablecer
+} from '@shared/esquemas/cuenta'
+import type { ResultadoCuenta } from '@shared/types/cuenta'
 import { CANALES_IPC, type ApiChef } from '@shared/types/ipc'
 import { aplicarEnCocina, iniciarCocina, retomarCocina } from './cocina'
 import { buscarEnBase } from './db/busqueda'
@@ -14,6 +22,7 @@ import type { BaseDatos } from './db/conexion'
 import { listarRecetas, obtenerReceta } from './db/recetas'
 import { obtenerSesionCocinando } from './db/sesiones'
 import type { crearClienteBackend } from './backend'
+import { fallo, type Cuenta } from './cuenta'
 import type { VozLocal } from './voz/local'
 import type { crearLectorLocal } from './voz/lector'
 
@@ -33,13 +42,65 @@ export function registrarIpc(
   db: BaseDatos,
   backend: ReturnType<typeof crearClienteBackend>,
   voz: VozLocal,
-  lector: ReturnType<typeof crearLectorLocal>
+  lector: ReturnType<typeof crearLectorLocal>,
+  cuenta: Cuenta
 ): void {
+  let propietario: number | null = null
+  // --- Cuenta (0016) ------------------------------------------------------------------------
+  // La primera comprobación de la sesión guardada se hace una vez; todo lo demás la espera.
+  const preparada = cuenta.iniciar().catch(() => cuenta.estado())
+  /** Valida con zod y, si falla, devuelve el primer mensaje al formulario en vez de lanzar. */
+  function conDatos<T>(
+    esquema: z.ZodType<T>,
+    accion: (datos: T) => Promise<ResultadoCuenta>
+  ): (_evento: unknown, datos: unknown) => Promise<ResultadoCuenta> {
+    return async (_evento, datos) => {
+      await preparada
+      const r = esquema.safeParse(datos)
+      if (!r.success) return fallo('datos_invalidos', r.error.issues[0]?.message)
+      return accion(r.data)
+    }
+  }
+  ipcMain.handle(CANALES_IPC.cuentaEstado, async () => {
+    await preparada
+    return cuenta.estado()
+  })
+  ipcMain.handle(CANALES_IPC.cuentaRegistrar, conDatos(esquemaRegistro, cuenta.registrar))
+  ipcMain.handle(CANALES_IPC.cuentaVerificar, conDatos(esquemaCodigo, cuenta.verificar))
+  ipcMain.handle(
+    CANALES_IPC.cuentaReenviar,
+    conDatos(esquemaEmail, (d) => cuenta.reenviarCodigo(d.email))
+  )
+  ipcMain.handle(CANALES_IPC.cuentaEntrar, conDatos(esquemaEntrar, cuenta.entrar))
+  ipcMain.handle(CANALES_IPC.cuentaSalir, async () => {
+    await preparada
+    voz.detener()
+    lector.detener()
+    propietario = null
+    return cuenta.salir()
+  })
+  ipcMain.handle(
+    CANALES_IPC.cuentaRecuperar,
+    conDatos(esquemaEmail, (d) => cuenta.recuperar(d.email))
+  )
+  ipcMain.handle(CANALES_IPC.cuentaRestablecer, conDatos(esquemaRestablecer, cuenta.restablecer))
+
+  /** Id de la cuenta con sesión; sin cuenta no se lee ni se cambia ninguna cocina. */
+  const usuarioId = (): string => {
+    const usuario = cuenta.estado().usuario
+    if (!usuario) throw new Error('Inicia sesión para continuar.')
+    return usuario.id
+  }
+  const cocinando = (): ReturnType<typeof obtenerSesionCocinando> => {
+    const usuario = cuenta.estado().usuario
+    return usuario ? obtenerSesionCocinando(db, usuario.id) : null
+  }
+
   ipcMain.handle(CANALES_IPC.chefConversar, async (_evento, datos: unknown) => {
     const peticion = esquemaChatIpc.parse(datos)
     let contexto: string
     if (peticion.pantalla === 'cocinar') {
-      const sesion = obtenerSesionCocinando(db)
+      const sesion = cocinando()
       if (!sesion) throw new Error('No hay una receta cocinándose para esta consulta.')
       contexto = contextoCompacto(sesion, Date.now())
     } else {
@@ -60,7 +121,6 @@ export function registrarIpc(
     }
     return backend.conversar({ pantalla: peticion.pantalla, contexto, mensajes: peticion.mensajes })
   })
-  let propietario: number | null = null
   const vigilados = new Set<number>()
   ipcMain.handle(CANALES_IPC.vozCallar, (_evento, datos: unknown) => {
     esquemaPeticionTokenVoz.parse(datos)
@@ -68,7 +128,7 @@ export function registrarIpc(
   })
   ipcMain.handle(CANALES_IPC.vozNarrar, async (_evento, datos: unknown) => {
     const peticion = esquemaLeerPaso.parse(datos)
-    const sesion = obtenerSesionCocinando(db)
+    const sesion = cocinando()
     const paso = sesion?.recetaAdaptada?.pasos.find((p) => p.orden === sesion.pasoActual)
     if (!sesion || !paso || sesion.id !== peticion.sesionId || paso.id !== peticion.pasoId)
       return null
@@ -76,8 +136,7 @@ export function registrarIpc(
     return backend.narrar(paso.textoVoz ?? paso.texto)
   })
   const exigirCocina = (): void => {
-    if (!obtenerSesionCocinando(db))
-      throw new Error('La voz solo está disponible mientras cocinas.')
+    if (!cocinando()) throw new Error('La voz solo está disponible mientras cocinas.')
   }
   const esquemaAudio = z
     .instanceof(ArrayBuffer)
@@ -120,7 +179,7 @@ export function registrarIpc(
   })
   ipcMain.handle(CANALES_IPC.vozRepetir, async (_evento, datos: unknown) => {
     esquemaPeticionTokenVoz.parse(datos)
-    const sesion = obtenerSesionCocinando(db)
+    const sesion = cocinando()
     const paso = sesion?.recetaAdaptada?.pasos.find((p) => p.orden === sesion.pasoActual)
     if (!paso) return { ok: false, mensaje: 'No hay un paso para repetir.' }
     return lector.leer(paso.textoVoz ?? paso.texto)
@@ -129,7 +188,7 @@ export function registrarIpc(
     CANALES_IPC.vozToken,
     async (_evento, datos: unknown): Promise<Resultado<ApiChef['voz']['token']>> => {
       esquemaPeticionTokenVoz.parse(datos)
-      if (!obtenerSesionCocinando(db))
+      if (!cocinando())
         return {
           ok: false,
           error: {
@@ -162,19 +221,24 @@ export function registrarIpc(
   )
 
   ipcMain.handle(CANALES_IPC.sesionRetomar, (): Resultado<ApiChef['sesion']['retomar']> =>
-    retomarCocina(db, Date.now())
+    retomarCocina(db, usuarioId(), Date.now())
   )
 
   ipcMain.handle(
     CANALES_IPC.sesionIniciar,
     (_evento, datos: unknown): Resultado<ApiChef['sesion']['iniciar']> =>
-      iniciarCocina(db, esquemaIniciarCocina.parse(datos), Date.now())
+      iniciarCocina(db, usuarioId(), esquemaIniciarCocina.parse(datos), Date.now())
   )
 
   ipcMain.handle(
     CANALES_IPC.sesionAplicar,
     (_evento, llamada: unknown): Resultado<ApiChef['sesion']['aplicar']> => {
-      const aplicacion = aplicarEnCocina(db, esquemaLlamadaHerramienta.parse(llamada), Date.now())
+      const aplicacion = aplicarEnCocina(
+        db,
+        usuarioId(),
+        esquemaLlamadaHerramienta.parse(llamada),
+        Date.now()
+      )
       if (aplicacion.sesion.fase !== 'cocinar') {
         voz.detener()
         lector.detener()
