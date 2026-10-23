@@ -12,6 +12,8 @@ export default defineConfig(
       '**/coverage',
       'plan/**',
       '.cache-voz/**',
+      // Edge Function generada por tools/empaquetar-funcion.mjs
+      'supabase/functions/chef/index.ts',
       'resources/voz/**'
     ]
   },

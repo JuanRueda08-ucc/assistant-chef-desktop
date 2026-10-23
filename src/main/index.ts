@@ -108,8 +108,17 @@ app.whenReady().then(() => {
     const instalacion = obtenerIdInstalacion(app.getPath('userData'))
     const apiUrl =
       process.env.CHEF_API_URL ?? import.meta.env.CHEF_API_URL ?? 'http://localhost:8787'
+    // Proyecto de Supabase para las cuentas (0017): URL y clave publicable, públicas por diseño.
+    const supabaseUrl = process.env.CHEF_SUPABASE_URL ?? import.meta.env.CHEF_SUPABASE_URL
+    const clavePublica =
+      process.env.CHEF_SUPABASE_CLAVE_PUBLICA ?? import.meta.env.CHEF_SUPABASE_CLAVE_PUBLICA
+    if (!supabaseUrl || !clavePublica)
+      throw new Error(
+        'Faltan CHEF_SUPABASE_URL y CHEF_SUPABASE_CLAVE_PUBLICA en .env (ver docs/despliegue.md).'
+      )
     const sesionCuenta = crearCuenta({
-      apiUrl: validarApiUrl(apiUrl),
+      supabaseUrl: validarApiUrl(supabaseUrl),
+      clavePublica,
       almacen: crearAlmacenSesion(app.getPath('userData'))
     })
     cuenta = sesionCuenta

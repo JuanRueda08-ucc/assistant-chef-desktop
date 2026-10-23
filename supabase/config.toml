@@ -1,0 +1,7 @@
+# Configuración mínima de Supabase CLI para este repositorio (decisión 0017). El proyecto se
+# enlaza con `npx supabase link --project-ref <ref>`; ver docs/despliegue.md.
+
+[functions.chef]
+# La función comprueba ella misma el JWT de Supabase (server/src/cuentas.ts) y responde 401
+# con el formato de la app; la verificación de la pasarela se desactiva para no duplicarla.
+verify_jwt = false

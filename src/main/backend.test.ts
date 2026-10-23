@@ -39,7 +39,7 @@ describe('cliente backend en main (sin red)', () => {
       'instalacion-test',
       solicitar,
       () => AHORA,
-      { token: () => 'tok', caducada }
+      { token: async () => 'tok', caducada }
     )
     const r = await cliente.pedirTokenVoz()
     expect(r.ok || r.error.codigo).toBe('sin_sesion')

@@ -6,9 +6,6 @@ coverage
 .eslintcache
 *.log*
 
-# Base de cuentas del backend en local (decisión 0016)
-.datos/
-
 # Secretos (ver .env.example)
 .env
 .env.*
@@ -25,3 +22,11 @@ resources/voz/
 # Configuración local de vista previa de Claude Code
 .claude/launch.json
 *.tsbuildinfo
+
+# Supabase: función generada y datos locales de la CLI (decisión 0017)
+supabase/functions/chef/index.ts
+supabase/.temp/
+supabase/.branches/
+
+# Base de cuentas local de Better Auth (0016, ya no se usa; ver 0017)
+.datos/

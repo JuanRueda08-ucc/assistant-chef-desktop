@@ -1,5 +1,5 @@
 <script lang="ts">
-  import { CONTRASENA_MIN, LONGITUD_CODIGO } from '@shared/esquemas/cuenta'
+  import { CODIGO_MAX, CODIGO_MIN, CONTRASENA_MIN } from '@shared/esquemas/cuenta'
   import type { ResultadoCuenta } from '@shared/types/cuenta'
   import Boton from '../componentes/Boton.svelte'
   import ChefBlob from '../componentes/ChefBlob.svelte'
@@ -69,8 +69,7 @@
       const r = await ejecutar(() =>
         window.api.cuenta.registrar({ ...datos, nombre: nombre.trim(), contrasena })
       )
-      if (r?.ok)
-        ir('verificar', `Te enviamos un código de ${LONGITUD_CODIGO} cifras a ${datos.email}.`)
+      if (r?.ok) ir('verificar', `Te enviamos un código a ${datos.email}. Mira también en spam.`)
     } else if (modo === 'verificar') {
       const r = await ejecutar(() => window.api.cuenta.verificar({ ...datos, codigo }))
       if (r?.ok) await app.alEntrar(r.estado)
@@ -124,14 +123,14 @@
       {/if}
       {#if modo === 'verificar' || modo === 'restablecer'}
         <label
-          >Código de {LONGITUD_CODIGO} cifras
+          >Código del correo
           <input
             class="codigo"
             bind:value={codigo}
             inputmode="numeric"
             autocomplete="one-time-code"
-            maxlength={LONGITUD_CODIGO}
-            pattern={`\\d{${LONGITUD_CODIGO}}`}
+            maxlength={CODIGO_MAX}
+            pattern={`\\d{${CODIGO_MIN},${CODIGO_MAX}}`}
             required
           /></label
         >

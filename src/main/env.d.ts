@@ -6,4 +6,6 @@ declare module '*.sql?raw' {
 
 interface ImportMetaEnv {
   readonly CHEF_API_URL: string
+  readonly CHEF_SUPABASE_URL: string
+  readonly CHEF_SUPABASE_CLAVE_PUBLICA: string
 }

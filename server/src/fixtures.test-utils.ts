@@ -18,7 +18,6 @@ export const TOKEN = 'token-de-prueba'
 
 /** Cuentas simuladas: solo `Bearer token-de-prueba` es una sesión válida. */
 export const cuentasFalsas: Cuentas = {
-  manejar: async () => new Response('{}', { status: 200 }),
   usuario: async (cabeceras) =>
     cabeceras.get('authorization') === `Bearer ${TOKEN}`
       ? { id: 'usuario-prueba', nombre: 'Prueba', email: 'prueba@example.com' }

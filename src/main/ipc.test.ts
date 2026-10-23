@@ -22,7 +22,7 @@ function cuentaFalsa(
   return {
     iniciar: vi.fn().mockResolvedValue(estado),
     estado: () => estado,
-    token: () => (estado.usuario ? 'tok' : null),
+    token: async () => (estado.usuario ? 'tok' : null),
     registrar: ok,
     verificar: ok,
     reenviarCodigo: ok,
@@ -191,7 +191,10 @@ describe('cuenta IPC', () => {
       expect(cuenta.registrar).not.toHaveBeenCalled()
       expect(
         await canal(CANALES_IPC.cuentaVerificar)(null, { email: 'ana@x.es', codigo: '12345' })
-      ).toMatchObject({ ok: false, error: { mensaje: 'El código tiene 6 cifras.' } })
+      ).toMatchObject({
+        ok: false,
+        error: { mensaje: 'Escribe el código del correo (6 a 10 cifras).' }
+      })
 
       // La receta de otra cuenta no se retoma.
       guardarSesion(db, sesionNueva(), 'otra')

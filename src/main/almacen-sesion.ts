@@ -1,4 +1,4 @@
-// Sesión de la cuenta entre arranques (decisión 0016): archivo en userData cifrado con
+// Sesión de la cuenta entre arranques (decisiones 0016 y 0017): archivo en userData cifrado con
 // safeStorage. Si el sistema no ofrece cifrado (algunos Linux usan un almacén en claro), no se
 // guarda nada y hay que entrar en cada arranque.
 

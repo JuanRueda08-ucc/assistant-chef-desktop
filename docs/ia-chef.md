@@ -152,7 +152,8 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   - El JSON REST del token lleva `bidiGenerateContentSetup` y `fieldMask: 'model,generationConfig'`, restringiendo modelo, audio y Sulafat sin reemplazar herramientas/instrucciones/VAD que añade la app. No enviar `liveConnectConstraints`: es una opción del SDK que REST rechaza. Contrato comprobado con la API real el 2026-10-20 y la [referencia AuthToken](https://ai.google.dev/api/generate-content#AuthToken).
   - Referencias verificadas el 2026-10-19: [tokens efímeros](https://ai.google.dev/gemini-api/docs/live-api/ephemeral-tokens), [WebSocket](https://ai.google.dev/gemini-api/docs/live-api/get-started-websocket) y [modelos](https://ai.google.dev/gemini-api/docs/models).
   - Para añadir uno real, crea un adaptador en `proveedores/`, lee la clave de `PROVEEDOR_IA_API_KEY` y regístralo ahí.
-- **Cuentas** (decisión 0016, `cuentas.ts`): Better Auth atiende `/auth/*` (registro, entrar, salir, códigos de verificación y recuperación, `get-session`). El resto de rutas exige `Authorization: Bearer <token>` de una cuenta con correo verificado; si falta o caducó, 401 `no_autenticado` sin gastar cupo. Los límites diarios se cuentan por cuenta.
+- **Cuentas** (decisión 0017, `cuentas.ts`): las gestiona Supabase Auth; el backend no tiene rutas de cuentas. Todas las rutas exigen `Authorization: Bearer <JWT de Supabase>`, verificado con `jose` contra el JWKS del proyecto (firma, caducidad, emisor, audiencia `authenticated`, no anónimo); si falta o no vale, 401 `no_autenticado` sin gastar cupo. Los límites diarios se cuentan por cuenta: en memoria en local y en la tabla `uso_diario` (función `consumir_cupo`) en la Edge Function.
+- **Despliegue** (`edge.ts`, `docs/despliegue.md`): `npm run supabase:funcion` empaqueta el backend con esbuild en `supabase/functions/chef/index.ts` (generado, fuera de Git) y `npm run supabase:desplegar` lo publica. La ruta llega como `/chef/<ruta>`; `ruta-funcion.ts` quita el prefijo.
 - **Peticiones** (todas `POST` con cabeceras `X-Instalacion` y `Authorization`; esquemas en `peticiones.ts`):
 
   | Ruta | Cuerpo | Respuesta 200 |
@@ -163,7 +164,7 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   | `/recetas/generar` | `{ preferencias, catalogo, tecnicas? }` | `{ receta }` |
   | `/sustituciones/sugerir` | `{ ingredienteId, recetaId?, tituloReceta?, preferencias: { ingredientes?, restricciones?, alergias? }, catalogo }` | `{ sustituciones }` |
 
-  El catálogo lo manda la app (es la fuente de verdad y puede crecer); la única base del backend es la de cuentas.
+  El catálogo lo manda la app (es la fuente de verdad y puede crecer); el backend solo guarda los contadores de uso.
 - **Generar receta** (`validar-receta.ts`):
   - El servidor pone `id` (`gen_…`), `slug`, `origen: generada` y `estadoRevision: borrador`. Ignora `dietas` y `alergenos` del modelo y los deriva del catálogo.
   - Valida con `esquemaReceta` (estricto) y exige que los ingredientes estén en el catálogo y que las técnicas existan.

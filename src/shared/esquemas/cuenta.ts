@@ -14,10 +14,12 @@ import {
 } from '../types/cuenta'
 import type { Afirmar, Igual } from './coincidencia'
 
-/** Mismos límites que el backend (server/src/cuentas.ts). */
+/** Límites de los formularios; Supabase Auth exige como mínimo 6 caracteres de contraseña. */
 export const CONTRASENA_MIN = 8
 export const CONTRASENA_MAX = 128
-export const LONGITUD_CODIGO = 6
+/** Supabase genera códigos de 6 a 10 cifras según la configuración del proyecto. */
+export const CODIGO_MIN = 6
+export const CODIGO_MAX = 10
 
 const email = z.email('Escribe un correo válido.').trim().toLowerCase().max(254)
 const contrasena = z
@@ -27,7 +29,7 @@ const contrasena = z
 const codigo = z
   .string()
   .trim()
-  .regex(/^\d{6}$/, `El código tiene ${LONGITUD_CODIGO} cifras.`)
+  .regex(/^\d{6,10}$/, `Escribe el código del correo (${CODIGO_MIN} a ${CODIGO_MAX} cifras).`)
 
 export const esquemaUsuario = z.strictObject({
   id: z.string().min(1).max(200),

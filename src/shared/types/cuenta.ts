@@ -1,11 +1,5 @@
-// Cuentas reales (decisión 0016). El renderer solo ve el usuario y el resultado de cada acción;
-// el token de sesión vive en main y nunca cruza el puente IPC.
-
-/**
- * Origen que main envía a `/auth/*` y que el backend admite (`trustedOrigins`). El fetch de Node
- * añade `sec-fetch-mode` y Better Auth exige entonces un Origin de confianza (protección CSRF).
- */
-export const ORIGEN_APP = 'chef-digital://app'
+// Cuentas reales con Supabase Auth (decisión 0017). El renderer solo ve el usuario y el
+// resultado de cada acción; los tokens viven en main y nunca cruzan el puente IPC.
 
 export interface Usuario {
   id: string

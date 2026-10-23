@@ -9,7 +9,7 @@ El autor solicita conservar Mostaza y organizar mejor las pantallas existentes, 
 - [x] 26. Registrar requisitos del replanteamiento, prioridad y cuentas reales para la v1
 - [x] 27. Concretar agrupación, jerarquía y posiciones de controles sobre las pantallas existentes, conservando Mostaza y sin repetir maquetas del flujo completo
 - [x] 28. Selección libre de múltiples ingredientes y gestión de los no reconocidos (los básicos se siguen asumiendo, 0014; lista libre en 0015)
-- [x] 29. Autenticación real: registro, login, sesión persistente, cierre, protección del backend y definición de datos por cuenta (Better Auth, 0016; falta SMTP real y backend desplegado para que otras personas se registren)
+- [x] 29. Autenticación real: registro, login, sesión persistente, cierre, protección del backend y definición de datos por cuenta (Supabase Auth y backend como Edge Function, 0017, que sustituye a Better Auth de 0016; falta que el autor cree el proyecto y despliegue según docs/despliegue.md)
 - [x] 30. Aplicar la organización por pantalla con los componentes actuales y verificar jerarquía, estados y localización de controles con el autor (aplicada y aprobada por el autor el 2026-10-22)
 - [x] 31. Registrar la primera prueba personal de voz/chat del autor (2026-10-21: irregular, con incidencias; no aceptada, repetir en 34)
 - [x] 32. Comparar herramientas de autenticación real para Electron y el backend, con fuentes oficiales y sin elegir proveedor todavía

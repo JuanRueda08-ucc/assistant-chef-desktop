@@ -1,5 +1,7 @@
 # 0016 · Cuentas reales con Better Auth en el backend
 
+> **Sustituida por 0017** (2026-10-23): cuentas con Supabase Auth y backend como Edge Function.
+
 **Fecha:** 2026-10-22
 
 **Contexto:** la v1 exige cuentas reales (0011). `autenticacion-opciones.md` dejaba dos candidatos, Better Auth y Supabase Auth. El autor elige **Better Auth** y pide la cuenta **al abrir la app**, antes de Preparar.

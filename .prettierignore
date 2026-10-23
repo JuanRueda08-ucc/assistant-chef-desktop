@@ -11,3 +11,4 @@ tsconfig.json
 tsconfig.*.json
 *.md
 docs/diseno
+supabase/functions/chef/index.ts

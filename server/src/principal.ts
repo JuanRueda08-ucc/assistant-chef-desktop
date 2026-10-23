@@ -1,11 +1,8 @@
-// Arranque local del backend: `npm run server:dev` (ver AGENTS.md, "Comandos").
+// Arranque local del backend: `npm run server:dev` (ver AGENTS.md, "Comandos"). En producción el
+// mismo manejador corre como Edge Function de Supabase (edge.ts, decisión 0017).
 
-import { mkdirSync } from 'node:fs'
-import { dirname, resolve } from 'node:path'
-import Database from 'better-sqlite3'
 import { crearApp } from './app'
-import { correoDesdeEntorno } from './correo'
-import { crearCuentas, migrarCuentas } from './cuentas'
+import { crearCuentas } from './cuentas'
 import { AlmacenMemoria, Limitador, limitesDesdeEntorno } from './limite'
 import { crearProveedor } from './proveedores'
 import { iniciarServidor } from './servidor-node'
@@ -21,39 +18,21 @@ async function main(): Promise<void> {
   const proveedor = crearProveedor(process.env)
   const limites = limitesDesdeEntorno(process.env)
   const puerto = Number(process.env.SERVIDOR_PUERTO) || 8787
-
-  const secreto = process.env.BETTER_AUTH_SECRET ?? ''
-  if (secreto.length < 32)
+  const supabaseUrl = process.env.CHEF_SUPABASE_URL
+  if (!supabaseUrl)
     throw new Error(
-      'Falta BETTER_AUTH_SECRET (al menos 32 caracteres) en .env. Genera uno con: node -e "console.log(crypto.randomBytes(32).toString(\'base64\'))"'
+      'Falta CHEF_SUPABASE_URL en .env: el backend comprueba las cuentas con tu proyecto de Supabase.'
     )
-  const rutaCuentas = resolve(process.env.CUENTAS_DB ?? '.datos/cuentas.sqlite')
-  mkdirSync(dirname(rutaCuentas), { recursive: true })
-  const db = new Database(rutaCuentas)
-  db.pragma('journal_mode = WAL')
-  const correo = correoDesdeEntorno(process.env)
-  const opcionesCuentas = {
-    db,
-    secreto,
-    url: process.env.BETTER_AUTH_URL ?? `http://localhost:${puerto}`,
-    correo
-  }
-  await migrarCuentas(opcionesCuentas)
 
   const { url } = await iniciarServidor(
     crearApp({
       proveedor,
       limitador: new Limitador(new AlmacenMemoria(), limites),
-      cuentas: crearCuentas(opcionesCuentas)
+      cuentas: crearCuentas({ supabaseUrl })
     }),
     puerto
   )
-  console.info(`Backend del chef en ${url} (proveedor: ${proveedor.nombre})`, {
-    limites,
-    correo: correo.modo
-  })
-  if (correo.modo === 'consola')
-    console.info('Sin SMTP: los códigos de las cuentas se muestran en esta consola.')
+  console.info(`Backend del chef en ${url} (proveedor: ${proveedor.nombre})`, { limites })
 }
 
 main().catch((error: unknown) => {

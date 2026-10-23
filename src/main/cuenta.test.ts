@@ -1,33 +1,119 @@
-import Database from 'better-sqlite3'
-import type { Server } from 'node:http'
-import { afterAll, beforeAll, describe, expect, it } from 'vitest'
-import { crearCuentas, migrarCuentas } from '../../server/src/cuentas'
-import type { Correo, TipoCodigo } from '../../server/src/correo'
-import { iniciarServidor } from '../../server/src/servidor-node'
-import { ORIGEN_APP } from '@shared/types/cuenta'
+import { describe, expect, it } from 'vitest'
 import { crearCuenta, type AlmacenSesion, type SesionGuardada } from './cuenta'
 
-// El cliente de main contra Better Auth real en memoria, por HTTP local.
-const codigos: { codigo: string; tipo: TipoCodigo }[] = []
-const correo: Correo = {
-  modo: 'consola',
-  enviarCodigo: async (_destino, codigo, tipo) => {
-    codigos.push({ codigo, tipo })
+// Supabase Auth simulado: solo lo que usa main (/signup, /verify, /token, /user, /logout,
+// /recover, /resend), con la forma de sus respuestas y `error_code`.
+const URL_SB = new URL('https://proyecto.supabase.co')
+const CLAVE = 'sb_publishable_prueba'
+
+function supabaseFalso(): {
+  solicitar: typeof fetch
+  llamadas: { ruta: string; apikey: string | null }[]
+  caer: () => void
+} {
+  let n = 0
+  const usuarios = new Map<
+    string,
+    { id: string; password: string; nombre: string; confirmado: boolean }
+  >()
+  const codigos = new Map<string, { codigo: string; tipo: 'email' | 'recovery' }>()
+  const accesos = new Map<string, string>() // jwt → email
+  const renovaciones = new Map<string, string>() // refresh → email
+  const llamadas: { ruta: string; apikey: string | null }[] = []
+  let caidas = false
+
+  const json = (cuerpo: unknown, status = 200): Response =>
+    new Response(JSON.stringify(cuerpo), { status })
+  const errorCodigo = (error_code: string, status = 400): Response =>
+    json({ code: status, error_code, msg: error_code }, status)
+  function sesionDe(email: string): Response {
+    const acceso = `jwt-${++n}`
+    const renovacion = `rt-${n}`
+    accesos.set(acceso, email)
+    renovaciones.set(renovacion, email)
+    return json({ access_token: acceso, refresh_token: renovacion, expires_in: 3600 })
+  }
+
+  const solicitar: typeof fetch = async (url, init) => {
+    if (caidas) throw new TypeError('fetch failed')
+    const u = new URL(String(url))
+    const ruta = u.pathname.replace('/auth/v1', '') + u.search
+    const cabeceras = new Headers(init?.headers)
+    llamadas.push({ ruta, apikey: cabeceras.get('apikey') })
+    const cuerpo = init?.body ? JSON.parse(String(init.body)) : {}
+    const bearer = cabeceras.get('authorization')?.replace('Bearer ', '') ?? ''
+    switch (ruta) {
+      case '/signup': {
+        if (!usuarios.has(cuerpo.email))
+          usuarios.set(cuerpo.email, {
+            id: `u${++n}`,
+            password: cuerpo.password,
+            nombre: cuerpo.data?.nombre ?? '',
+            confirmado: false
+          })
+        // Igual respuesta si ya existía: no revela cuentas.
+        codigos.set(cuerpo.email, { codigo: '111111', tipo: 'email' })
+        return json({ id: 'x' })
+      }
+      case '/resend':
+        codigos.set(cuerpo.email, { codigo: '222222', tipo: 'email' })
+        return json({})
+      case '/recover':
+        if (usuarios.has(cuerpo.email))
+          codigos.set(cuerpo.email, { codigo: '333333', tipo: 'recovery' })
+        return json({})
+      case '/verify': {
+        const esperado = codigos.get(cuerpo.email)
+        if (!esperado || esperado.codigo !== cuerpo.token || esperado.tipo !== cuerpo.type)
+          return errorCodigo('otp_expired', 403)
+        codigos.delete(cuerpo.email)
+        usuarios.get(cuerpo.email)!.confirmado = true
+        return sesionDe(cuerpo.email)
+      }
+      case '/token?grant_type=password': {
+        const usuario = usuarios.get(cuerpo.email)
+        if (!usuario || usuario.password !== cuerpo.password)
+          return errorCodigo('invalid_credentials')
+        if (!usuario.confirmado) return errorCodigo('email_not_confirmed')
+        return sesionDe(cuerpo.email)
+      }
+      case '/token?grant_type=refresh_token': {
+        const email = renovaciones.get(cuerpo.refresh_token)
+        if (!email) return errorCodigo('refresh_token_not_found')
+        renovaciones.delete(cuerpo.refresh_token) // un solo uso
+        return sesionDe(email)
+      }
+      case '/user': {
+        const email = accesos.get(bearer)
+        if (!email) return errorCodigo('bad_jwt', 401)
+        const usuario = usuarios.get(email)!
+        if (init?.method === 'PUT') {
+          usuario.password = cuerpo.password
+          return json({ id: usuario.id })
+        }
+        return json({
+          id: usuario.id,
+          email,
+          email_confirmed_at: usuario.confirmado ? '2026-10-23T00:00:00Z' : null,
+          user_metadata: { nombre: usuario.nombre }
+        })
+      }
+      case '/logout?scope=local': {
+        const email = accesos.get(bearer)
+        for (const [rt, e] of renovaciones) if (e === email) renovaciones.delete(rt)
+        return new Response(null, { status: 204 })
+      }
+    }
+    return json({}, 404)
+  }
+  return {
+    solicitar,
+    llamadas,
+    caer: () => {
+      caidas = true
+    }
   }
 }
-const codigo = async (tipo: TipoCodigo): Promise<string> => {
-  await new Promise((r) => setTimeout(r, 20))
-  return codigos.filter((c) => c.tipo === tipo).at(-1)!.codigo
-}
-let apiUrl: URL
-// Registra los Origin enviados: el fetch real de main añade sec-fetch-mode y Better Auth exige
-// entonces un Origin de confianza; el fetch del entorno de tests no lo reproduce.
-const origenes: (string | null)[] = []
-const solicitar: typeof fetch = (url, init) => {
-  origenes.push(new Headers(init?.headers).get('origin'))
-  return fetch(url, init)
-}
-let servidor: Server
 
 function almacen(): AlmacenSesion & { valor: SesionGuardada | null } {
   return {
@@ -41,109 +127,127 @@ function almacen(): AlmacenSesion & { valor: SesionGuardada | null } {
   }
 }
 
-// Servidor HTTP real y fetch real de Node, como en main: fetch añade sec-fetch-mode y Better Auth
-// exige entonces un Origin de confianza (ORIGEN_APP).
-beforeAll(async () => {
-  const opciones = {
-    db: new Database(':memory:'),
-    secreto: 'secreto-de-prueba-con-mas-de-32-caracteres',
-    url: 'http://127.0.0.1',
-    correo
-  }
-  await migrarCuentas(opciones)
-  const cuentas = crearCuentas(opciones)
-  const iniciado = await iniciarServidor((peticion) => cuentas.manejar(peticion), 0)
-  servidor = iniciado.servidor
-  apiUrl = new URL(iniciado.url)
-})
-afterAll(() => {
-  servidor.close()
-})
+const datos = { nombre: 'Luis', email: 'luis@example.com', contrasena: 'sarten-2026' }
 
-describe('cuenta en main', () => {
-  const datos = { nombre: 'Luis', email: 'luis@example.com', contrasena: 'sarten-2026' }
-
-  it('registra, verifica con código, guarda la sesión y la recupera al reiniciar', async () => {
+describe('cuenta en main con Supabase Auth', () => {
+  it('registra, confirma con código, guarda la sesión y la recupera al reiniciar', async () => {
+    const sb = supabaseFalso()
     const guardado = almacen()
-    const cuenta = crearCuenta({ apiUrl, almacen: guardado, solicitar })
+    const cuenta = crearCuenta({
+      supabaseUrl: URL_SB,
+      clavePublica: CLAVE,
+      almacen: guardado,
+      solicitar: sb.solicitar
+    })
     expect(await cuenta.iniciar()).toEqual({ usuario: null, sinConexion: false })
-
     expect((await cuenta.registrar(datos)).ok).toBe(true)
-    expect(cuenta.estado().usuario).toBeNull()
-    const entrarAntes = await cuenta.entrar(datos)
-    expect(entrarAntes.ok || entrarAntes.error.codigo).toBe('correo_sin_verificar')
-
+    const antes = await cuenta.entrar(datos)
+    expect(antes.ok || antes.error.codigo).toBe('correo_sin_verificar')
     const mal = await cuenta.verificar({ email: datos.email, codigo: '000000' })
     expect(mal.ok || mal.error.codigo).toBe('codigo_invalido')
-    const verificado = await cuenta.verificar({
-      email: datos.email,
-      codigo: await codigo('email-verification')
-    })
-    expect(verificado.ok && verificado.estado.usuario).toMatchObject({
-      nombre: 'Luis',
-      email: datos.email
-    })
-    expect(guardado.valor?.token).toBeTruthy()
 
-    // Otro arranque con el mismo almacén: sigue dentro sin pedir la contraseña.
-    const otra = crearCuenta({ apiUrl, almacen: guardado, solicitar })
+    const bien = await cuenta.verificar({ email: datos.email, codigo: '111111' })
+    expect(bien.ok && bien.estado.usuario).toMatchObject({ nombre: 'Luis', email: datos.email })
+    expect(await cuenta.token()).toBe(guardado.valor?.acceso)
+    expect(sb.llamadas.every((l) => l.apikey === CLAVE)).toBe(true)
+
+    // Otro arranque: renueva con el refresh token y sigue dentro.
+    const otra = crearCuenta({
+      supabaseUrl: URL_SB,
+      clavePublica: CLAVE,
+      almacen: guardado,
+      solicitar: sb.solicitar
+    })
     expect((await otra.iniciar()).usuario?.email).toBe(datos.email)
   })
 
-  it('no revela si un correo ya tiene cuenta, rechaza credenciales y salir invalida el token', async () => {
-    const guardado = almacen()
-    const cuenta = crearCuenta({ apiUrl, almacen: guardado, solicitar })
-    // Con verificación obligatoria, Better Auth responde igual a un registro repetido.
-    expect((await cuenta.registrar(datos)).ok).toBe(true)
-    expect(cuenta.estado().usuario).toBeNull()
-    const mal = await cuenta.entrar({ email: datos.email, contrasena: 'otra-clave-1' })
-    expect(mal.ok || mal.error.codigo).toBe('credenciales')
+  it('renueva el JWT antes de que caduque, una sola vez aunque lo pidan a la vez', async () => {
+    const sb = supabaseFalso()
+    let reloj = 0
+    const cuenta = crearCuenta({
+      supabaseUrl: URL_SB,
+      clavePublica: CLAVE,
+      almacen: almacen(),
+      solicitar: sb.solicitar,
+      ahora: () => reloj
+    })
+    await cuenta.registrar(datos)
+    await cuenta.verificar({ email: datos.email, codigo: '111111' })
+    const primero = await cuenta.token()
+    reloj = 3600_000 - 30_000 // quedan 30 s
+    const [a, b] = await Promise.all([cuenta.token(), cuenta.token()])
+    expect(a).not.toBe(primero)
+    expect(b).toBe(a)
+    expect(sb.llamadas.filter((l) => l.ruta.includes('refresh_token'))).toHaveLength(1)
+  })
 
-    expect((await cuenta.entrar(datos)).ok).toBe(true)
-    const token = cuenta.token()
+  it('salir anula la sesión: el refresh token ya no sirve al reiniciar', async () => {
+    const sb = supabaseFalso()
+    const guardado = almacen()
+    const cuenta = crearCuenta({
+      supabaseUrl: URL_SB,
+      clavePublica: CLAVE,
+      almacen: guardado,
+      solicitar: sb.solicitar
+    })
+    await cuenta.registrar(datos)
+    await cuenta.verificar({ email: datos.email, codigo: '111111' })
+    const copia = guardado.valor!
     await cuenta.salir()
     expect(cuenta.estado().usuario).toBeNull()
     expect(guardado.valor).toBeNull()
-    // El token cerrado ya no sirve en otro arranque.
-    guardado.valor = { token: token!, usuario: { id: 'x', nombre: 'Luis', email: datos.email } }
-    expect((await crearCuenta({ apiUrl, almacen: guardado, solicitar }).iniciar()).usuario).toBe(
-      null
-    )
+    guardado.valor = copia
+    const otra = crearCuenta({
+      supabaseUrl: URL_SB,
+      clavePublica: CLAVE,
+      almacen: guardado,
+      solicitar: sb.solicitar
+    })
+    expect((await otra.iniciar()).usuario).toBeNull()
+    const mal = await otra.entrar({ email: datos.email, contrasena: 'otra-clave-1' })
+    expect(mal.ok || mal.error.codigo).toBe('credenciales')
   })
 
-  it('todas las peticiones llevan el origen de la app', () => {
-    expect(origenes.length).toBeGreaterThan(0)
-    expect(new Set(origenes)).toEqual(new Set([ORIGEN_APP]))
-  })
-
-  it('recupera la contraseña con código', async () => {
-    const cuenta = crearCuenta({ apiUrl, almacen: almacen(), solicitar })
+  it('cambia la contraseña con el código de recuperación sin dejar la sesión abierta', async () => {
+    const sb = supabaseFalso()
+    const cuenta = crearCuenta({
+      supabaseUrl: URL_SB,
+      clavePublica: CLAVE,
+      almacen: almacen(),
+      solicitar: sb.solicitar
+    })
+    await cuenta.registrar(datos)
+    await cuenta.verificar({ email: datos.email, codigo: '111111' })
+    await cuenta.salir()
     expect((await cuenta.recuperar(datos.email)).ok).toBe(true)
     const r = await cuenta.restablecer({
       email: datos.email,
-      codigo: await codigo('forget-password'),
+      codigo: '333333',
       contrasena: 'nueva-sarten-1'
     })
-    expect(r.ok).toBe(true)
+    expect(r.ok && r.estado.usuario).toBeNull()
     expect((await cuenta.entrar({ email: datos.email, contrasena: 'nueva-sarten-1' })).ok).toBe(
       true
     )
   })
 
   it('sin red conserva la sesión guardada y lo indica', async () => {
+    const sb = supabaseFalso()
+    sb.caer()
     const guardado = almacen()
-    guardado.valor = { token: 't', usuario: { id: 'u1', nombre: 'Luis', email: datos.email } }
+    guardado.valor = {
+      acceso: 'jwt-viejo',
+      renovacion: 'rt-viejo',
+      caducaEn: 0,
+      usuario: { id: 'u1', nombre: 'Luis', email: datos.email }
+    }
     const cuenta = crearCuenta({
-      apiUrl,
+      supabaseUrl: URL_SB,
+      clavePublica: CLAVE,
       almacen: guardado,
-      solicitar: async () => {
-        throw new TypeError('fetch failed')
-      }
+      solicitar: sb.solicitar
     })
-    expect(await cuenta.iniciar()).toEqual({
-      usuario: guardado.valor.usuario,
-      sinConexion: true
-    })
+    expect(await cuenta.iniciar()).toEqual({ usuario: guardado.valor.usuario, sinConexion: true })
     const r = await cuenta.entrar(datos)
     expect(r.ok || r.error.codigo).toBe('sin_conexion')
   })

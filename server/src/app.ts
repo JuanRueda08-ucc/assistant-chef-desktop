@@ -1,9 +1,8 @@
 // Backend mínimo (docs/ia-chef.md, "Backend mínimo"). Un manejador `Request → Response` de la API
 // web estándar: funciona en Node (servidor-node.ts) y en cualquier plataforma serverless.
 
-import { randomUUID } from 'node:crypto'
 import { z } from 'zod'
-import { RUTA_CUENTAS, type Cuentas } from './cuentas'
+import type { Cuentas } from './cuentas'
 import type { Limitador, Grupo } from './limite'
 import {
   esquemaInstalacion,
@@ -23,7 +22,7 @@ import { ErrorProveedor } from './error-proveedor'
 export interface Dependencias {
   proveedor: ProveedorIA
   limitador: Limitador
-  /** Cuentas reales (decisión 0016): `/auth/*` y la comprobación del token de cada ruta. */
+  /** Comprueba el JWT de Supabase de cada petición (decisión 0017). */
   cuentas: Cuentas
   /** Reloj (epoch ms); inyectable para los tests. */
   ahora?: () => number
@@ -74,7 +73,7 @@ const json = (estado: number, cuerpo: unknown, cabeceras: Record<string, string>
 export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Response> {
   const ahora = dep.ahora ?? Date.now
   const nuevoId =
-    dep.nuevoId ?? ((): string => `gen_${randomUUID().replace(/-/g, '').slice(0, 12)}`)
+    dep.nuevoId ?? ((): string => `gen_${crypto.randomUUID().replace(/-/g, '').slice(0, 12)}`)
   const registrarError = dep.registrarError ?? ((m, e): void => console.error(m, e))
 
   /** Llama al proveedor; si falla, 502 sin detalles internos para el cliente. */
@@ -171,7 +170,6 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
   return async function manejar(peticion: Request): Promise<Response> {
     try {
       const camino = new URL(peticion.url).pathname.replace(/\/+$/, '')
-      if (camino.startsWith(`${RUTA_CUENTAS}/`)) return await dep.cuentas.manejar(peticion)
       const ruta = rutas[camino]
       if (!ruta) throw new ErrorApi(404, 'ruta_desconocida', 'Esta ruta no existe.')
       if (peticion.method !== 'POST') {

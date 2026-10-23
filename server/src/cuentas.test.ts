@@ -1,102 +1,68 @@
-import Database from 'better-sqlite3'
+import { exportJWK, generateKeyPair, SignJWT, type JSONWebKeySet } from 'jose'
 import { beforeAll, describe, expect, it } from 'vitest'
-import type { Correo, TipoCodigo } from './correo'
-import { crearCuentas, migrarCuentas, type Cuentas } from './cuentas'
+import { crearCuentas, type Cuentas } from './cuentas'
 
-// Better Auth real sobre SQLite en memoria; el correo se captura en vez de enviarse.
-const codigos: { destino: string; codigo: string; tipo: TipoCodigo }[] = []
-const correo: Correo = {
-  modo: 'consola',
-  enviarCodigo: async (destino, codigo, tipo) => {
-    codigos.push({ destino, codigo, tipo })
-  }
-}
-const ultimoCodigo = async (tipo: TipoCodigo): Promise<string> => {
-  await new Promise((r) => setTimeout(r, 20))
-  return codigos.filter((c) => c.tipo === tipo).at(-1)!.codigo
-}
-
-const URL_BASE = 'http://localhost:8787'
+// JWT como los de Supabase Auth, firmados con una clave de prueba (ES256).
+const URL_SUPABASE = 'https://proyecto-prueba.supabase.co'
+const EMISOR = `${URL_SUPABASE}/auth/v1`
+let firmar: (
+  datos?: Record<string, unknown>,
+  opciones?: { exp?: string; iss?: string }
+) => Promise<string>
+let otraFirma: () => Promise<string>
 let cuentas: Cuentas
 
-const post = (ruta: string, cuerpo: unknown, token?: string): Promise<Response> =>
-  cuentas.manejar(
-    new Request(`${URL_BASE}/auth${ruta}`, {
-      method: 'POST',
-      headers: {
-        'content-type': 'application/json',
-        ...(token && { authorization: `Bearer ${token}` })
-      },
-      body: JSON.stringify(cuerpo)
-    })
-  )
-const usuario = (token: string): ReturnType<Cuentas['usuario']> =>
-  cuentas.usuario(new Headers({ authorization: `Bearer ${token}` }))
+const conToken = (token: string): Headers => new Headers({ authorization: `Bearer ${token}` })
 
 beforeAll(async () => {
-  const opciones = {
-    db: new Database(':memory:'),
-    secreto: 'secreto-de-prueba-con-mas-de-32-caracteres',
-    url: URL_BASE,
-    correo
-  }
-  await migrarCuentas(opciones)
-  cuentas = crearCuentas(opciones)
+  const { privateKey, publicKey } = await generateKeyPair('ES256')
+  const jwk = { ...(await exportJWK(publicKey)), kid: 'clave-1', alg: 'ES256' }
+  const jwks: JSONWebKeySet = { keys: [jwk] }
+  firmar = (datos = {}, opciones = {}) =>
+    new SignJWT({
+      email: 'ana@example.com',
+      role: 'authenticated',
+      is_anonymous: false,
+      user_metadata: { nombre: 'Ana' },
+      ...datos
+    })
+      .setProtectedHeader({ alg: 'ES256', kid: 'clave-1' })
+      .setSubject('usuario-1')
+      .setIssuer(opciones.iss ?? EMISOR)
+      .setAudience('authenticated')
+      .setIssuedAt()
+      .setExpirationTime(opciones.exp ?? '1h')
+      .sign(privateKey)
+  const ajena = await generateKeyPair('ES256')
+  otraFirma = () =>
+    new SignJWT({ email: 'x@example.com', role: 'authenticated' })
+      .setProtectedHeader({ alg: 'ES256', kid: 'clave-1' })
+      .setSubject('intruso')
+      .setIssuer(EMISOR)
+      .setAudience('authenticated')
+      .setExpirationTime('1h')
+      .sign(ajena.privateKey)
+  cuentas = crearCuentas({ supabaseUrl: URL_SUPABASE, jwks })
 })
 
-describe('cuentas con Better Auth', () => {
-  const email = 'ana@example.com'
-  let token = ''
-
-  it('registra, exige verificar el correo y entra con el código', async () => {
-    const registro = await post('/sign-up/email', { name: 'Ana', email, password: 'cocina-1234' })
-    expect(registro.status).toBe(200)
-    expect(registro.headers.get('set-auth-token')).toBeNull()
-
-    const sinVerificar = await post('/sign-in/email', { email, password: 'cocina-1234' })
-    expect(sinVerificar.status).toBe(403)
-
-    const verificar = await post('/email-otp/verify-email', {
-      email,
-      otp: await ultimoCodigo('email-verification')
+describe('JWT de Supabase en el backend', () => {
+  it('acepta un JWT válido y devuelve el usuario', async () => {
+    expect(await cuentas.usuario(conToken(await firmar()))).toEqual({
+      id: 'usuario-1',
+      nombre: 'Ana',
+      email: 'ana@example.com'
     })
-    expect(verificar.status).toBe(200)
-    // Con autoSignInAfterVerification, verificar ya devuelve un token de sesión.
-    expect(verificar.headers.get('set-auth-token')).toBeTruthy()
-
-    const entrar = await post('/sign-in/email', { email, password: 'cocina-1234' })
-    expect(entrar.status).toBe(200)
-    token = entrar.headers.get('set-auth-token') ?? ''
-    expect(token).not.toBe('')
-    expect(await usuario(token)).toMatchObject({ nombre: 'Ana', email })
-    const sesion = await cuentas.manejar(
-      new Request(`${URL_BASE}/auth/get-session`, {
-        headers: { authorization: `Bearer ${token}` }
-      })
-    )
-    expect(await sesion.json()).toMatchObject({ user: { name: 'Ana', email, emailVerified: true } })
   })
 
-  it('rechaza contraseñas incorrectas y tokens inválidos', async () => {
-    expect((await post('/sign-in/email', { email, password: 'otra-clave-99' })).status).toBe(401)
-    expect(await usuario('token-inventado')).toBeNull()
+  it('rechaza sin token, caducado, de otro emisor, firmado con otra clave o anónimo', async () => {
     expect(await cuentas.usuario(new Headers())).toBeNull()
-  })
-
-  it('cierra la sesión y deja de aceptar su token', async () => {
-    expect((await post('/sign-out', {}, token)).status).toBe(200)
-    expect(await usuario(token)).toBeNull()
-  })
-
-  it('cambia la contraseña con el código de recuperación', async () => {
-    expect((await post('/email-otp/request-password-reset', { email })).status).toBe(200)
-    const reset = await post('/email-otp/reset-password', {
-      email,
-      otp: await ultimoCodigo('forget-password'),
-      password: 'nueva-clave-5678'
-    })
-    expect(reset.status).toBe(200)
-    expect((await post('/sign-in/email', { email, password: 'cocina-1234' })).status).toBe(401)
-    expect((await post('/sign-in/email', { email, password: 'nueva-clave-5678' })).status).toBe(200)
+    expect(await cuentas.usuario(conToken('no-es-un-jwt'))).toBeNull()
+    expect(await cuentas.usuario(conToken(await firmar({}, { exp: '-1m' })))).toBeNull()
+    expect(
+      await cuentas.usuario(conToken(await firmar({}, { iss: 'https://otro.supabase.co/auth/v1' })))
+    ).toBeNull()
+    expect(await cuentas.usuario(conToken(await otraFirma()))).toBeNull()
+    expect(await cuentas.usuario(conToken(await firmar({ is_anonymous: true })))).toBeNull()
+    expect(await cuentas.usuario(conToken(await firmar({ role: 'anon' })))).toBeNull()
   })
 })

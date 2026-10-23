@@ -8,7 +8,8 @@ import { ERRORES_PROVEEDOR, esquemaCodigoErrorProveedor } from '@shared/ia/error
 
 /** Sesión de la cuenta (src/main/cuenta.ts): token para el backend y aviso si lo rechaza. */
 export interface SesionBackend {
-  token(): string | null
+  /** JWT vigente (main lo renueva si está a punto de caducar), o `null` sin sesión. */
+  token(): Promise<string | null>
   caducada(): void
 }
 
@@ -38,15 +39,15 @@ export function crearClienteBackend(
   instalacion: string,
   solicitar: typeof fetch = fetch,
   ahora: () => number = Date.now,
-  sesion: SesionBackend = { token: () => null, caducada: () => {} }
+  sesion: SesionBackend = { token: async () => null, caducada: () => {} }
 ): {
   pedirTokenVoz: () => Promise<RespuestaTokenVoz>
   narrar: (texto: string) => Promise<AudioNarracion | null>
   conversar: (peticion: PeticionChat) => Promise<RespuestaChat>
 } {
   const base = validarApiUrl(apiUrl)
-  const cabeceras = (): Record<string, string> => {
-    const token = sesion.token()
+  const cabeceras = async (): Promise<Record<string, string>> => {
+    const token = await sesion.token()
     return {
       'content-type': 'application/json',
       'x-instalacion': instalacion,
@@ -63,7 +64,7 @@ export function crearClienteBackend(
           new URL(`${base.pathname.replace(/\/$/, '')}/chat`, base.origin),
           {
             method: 'POST',
-            headers: cabeceras(),
+            headers: await cabeceras(),
             body: JSON.stringify(peticion),
             redirect: 'error',
             signal: AbortSignal.timeout(30_000)
@@ -106,7 +107,7 @@ export function crearClienteBackend(
         new URL(`${base.pathname.replace(/\/$/, '')}/voz/narrar`, base.origin),
         {
           method: 'POST',
-          headers: cabeceras(),
+          headers: await cabeceras(),
           body: JSON.stringify({ texto }),
           redirect: 'error',
           signal: AbortSignal.timeout(25_000)
@@ -126,7 +127,7 @@ export function crearClienteBackend(
       try {
         respuesta = await solicitar(url, {
           method: 'POST',
-          headers: cabeceras(),
+          headers: await cabeceras(),
           body: '{}',
           redirect: 'error',
           signal: AbortSignal.timeout(10_000)
