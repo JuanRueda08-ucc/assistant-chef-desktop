@@ -13,6 +13,8 @@ interface EventosVoz {
   disponible: () => boolean
   aplicar: (llamada: LlamadaHerramienta) => Promise<ResultadoHerramienta | null>
   decir: (texto: string) => void
+  /** Se lee el paso en voz alta: el avatar habla y el globo sigue mostrando el consejo. */
+  narrando: () => void
   temporizadores: () => void
   confirmar: (texto: string | null) => void
   estado: (estado: EstadoVoz) => void
@@ -158,7 +160,7 @@ export class ControlVoz {
     clearTimeout(this.reloj)
     this.reproductor?.interrumpir()
     this.cambiar('hablando')
-    this.eventos.decir(paso.textoVoz ?? paso.texto)
+    this.eventos.narrando()
     try {
       let natural = false
       try {
@@ -174,9 +176,7 @@ export class ControlVoz {
       }
       if (!vigente()) return
       if (!natural) {
-        this.eventos.error(
-          'Usando la voz local de respaldo. La voz natural necesita Gemini configurado y conexión.'
-        )
+        this.eventos.error('Voz local de respaldo: la voz natural no está disponible.')
         const r = await this.api.voz.repetir({})
         if (!r.ok && vigente()) this.eventos.error(r.mensaje)
       }

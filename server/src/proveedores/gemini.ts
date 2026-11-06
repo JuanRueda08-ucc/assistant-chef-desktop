@@ -8,6 +8,7 @@ import {
   MODELO_GEMINI_LIVE,
   MODELO_TEXTO,
   MODELO_TEXTO_RESPALDO,
+  PAUSA_MODELO_MS,
   VERSION_GEMINI,
   VOZ_GEMINI
 } from '@shared/ia/gemini'
@@ -114,6 +115,7 @@ export class ProveedorGemini implements ProveedorIA {
   }
   private readonly solicitar: typeof fetch
   private readonly ahora: () => number
+  private principalPausadoHasta = 0
 
   constructor(
     private readonly clave: string,
@@ -198,6 +200,8 @@ export class ProveedorGemini implements ProveedorIA {
    * con el de respaldo. Es seguro repetir aquí: la app aún no ha recibido ni aplicado nada.
    */
   private async generar(cuerpo: unknown): Promise<unknown> {
+    // Si acaba de fallar, no se pierden otros 8 s en cada llamada de un mismo turno.
+    if (this.ahora() < this.principalPausadoHasta) return this.conRespaldo(cuerpo)
     try {
       return await this.post(`models/${MODELO_TEXTO}:generateContent`, cuerpo, ESPERA_MODELO_MS)
     } catch (error) {
@@ -205,12 +209,13 @@ export class ProveedorGemini implements ProveedorIA {
         error instanceof ErrorProveedor &&
         (error.codigo === 'proveedor_saturado' || error.codigo === 'proveedor_timeout')
       if (!reintentable) throw error
-      return this.post(
-        `models/${MODELO_TEXTO_RESPALDO}:generateContent`,
-        cuerpo,
-        ESPERA_RESPALDO_MS
-      )
+      this.principalPausadoHasta = this.ahora() + PAUSA_MODELO_MS
+      return this.conRespaldo(cuerpo)
     }
+  }
+
+  private conRespaldo(cuerpo: unknown): Promise<unknown> {
+    return this.post(`models/${MODELO_TEXTO_RESPALDO}:generateContent`, cuerpo, ESPERA_RESPALDO_MS)
   }
 
   private async post(ruta: string, cuerpo: unknown, esperaMs = 20_000): Promise<unknown> {

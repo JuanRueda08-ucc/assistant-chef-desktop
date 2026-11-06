@@ -16,6 +16,12 @@
   $effect(() => {
     if (app.chatAbierto) entrada?.focus()
   })
+  // Cada mensaje nuevo, estado o error debe quedar a la vista.
+  let mensajes: HTMLDivElement | undefined = $state()
+  $effect(() => {
+    void [app.conversacion.length, app.chatOcupado, app.chatError]
+    if (mensajes) mensajes.scrollTop = mensajes.scrollHeight
+  })
   async function enviar(): Promise<void> {
     const consulta = texto.trim()
     if (!consulta || app.chatOcupado || app.ocupado) return
@@ -41,7 +47,7 @@
       >
     </header>
     {#if app.chatSimulado}<p class="aviso">Modo de prueba: el chef responde sin Gemini.</p>{/if}
-    <div class="mensajes" aria-live="polite" aria-label="Conversación">
+    <div class="mensajes" bind:this={mensajes} aria-live="polite" aria-label="Conversación">
       {#each app.conversacion as turno, i (i)}
         <p class="tu"><span class="quien">Tú</span>{turno.pregunta}</p>
         <p class="chef"><span class="quien">Chef</span>{turno.respuesta}</p>

@@ -10,6 +10,8 @@ export const VOZ_GEMINI = 'Sulafat'
  */
 export const MODELO_TEXTO = 'gemini-3.8-flash'
 export const MODELO_TEXTO_RESPALDO = 'gemini-3.5-flash-lite'
+/** Tras un fallo del principal se usa directamente el de respaldo durante este tiempo. */
+export const PAUSA_MODELO_MS = 5 * 60 * 1000
 /** Tiempo máximo por intento: los dos juntos quedan por debajo de los 30 s que espera main. */
 export const ESPERA_MODELO_MS = 8_000
 export const ESPERA_RESPALDO_MS = 15_000
@@ -22,6 +24,9 @@ export const INSTRUCCIONES_CHEF = [
   'En Preparar y Elegir interpreta los ingredientes del usuario con el catálogo, cambia solo las preferencias que pida y busca con las herramientas. No inventes recetas disponibles ni ingredientes del catálogo. Si falta algo o es ambiguo, pregunta.',
   'Para listas de alergias/restricciones conserva las anteriores salvo que el usuario pida retirarlas. Solo elige una receta cuando el usuario lo solicite.',
   'El contexto compacto de la app es la fuente de verdad. No inventes cantidades ni tiempos.',
+  'Seguridad alimentaria: nunca afirmes ni sugieras, ni siquiera con «por lo general» o «suele», que un ingrediente o receta no tiene un alérgeno, no tiene gluten, es vegano, vegetariano, seguro o que evita algo por completo, aunque te lo pregunten directamente o creas saberlo. Di que no puedes confirmarlo y pide revisar la etiqueta. Solo la app calcula alérgenos y dietas.',
+  'Si la persona menciona una alergia, una intolerancia, ser celíaca o una dieta, tu respuesta debe ser llamar a cambiar_preferencias conservando lo anterior (maní es cacahuete; celíaca es alergia a gluten y dieta sin_gluten). Sin esa llamada no queda guardado: nunca digas «anotado» ni «registrado» si no has recibido su resultado.',
+  'Al proponer una receta, di qué ingredientes le faltan según faltantes; no la presentes como hecha con lo que tiene si le falta algo.',
   'Cambia el estado solo mediante las herramientas y espera su resultado antes de afirmar un cambio.',
   'Pedir una explicación, ayuda o repetir una instrucción no pide cambiar de paso. Explica el paso actual del contexto; usa navegación solo si el usuario solicita explícitamente avanzar, retroceder o ir a otro paso.',
   'Nunca avances porque termina un temporizador: pregunta primero.',

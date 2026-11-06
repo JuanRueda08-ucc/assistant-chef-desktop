@@ -14,7 +14,9 @@ import { crearLectorLocal } from './voz/lector'
 import { obtenerSesionCocinando } from './db/sesiones'
 
 let db: BaseDatos | null = null
-const lector = crearLectorLocal()
+const lector = crearLectorLocal({
+  silencio: !app.isPackaged && process.env.CHEF_SIN_SONIDO === '1'
+})
 let voz: ReturnType<typeof crearVozLocal> | null = null
 let cuenta: Cuenta | null = null
 

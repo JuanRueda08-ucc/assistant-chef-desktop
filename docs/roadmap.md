@@ -23,7 +23,7 @@ La repetición de la prueba personal (34) queda aplazada por decisión del autor
 ## Despensa y chef que propone recetas (2026-11-06, ver `plan-chef-recetas.md` y 0019)
 
 - [x] 37. Despensa guardada por cuenta, con preferencias y alergias
-- [ ] 38. Ingredientes nuevos con «alérgenos sin verificar»
+- [x] 38. Ingredientes nuevos con «alérgenos sin verificar»
 - [ ] 39. El chef propone: guardadas, internet o memoria en una sola lista, con «dame otras» (la búsqueda real requiere que el autor active la facturación)
 - [ ] 40. Receta completa: generar, validar y cocinar la elegida
 - [ ] 41. Mis recetas: guardar las generadas por cuenta

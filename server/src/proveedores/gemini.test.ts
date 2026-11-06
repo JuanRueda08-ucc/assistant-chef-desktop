@@ -1,5 +1,10 @@
 import { describe, expect, it, vi } from 'vitest'
-import { MODELO_GEMINI_LIVE, MODELO_TEXTO, MODELO_TEXTO_RESPALDO } from '@shared/ia/gemini'
+import {
+  MODELO_GEMINI_LIVE,
+  MODELO_TEXTO,
+  MODELO_TEXTO_RESPALDO,
+  PAUSA_MODELO_MS
+} from '@shared/ia/gemini'
 import { crearApp } from '../app'
 import { AlmacenMemoria, Limitador } from '../limite'
 import { cuentasFalsas, cuerpoReceta, cuerpoSustitucion, post, T0 } from '../fixtures.test-utils'
@@ -155,6 +160,29 @@ describe('ProveedorGemini (transporte simulado, sin red)', () => {
     expect(String(solicitar.mock.calls[0]![0])).toContain(`models/${MODELO_TEXTO}:`)
     expect(String(solicitar.mock.calls[1]![0])).toContain(`models/${MODELO_TEXTO_RESPALDO}:`)
     expect(solicitar.mock.calls[1]![1]!.body).toBe(solicitar.mock.calls[0]![1]!.body)
+  })
+  it('tras un fallo usa directamente el respaldo unos minutos y luego vuelve a probar', async () => {
+    let ahora = T0
+    const ok = (): Response =>
+      json({ candidates: [{ content: { role: 'model', parts: [{ text: 'Hola' }] } }] })
+    const solicitar = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(json({ error: { message: 'x' } }, 503))
+      .mockImplementation(async () => ok())
+    const proveedor = new ProveedorGemini('solo-test', { fetch: solicitar, ahora: () => ahora })
+    const peticion = {
+      pantalla: 'preparar' as const,
+      contexto: '{}',
+      mensajes: [{ role: 'user' as const, parts: [{ text: 'hola' }] }]
+    }
+    await proveedor.conversar(peticion)
+    await proveedor.conversar(peticion)
+    const modelos = (): string[] => solicitar.mock.calls.map((c) => String(c[0]))
+    expect(modelos()).toHaveLength(3)
+    expect(modelos()[2]).toContain(MODELO_TEXTO_RESPALDO)
+    ahora += PAUSA_MODELO_MS + 1
+    await proveedor.conversar(peticion)
+    expect(modelos()[3]).toContain(`models/${MODELO_TEXTO}:`)
   })
   it('no repite con el respaldo si Google rechaza la petición o la cuota', async () => {
     for (const estado of [400, 429]) {

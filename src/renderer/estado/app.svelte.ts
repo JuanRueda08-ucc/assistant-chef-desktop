@@ -11,6 +11,7 @@ import {
 import { aplicarSeleccion, ARGUMENTOS_SELECCION, type NombreSeleccion } from '@shared/ia/seleccion'
 import type { ContenidoChat } from '@shared/ia/chat'
 import { ejecutarTurnoChat } from '../lib/chat'
+import { notaPreferencias } from '@shared/ia/nota-preferencias'
 import { interpretarOrden } from '@shared/ia/ordenes'
 import {
   hayIngredientesSeleccionados,
@@ -99,6 +100,10 @@ class EstadoApp {
     if (this.pantallaConversacion !== pantallaTurno) this.turnos = []
     this.pantallaConversacion = pantallaTurno
     let huella = this.huella()
+    const saludAntes = $state.snapshot({
+      alergias: this.preferencias.alergias,
+      restricciones: this.preferencias.restricciones
+    })
     const vigente = (): void => {
       if (huella !== this.huella() || this.ocupado)
         throw new Error(
@@ -189,10 +194,11 @@ class EstadoApp {
           ? [...this.turnos, turno.mensajes.slice(anteriores.length)].slice(-2)
           : []
       this.chatSimulado = turno.simulado
-      this.conversacion = [...this.conversacion, { pregunta: texto, respuesta: turno.texto }].slice(
-        -12
-      )
-      this.decir(turno.texto)
+      // Lo guardado de verdad se añade desde el estado, no desde lo que diga el modelo (0019).
+      const nota = notaPreferencias(texto, saludAntes, this.preferencias)
+      const respuesta = nota ? `${turno.texto} ${nota}`.trim() : turno.texto
+      this.conversacion = [...this.conversacion, { pregunta: texto, respuesta }].slice(-12)
+      this.decir(respuesta)
     } catch (e) {
       this.chatError = mensaje(e)
       // Un fallo puede haber aplicado herramientas; no se reintenta el turno automáticamente.
@@ -325,6 +331,11 @@ class EstadoApp {
   }
 
   /** Muestra lo que dice el chef; la narración del paso se gestiona en ControlVoz. */
+  /** El chef lee el paso en voz alta: habla sin cambiar lo que dice su globo. */
+  chefHabla(): void {
+    this.mostrarAvatar({ accion: 'hablar' })
+  }
+
   decir(texto: string): void {
     this.globo = texto
     this.mostrarAvatar({ accion: 'hablar' })

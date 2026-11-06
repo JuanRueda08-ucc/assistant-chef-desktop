@@ -53,6 +53,7 @@
       return r
     },
     decir: (texto) => app.decir(texto),
+    narrando: () => app.chefHabla(),
     temporizadores: () => abrirTemporizadores(),
     confirmar: (texto) => {
       confirmarVoz = texto
@@ -491,14 +492,14 @@
             seleccionado={microfonoActivo}
             onclick={() => (microfonoActivo ? voz.detener() : voz.iniciar())}
           >
-            <Icono nombre="microfono" />{microfonoActivo ? 'Apagar micrófono' : 'Activar micrófono'}
+            <Icono nombre="microfono" />Micrófono: {microfonoActivo ? 'sí' : 'no'}
           </Chip>
           <Chip
             seleccionado={narracionActiva}
             onclick={() => {
               narracionActiva = !narracionActiva
               if (!narracionActiva) voz.callar()
-            }}>{narracionActiva ? 'Voz del chef activada' : 'Voz del chef silenciada'}</Chip
+            }}>Voz: {narracionActiva ? 'sí' : 'no'}</Chip
           >
           {#if estadoVoz === 'local'}<Chip onclick={() => voz.activar()}>Hablar al chef</Chip>{/if}
           <small role="status"
@@ -967,6 +968,55 @@
   .contador button:disabled {
     opacity: 0.4;
     cursor: default;
+  }
+
+  /* Ventanas bajas: el número ya está en «Paso N de M» y el texto gana sitio. */
+  @media (max-height: 780px) {
+    .cocinar {
+      gap: var(--espacio-3);
+    }
+    .paso {
+      padding: var(--espacio-4) var(--espacio-5);
+      gap: var(--espacio-2);
+    }
+    .paso-num {
+      display: none;
+    }
+    .paso-texto {
+      font-size: var(--texto-xl);
+      max-width: none;
+    }
+    .senal {
+      font-size: var(--texto-m);
+    }
+    .seguridad {
+      font-size: var(--texto-s);
+      padding: var(--espacio-2) var(--espacio-3);
+    }
+    .paso-ing {
+      gap: var(--espacio-2);
+    }
+    .paso-ing li {
+      padding: 6px var(--espacio-3);
+    }
+    .paso-ing b {
+      font-size: var(--texto-m);
+    }
+    .paso-ing small {
+      font-size: var(--texto-xs);
+    }
+    .chef {
+      gap: var(--espacio-2);
+    }
+    .controles-voz {
+      padding: var(--espacio-2);
+    }
+    .accion {
+      min-height: 52px;
+    }
+    .accion.principal {
+      min-height: 60px;
+    }
   }
 
   /* Final */

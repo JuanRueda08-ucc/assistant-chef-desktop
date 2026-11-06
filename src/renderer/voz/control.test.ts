@@ -76,6 +76,7 @@ function banco(): {
     disponible: () => sesion.fase === 'cocinar',
     aplicar: vi.fn().mockResolvedValue(null),
     decir: vi.fn(),
+    narrando: vi.fn(),
     temporizadores: vi.fn(),
     confirmar: vi.fn(),
     estado: vi.fn(),

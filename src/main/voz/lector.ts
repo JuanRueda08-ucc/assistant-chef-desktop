@@ -2,10 +2,12 @@ import { spawn, type ChildProcess } from 'node:child_process'
 import type { ResultadoVozLocal } from '@shared/types/voz'
 
 /** Lectura del paso con la voz instalada del sistema, sin Web Speech ni llamadas a IA. */
-export function crearLectorLocal(): {
+export function crearLectorLocal(opciones: { silencio?: boolean } = {}): {
   leer: (texto: string) => Promise<ResultadoVozLocal>
   detener: () => void
 } {
+  // Para probar sin sonido: --mute-audio de Electron no alcanza a este programa externo.
+  if (opciones.silencio) return { detener: () => {}, leer: async () => ({ ok: true }) }
   let proceso: ChildProcess | null = null
   return {
     detener() {

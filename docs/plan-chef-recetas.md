@@ -25,8 +25,8 @@ La app debe ser muy funcional e interactiva. Una persona entra, reúne sus ingre
 ## Orden de trabajo
 
 - [x] Modo de desarrollo sin cuenta y 18 recetas en borrador (0018).
-- [ ] **Tarea 37. Despensa guardada** por cuenta, junto con preferencias y alergias.
-- [ ] **Tarea 38. Ingredientes nuevos** con «alérgenos sin verificar».
+- [x] **Tarea 37. Despensa guardada** por cuenta, junto con preferencias y alergias.
+- [x] **Tarea 38. Ingredientes nuevos** con «alérgenos sin verificar». Falta crear el ingrediente real al guardar una receta generada (tareas 40 y 41).
 - [ ] **Tarea 39. El chef propone:** guardadas, internet o memoria en una sola lista, con «dame otras».
 - [ ] **Tarea 40. Receta completa:** generar, validar y cocinar la elegida; sustituye a la tarea 17.
 - [ ] **Tarea 41. Mis recetas:** guardar las generadas por cuenta.
@@ -38,8 +38,14 @@ Comprobado el 2026-11-06 con la clave del autor: Gemini responde sin búsqueda, 
 
 - **Activarla:** recarga mínima de **5 USD**, en prepago y **sin recarga automática**. Al llegar a 0 USD, las claves se detienen en vez de cobrar. El saldo no se devuelve y caduca a los 12 meses.
 - **Precios:** 5.000 búsquedas gratis al mes y 14 USD por cada 1.000 más; máximo 1.500 al día. Con facturación, el proyecto pasa a plan de pago y también se cobra el texto: `gemini-3.5-flash-lite` 0,30/2,50 USD y `gemini-3.8-flash` 0,75/3,75 USD por millón de tokens de entrada/salida (el segundo se duplica desde el 1 de enero de 2027).
-- **Cuándo:** el autor puede pagarlo, pero no todavía. **No bloquea:** solo hace falta para probar la búsqueda real en la tarea 39. Hasta entonces, la app usa el modo de memoria.
+- **Cuándo:** el autor la activará **antes de la tarea 39**; avisarle al llegar. Antes no se usa, y hasta entonces la app usa el modo de memoria.
 - **Alternativas revisadas:** OpenAI y Anthropic, 10 USD por 1.000 búsquedas; Grok, unos 5 USD (fuente de terceros); Kimi, 2 a 3 USD; DeepSeek, unos 5 yuanes (fuente de terceros). Se descartan por ahora porque habría que adaptar chat, narración y voz. Las bibliotecas TheMealDB, Spoonacular y Edamam se descartan por idioma, límites o instrucciones ausentes.
+
+## Lo que enseñaron las pruebas con Gemini real (2026-11-06)
+
+- **El modelo no es fiable para la seguridad.** Dijo «he anotado tu alergia» sin llamar a la herramienta, y guardó solo una parte de «soy vegetariano y no como lácteos». Por eso `nota-preferencias.ts` añade al chat lo guardado de verdad, calculado del estado. No depender solo del texto de las instrucciones en nada de seguridad: las recetas generadas (tareas 39 y 40) necesitan la misma red de seguridad en código.
+- **Saturación:** `gemini-3.8-flash` responde 503 o tarda más de 80 s. Tras un fallo se usa `gemini-3.5-flash-lite` durante 5 minutos, lo que bajó el chat de 10–29 s a unos 3–6 s, con algún turno más lento (hasta 14 s).
+- **Límite por minuto:** varias peticiones seguidas dan 429 en el plan gratis. Tenerlo en cuenta al proponer varias recetas. Puede cambiar con la facturación.
 
 ## Pendiente con el autor
 
@@ -50,4 +56,10 @@ Comprobado el 2026-11-06 con la clave del autor: Gemini responde sin búsqueda, 
 
 ## Entrenar un modelo propio
 
-Caso **hipotético**: el autor no lo pide. La app no aplica machine learning: Gemini ya viene entrenado por Google y no aprende de las recetas. Lo que crece es la colección guardada.
+Caso **hipotético** y **trabajo aparte**, no incluido en estas tareas. La app no aplica machine learning: Gemini ya viene entrenado por Google y no aprende de las recetas. Lo que crece es la colección guardada.
+
+Al autor le gustan dos ideas para más adelante:
+- **Recomendador:** aprende qué recetas gustan a partir de las elecciones del usuario. Necesita datos de uso.
+- **Clasificador de ingredientes:** adivina la categoría de un ingrediente nuevo. Nunca decidiría sus alérgenos.
+
+Requeriría Python y PyTorch fuera de la app (el stack actual excluye Python) y exportar el modelo o publicarlo como servicio.

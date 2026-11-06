@@ -15,7 +15,7 @@ export const NOMBRE_ALERGENO: Record<Alergeno, string> = {
   crustaceos: 'Crustáceos',
   huevo: 'Huevo',
   pescado: 'Pescado',
-  cacahuete: 'Cacahuete',
+  cacahuete: 'Cacahuete (maní)',
   soja: 'Soja',
   lacteos: 'Lácteos',
   frutos_secos: 'Frutos secos',
