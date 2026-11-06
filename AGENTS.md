@@ -8,11 +8,11 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 
 ## Antes de empezar una tarea
 
-1. Lee `docs/estado.md`: qué está hecho, qué está a medias y cuál es la siguiente tarea.
+1. Lee `docs/estado.md` y `docs/plan-chef-recetas.md` (plan vigente acordado con el autor): qué está hecho, qué está a medias y cuál es la siguiente tarea.
 2. Lee el documento de `docs/` del área que vas a tocar (índice en `docs/README.md`).
 3. Si la tarea contradice una decisión de `docs/decisiones/`, para y pregunta en vez de cambiarla en silencio.
 
-**Prioridad actual (0011–0014):** organización de pantallas aplicada y aprobada por el autor el 2026-10-22 (27 y 30). La repetición de la prueba de voz (34) está aplazada por el autor. Los básicos de despensa se siguen asumiendo (0014). Lista libre de ingredientes hecha (28, 0015); lo «sin identificar» nunca cuenta para buscar ni para etiquetas. Cuentas con Supabase Auth y backend como Edge Function (0017, sustituye a 0016): aplazado por el autor; sin esos datos se trabaja en modo sin cuenta (0018). Recetas (18): escritas en borrador, falta revisión del autor y fotos. El autor está en público; hacer verificaciones sin abrir su micrófono ni reproducir sonido. Leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. Conservar Mostaza y organizar las pantallas existentes, sin repetir maquetas del flujo completo. Plantear ingredientes libres por búsqueda o chat y revisar la lista antes de elegir receta. Cuentas: Supabase Auth (0017); pasos de despliegue en `docs/despliegue.md`. Las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. Las verificaciones técnicas del agente no completan la aceptación personal de voz.
+**Prioridad actual (0011–0019):** despensa y chef que propone recetas guardadas, de internet o de memoria; ingredientes fuera del catálogo con «alérgenos sin verificar» (`docs/plan-chef-recetas.md`). organización de pantallas aplicada y aprobada por el autor el 2026-10-22 (27 y 30). La repetición de la prueba de voz (34) está aplazada por el autor. Los básicos de despensa se siguen asumiendo (0014). Lista libre de ingredientes hecha (28, 0015); lo «sin identificar» nunca cuenta para buscar ni para etiquetas. Cuentas con Supabase Auth y backend como Edge Function (0017, sustituye a 0016): aplazado por el autor; sin esos datos se trabaja en modo sin cuenta (0018). Recetas (18): escritas en borrador, falta revisión del autor y fotos. El autor está en público; hacer verificaciones sin abrir su micrófono ni reproducir sonido. Leer `docs/replanteamiento-v1.md` antes de continuar con pantallas o recetas generadas. Conservar Mostaza y organizar las pantallas existentes, sin repetir maquetas del flujo completo. Plantear ingredientes libres por búsqueda o chat y revisar la lista antes de elegir receta. Cuentas: Supabase Auth (0017); pasos de despliegue en `docs/despliegue.md`. Las reglas actuales de catálogo/despensa describen el prototipo hasta revisar su contrato. Las verificaciones técnicas del agente no completan la aceptación personal de voz.
 
 ## Al terminar una tarea
 
@@ -35,7 +35,7 @@ Chef digital de escritorio (Windows, macOS, Linux): un asistente culinario visua
 
 ```
 src/main/        proceso principal de Electron: ventana, SQLite, IPC
-  db/            conexión SQLite, carga de semillas, repositorios (recetas, catalogo, busqueda)
+  db/            conexión SQLite, carga de semillas, repositorios (recetas, catalogo, busqueda, preferencias)
   ipc.ts         handlers de los canales IPC
   cocina.ts      sesión de cocina: iniciar, retomar y aplicar herramientas guardando en SQLite
   instalacion.ts UUID persistente en userData/instalacion-id

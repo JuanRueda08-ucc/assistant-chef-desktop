@@ -140,3 +140,10 @@ CREATE TABLE IF NOT EXISTS sesiones (
 -- Solo una sesión en fase `cocinar` a la vez por cuenta.
 CREATE UNIQUE INDEX IF NOT EXISTS sesiones_una_cocinando_por_usuario
   ON sesiones (usuario_id) WHERE fase = 'cocinar';
+
+-- Despensa, preferencias y alergias de cada cuenta (decisión 0019): un objeto `Preferencias`.
+CREATE TABLE IF NOT EXISTS preferencias_usuario (
+  usuario_id     TEXT PRIMARY KEY,
+  datos          TEXT NOT NULL CHECK (json_valid(datos)),
+  actualizada_en TEXT NOT NULL
+);

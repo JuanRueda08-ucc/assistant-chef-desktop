@@ -20,6 +20,15 @@ El autor solicita conservar Mostaza y organizar mejor las pantallas existentes, 
 
 La repetición de la prueba personal (34) queda aplazada por decisión del autor. La organización de pantallas (27 y 30) está aplicada y aprobada por el autor. Después concretar contratos de ingredientes/autenticación y coordinar 28–30. Comparación inicial en `autenticacion-opciones.md`; finalistas Better Auth y Supabase Auth. Retomar 17 sobre los contratos revisados; 18–20 siguen pendientes.
 
+## Despensa y chef que propone recetas (2026-11-06, ver `plan-chef-recetas.md` y 0019)
+
+- [x] 37. Despensa guardada por cuenta, con preferencias y alergias
+- [ ] 38. Ingredientes nuevos con «alérgenos sin verificar»
+- [ ] 39. El chef propone: guardadas, internet o memoria en una sola lista, con «dame otras» (la búsqueda real requiere que el autor active la facturación)
+- [ ] 40. Receta completa: generar, validar y cocinar la elegida
+- [ ] 41. Mis recetas: guardar las generadas por cuenta
+- [ ] 42. Chat y voz para pedir todo lo anterior
+
 ## Base
 - [x] 1. Proyecto electron-vite con Svelte + TypeScript, Vitest, ESLint, Prettier; comandos en `AGENTS.md`
 - [x] 2. SQLite en el proceso principal: crear desde `db/schema.sql`, cargar semillas validadas (zod) e IPC tipado
@@ -45,7 +54,7 @@ La repetición de la prueba personal (34) queda aplazada por decisión del autor
 - [x] 14. `server/`: `POST /voz/token`, `POST /recetas/generar`, `POST /sustituciones/sugerir`
 - [x] 15. Órdenes cortas locales con Vosk (chef, siguiente, atrás, repite, pausa, listo)
 - [x] 16. Sesión de voz en tiempo real con Gemini Live y las herramientas del chef (adaptador `gemini` en `server/`; token, conexión y audio reales comprobados el 2026-10-20)
-- [ ] 17. Recetas generadas: validación, reintento y etiqueta en la interfaz
+- [ ] 17. Recetas generadas: validación, reintento y etiqueta en la interfaz (se resuelve con las tareas 38 a 42)
 
 ## Chat con el chef (decisión 0007)
 - [x] 21. Chat de texto en Cocinar con las 9 herramientas actuales

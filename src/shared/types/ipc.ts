@@ -29,6 +29,8 @@ export const CANALES_IPC = {
   recetasListar: 'recetas:listar',
   recetasObtener: 'recetas:obtener',
   recetasBuscar: 'recetas:buscar',
+  preferenciasLeer: 'preferencias:leer',
+  preferenciasGuardar: 'preferencias:guardar',
   sesionRetomar: 'sesion:retomar',
   sesionIniciar: 'sesion:iniciar',
   sesionAplicar: 'sesion:aplicar',
@@ -100,6 +102,11 @@ export interface ApiChef {
     listar(): Promise<ResumenReceta[]>
     obtener(id: string): Promise<Receta | null>
     buscar(preferencias: Preferencias): Promise<ResultadoBusqueda>
+  }
+  /** Despensa, preferencias y alergias guardadas de la cuenta (decisión 0019). */
+  preferencias: {
+    leer(): Promise<Preferencias | null>
+    guardar(preferencias: Preferencias): Promise<void>
   }
   sesion: {
     /** La sesión de la cuenta que estaba cocinando (temporizadores al día), o `null`. */

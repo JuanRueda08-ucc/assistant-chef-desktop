@@ -7,6 +7,7 @@
 | [producto.md](producto.md) | Problema, usuarios, alcance de la v1 |
 | [replanteamiento-v1.md](replanteamiento-v1.md) | Organización de las pantallas existentes conservando Mostaza, ingredientes por búsqueda/chat, cuentas reales y prueba de voz pendiente |
 | [autenticacion-opciones.md](autenticacion-opciones.md) | Comparación de Supabase Auth, Firebase Authentication y Better Auth; elegido Supabase Auth (0017) |
+| [plan-chef-recetas.md](plan-chef-recetas.md) | **Plan vigente:** despensa y chef que propone recetas guardadas, de internet o de memoria; lo pedido por el autor, costos y orden de tareas |
 | [despliegue.md](despliegue.md) | Pasos del autor para crear el proyecto de Supabase, el correo de los códigos y desplegar la función |
 | [arquitectura.md](arquitectura.md) | Procesos, capas y flujo de datos |
 | [modelo-recetas.md](modelo-recetas.md) | Receta, paso, catálogo, escalado, sustituciones, búsqueda |

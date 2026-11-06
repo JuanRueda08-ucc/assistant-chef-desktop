@@ -57,6 +57,10 @@ Ninguna modifica la receta que recibe. Detalles que no están en las secciones d
 3. **Unidades canónicas métricas.** Se guarda en `g`, `ml` o `unidad` (más `pizca` y `al_gusto`, que no escalan). La interfaz convierte a unidades caseras (cucharada, taza) solo al mostrar.
 4. **El paso es la unidad de la cocina.** Todo lo que el chef dice o muestra en modo cocina sale del paso actual.
 
+## Despensa y preferencias
+
+La tabla `preferencias_usuario` guarda por cuenta un objeto `Preferencias` en JSON: ingredientes, ingredientes sin identificar, porciones, restricciones, alergias, tiempo, nivel y equipo (decisión 0019). Se valida con `esquemaPreferencias`.
+
 ## Receta
 
 | Campo | Tipo | Notas |

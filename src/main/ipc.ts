@@ -20,6 +20,7 @@ import { buscarEnBase } from './db/busqueda'
 import { listarIngredientes } from './db/catalogo'
 import type { BaseDatos } from './db/conexion'
 import { listarRecetas, obtenerReceta } from './db/recetas'
+import { guardarPreferencias, leerPreferencias } from './db/preferencias'
 import { obtenerSesionCocinando } from './db/sesiones'
 import type { crearClienteBackend } from './backend'
 import { fallo, type Cuenta } from './cuenta'
@@ -219,6 +220,14 @@ export function registrarIpc(
     CANALES_IPC.recetasBuscar,
     (_evento, preferencias: unknown): Resultado<ApiChef['recetas']['buscar']> =>
       buscarEnBase(db, esquemaPreferencias.parse(preferencias), opciones.verBorradores)
+  )
+
+  ipcMain.handle(CANALES_IPC.preferenciasLeer, (): Resultado<ApiChef['preferencias']['leer']> =>
+    leerPreferencias(db, usuarioId())
+  )
+
+  ipcMain.handle(CANALES_IPC.preferenciasGuardar, (_evento, preferencias: unknown): void =>
+    guardarPreferencias(db, usuarioId(), esquemaPreferencias.parse(preferencias), Date.now())
   )
 
   ipcMain.handle(CANALES_IPC.sesionRetomar, (): Resultado<ApiChef['sesion']['retomar']> =>

@@ -15,6 +15,18 @@
     app.arrancar()
   })
 
+  // Guarda la despensa, las preferencias y las alergias poco después de cada cambio.
+  $effect(() => {
+    if (!app.preferenciasCargadas) return
+    const preferencias = $state.snapshot(app.preferencias)
+    const espera = setTimeout(() => {
+      window.api.preferencias.guardar(preferencias).catch((error: unknown) => {
+        console.error('No se pudo guardar la despensa', error)
+      })
+    }, 300)
+    return () => clearTimeout(espera)
+  })
+
   const usuario = $derived(app.cuenta?.usuario ?? null)
   // En Retomar y en la pantalla final no hay nada sobre lo que el chef pueda actuar.
   const chatDisponible = $derived(

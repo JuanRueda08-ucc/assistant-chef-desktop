@@ -165,6 +165,16 @@
     }
   ])
   let panelPreferencias = $state(false)
+
+  const enDespensa = $derived(lista.length + prefs.ingredientesSinIdentificar.length)
+  let confirmarVaciar = $state(false)
+  function vaciarDespensa(): void {
+    prefs.ingredientes = []
+    prefs.ingredientesSinIdentificar = []
+    dudas = []
+    aviso = null
+    confirmarVaciar = false
+  }
 </script>
 
 <main class="preparar">
@@ -272,12 +282,20 @@
 
   <aside class="preferencias" aria-labelledby="titulo-lista">
     <section class="bloque">
-      <h2 id="titulo-lista">
-        Tu lista <span class="cuantos"
-          >{lista.length + prefs.ingredientesSinIdentificar.length}</span
-        >
-      </h2>
-      {#if lista.length + prefs.ingredientesSinIdentificar.length > 0}
+      <div class="fila">
+        <h2 id="titulo-lista">Mi despensa <span class="cuantos">{enDespensa}</span></h2>
+        {#if enDespensa > 0 && !confirmarVaciar}
+          <button type="button" class="mas" onclick={() => (confirmarVaciar = true)}>Vaciar</button>
+        {/if}
+      </div>
+      {#if confirmarVaciar && enDespensa > 0}
+        <div class="confirmar" role="group" aria-label="Confirmar vaciar la despensa">
+          <span>¿Quitar todos los ingredientes?</span>
+          <button type="button" class="mas" onclick={vaciarDespensa}>Sí, vaciar</button>
+          <button type="button" class="mas" onclick={() => (confirmarVaciar = false)}>No</button>
+        </div>
+      {/if}
+      {#if enDespensa > 0}
         <ul class="lista" aria-label="Ingredientes añadidos">
           {#each lista as ingrediente (ingrediente.id)}
             <li>
@@ -315,7 +333,8 @@
         {/if}
       {:else}
         <p class="ayuda">
-          Aún no has añadido nada. Búscalo, elígelo por categoría o díselo al chef.
+          Tu despensa está vacía. Busca ingredientes, elígelos por categoría o díselos al chef. Se
+          guarda para la próxima vez.
         </p>
       {/if}
       {#if basicos.length > 0}
@@ -722,6 +741,14 @@
     flex-wrap: wrap;
     align-items: center;
     gap: var(--espacio-2);
+    font-weight: 600;
+  }
+  .confirmar {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: var(--espacio-2);
+    font-size: var(--texto-s);
     font-weight: 600;
   }
   .fila {

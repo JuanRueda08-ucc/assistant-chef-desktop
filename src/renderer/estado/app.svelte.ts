@@ -55,6 +55,8 @@ class EstadoApp {
   chatAbierto = $state(false)
   catalogo = $state<Ingrediente[]>([])
   preferencias = $state<Preferencias>(structuredClone(PREFERENCIAS_INICIALES))
+  /** Hasta leer lo guardado no se guarda nada, para no pisar la despensa con la vacía. */
+  preferenciasCargadas = $state(false)
   busqueda = $state<ResultadoBusqueda | null>(null)
   recetaVisibleId = $state<string | null>(null)
   // raw: la sesión llega entera de main en cada cambio y se pasa a funciones de shared que copian.
@@ -216,6 +218,7 @@ class EstadoApp {
 
   /** Cierra la sesión y olvida todo lo de la cuenta anterior que hay en la interfaz. */
   async salir(): Promise<void> {
+    this.preferenciasCargadas = false
     this.cuenta = (await window.api.cuenta.salir()).ok
       ? { usuario: null, sinConexion: false }
       : await window.api.cuenta.estado()
@@ -236,6 +239,16 @@ class EstadoApp {
   private async cargar(): Promise<void> {
     await this.tarea(async () => {
       this.catalogo = await window.api.catalogo.ingredientes()
+      const guardadas = await window.api.preferencias.leer()
+      if (guardadas) {
+        // Un ingrediente retirado del catálogo no debe quedar marcado sin poder verse ni quitarse.
+        const existen = new Set(this.catalogo.map((i) => i.id))
+        this.preferencias = {
+          ...guardadas,
+          ingredientes: guardadas.ingredientes.filter((id) => existen.has(id))
+        }
+      }
+      this.preferenciasCargadas = true
       const sesion = await window.api.sesion.retomar()
       if (sesion) {
         this.sesion = sesion

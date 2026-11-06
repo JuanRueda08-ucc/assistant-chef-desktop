@@ -196,6 +196,17 @@ describe('cuenta IPC', () => {
         error: { mensaje: 'Escribe el código del correo (6 a 10 cifras).' }
       })
 
+      // La despensa se guarda a nombre de la cuenta y se validan los datos.
+      expect(await canal(CANALES_IPC.preferenciasLeer)(null)).toBeNull()
+      const despensa = preferencias({ ingredientes: ['cebolla'] })
+      await canal(CANALES_IPC.preferenciasGuardar)(null, despensa)
+      expect(await canal(CANALES_IPC.preferenciasLeer)(null)).toEqual(despensa)
+      await expect(
+        Promise.resolve().then(() =>
+          canal(CANALES_IPC.preferenciasGuardar)(null, { ingredientes: 'no' })
+        )
+      ).rejects.toThrow()
+
       // La receta de otra cuenta no se retoma.
       guardarSesion(db, sesionNueva(), 'otra')
       expect(await canal(CANALES_IPC.sesionRetomar)(null)).toBeNull()
