@@ -53,6 +53,6 @@ La repetición de la prueba personal (34) queda aplazada por decisión del autor
 - [x] 23. Chat de texto en Preparar y Elegir
 
 ## Entrega
-- [ ] 18. Semilla de 15–30 recetas revisadas con fotos licenciadas
+- [ ] 18. Semilla de 15–30 recetas revisadas con fotos licenciadas (18 recetas escritas en borrador y catálogo de 40 ingredientes el 2026-11-05; falta la revisión del autor y las fotos)
 - [ ] 19. Instaladores (electron-builder) para Windows, macOS y Linux
 - [ ] 20. Medir costo y latencia por sesión de cocina; prueba con ruido real

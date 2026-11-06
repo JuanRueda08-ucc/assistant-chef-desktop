@@ -95,5 +95,200 @@
     "sinonimos": ["laurel"],
     "categoria": "especias",
     "pesoUnidadG": 0.2
+  },
+  {
+    "id": "agua",
+    "nombre": "Agua",
+    "sinonimos": [],
+    "categoria": "despensa",
+    "esBasicoDespensa": true,
+    "densidadGMl": 1
+  },
+  {
+    "id": "huevo",
+    "nombre": "Huevo",
+    "sinonimos": ["huevos"],
+    "categoria": "proteinas",
+    "alergenos": ["huevo"],
+    "pesoUnidadG": 50
+  },
+  {
+    "id": "pechuga_pollo",
+    "nombre": "Pechuga de pollo",
+    "sinonimos": ["pechuga"],
+    "categoria": "proteinas",
+    "dietasIncompatibles": ["vegetariana", "vegana"],
+    "pesoUnidadG": 200
+  },
+  {
+    "id": "carne_molida",
+    "nombre": "Carne molida",
+    "sinonimos": ["carne picada", "molida de res"],
+    "categoria": "proteinas",
+    "dietasIncompatibles": ["vegetariana", "vegana"]
+  },
+  {
+    "id": "filete_pescado",
+    "nombre": "Filete de pescado blanco",
+    "sinonimos": ["pescado", "tilapia", "merluza"],
+    "categoria": "proteinas",
+    "alergenos": ["pescado"],
+    "pesoUnidadG": 150
+  },
+  {
+    "id": "atun_lata",
+    "nombre": "Atún en lata",
+    "sinonimos": ["atún", "atun"],
+    "categoria": "proteinas",
+    "alergenos": ["pescado"]
+  },
+  {
+    "id": "papa",
+    "nombre": "Papa",
+    "sinonimos": ["patata", "papas"],
+    "categoria": "verduras",
+    "pesoUnidadG": 150
+  },
+  {
+    "id": "zanahoria",
+    "nombre": "Zanahoria",
+    "sinonimos": ["zanahorias"],
+    "categoria": "verduras",
+    "pesoUnidadG": 80
+  },
+  {
+    "id": "espinaca",
+    "nombre": "Espinaca",
+    "sinonimos": ["espinacas"],
+    "categoria": "verduras"
+  },
+  {
+    "id": "lechuga",
+    "nombre": "Lechuga",
+    "sinonimos": [],
+    "categoria": "verduras",
+    "pesoUnidadG": 300
+  },
+  {
+    "id": "pepino",
+    "nombre": "Pepino",
+    "sinonimos": ["cohombro"],
+    "categoria": "verduras",
+    "pesoUnidadG": 200
+  },
+  {
+    "id": "cilantro",
+    "nombre": "Cilantro",
+    "sinonimos": ["culantro"],
+    "categoria": "verduras"
+  },
+  {
+    "id": "limon",
+    "nombre": "Limón",
+    "sinonimos": ["lima", "limones"],
+    "categoria": "frutas",
+    "pesoUnidadG": 60
+  },
+  {
+    "id": "queso",
+    "nombre": "Queso fresco o mozzarella",
+    "sinonimos": ["queso", "mozzarella", "quesillo"],
+    "categoria": "lacteos",
+    "alergenos": ["lacteos"]
+  },
+  {
+    "id": "leche",
+    "nombre": "Leche",
+    "sinonimos": [],
+    "categoria": "lacteos",
+    "alergenos": ["lacteos"],
+    "densidadGMl": 1.03
+  },
+  {
+    "id": "mantequilla",
+    "nombre": "Mantequilla",
+    "sinonimos": [],
+    "categoria": "lacteos",
+    "alergenos": ["lacteos"],
+    "densidadGMl": 0.91
+  },
+  {
+    "id": "pasta_seca",
+    "nombre": "Pasta seca",
+    "sinonimos": ["pasta", "espagueti", "macarrones"],
+    "categoria": "cereales",
+    "alergenos": ["gluten"]
+  },
+  {
+    "id": "harina_trigo",
+    "nombre": "Harina de trigo",
+    "sinonimos": ["harina"],
+    "categoria": "cereales",
+    "alergenos": ["gluten"],
+    "densidadGMl": 0.53
+  },
+  {
+    "id": "harina_maiz",
+    "nombre": "Harina de maíz precocida",
+    "sinonimos": ["harina de maíz", "harina para arepas"],
+    "categoria": "cereales",
+    "densidadGMl": 0.6
+  },
+  {
+    "id": "tortilla_trigo",
+    "nombre": "Tortilla de trigo",
+    "sinonimos": ["tortillas", "tortilla mexicana"],
+    "categoria": "cereales",
+    "alergenos": ["gluten"],
+    "pesoUnidadG": 40
+  },
+  {
+    "id": "lentejas",
+    "nombre": "Lentejas",
+    "sinonimos": [],
+    "categoria": "legumbres",
+    "densidadGMl": 0.8
+  },
+  {
+    "id": "garbanzos_cocidos",
+    "nombre": "Garbanzos cocidos",
+    "sinonimos": ["garbanzos"],
+    "categoria": "legumbres",
+    "densidadGMl": 0.65
+  },
+  {
+    "id": "tomate_triturado",
+    "nombre": "Tomate triturado",
+    "sinonimos": ["salsa de tomate", "tomate en lata"],
+    "categoria": "despensa",
+    "densidadGMl": 1.05
+  },
+  {
+    "id": "azucar",
+    "nombre": "Azúcar",
+    "sinonimos": [],
+    "categoria": "despensa",
+    "densidadGMl": 0.85
+  },
+  {
+    "id": "polvo_hornear",
+    "nombre": "Polvo de hornear",
+    "sinonimos": ["levadura química"],
+    "categoria": "despensa",
+    "densidadGMl": 0.9
+  },
+  {
+    "id": "comino",
+    "nombre": "Comino",
+    "sinonimos": [],
+    "categoria": "especias",
+    "densidadGMl": 0.45
+  },
+  {
+    "id": "oregano",
+    "nombre": "Orégano",
+    "sinonimos": [],
+    "categoria": "especias",
+    "densidadGMl": 0.2
   }
 ]

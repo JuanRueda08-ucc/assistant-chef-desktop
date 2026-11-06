@@ -1,0 +1,184 @@
+{
+  "id": "crema_zanahoria",
+  "slug": "crema-zanahoria",
+  "titulo": "Crema de zanahoria",
+  "descripcion": "Crema suave de zanahoria y papa, sin lácteos.",
+  "porcionesBase": 4,
+  "tiempoTotalMin": 40,
+  "tiempoActivoMin": 12,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["olla", "licuadora"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "zanahoria",
+      "cantidad": 600,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en rodajas"
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "papa",
+      "cantidad": 200,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en cubos"
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "cebolla",
+      "cantidad": 120,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "picada"
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "ajo",
+      "cantidad": 1,
+      "unidad": "unidad",
+      "redondeo": 1
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "aceite_oliva",
+      "cantidad": 20,
+      "unidad": "ml",
+      "redondeo": 5,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_6",
+      "ingredienteId": "agua",
+      "cantidad": 900,
+      "unidad": "ml",
+      "redondeo": 50
+    },
+    {
+      "id": "ir_7",
+      "ingredienteId": "sal",
+      "cantidad": 6,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_8",
+      "ingredienteId": "pimienta_negra",
+      "cantidad": null,
+      "unidad": "al_gusto"
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Pela y corta la zanahoria y la papa. Pica la cebolla y el ajo.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 480,
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Calienta el aceite en la olla y sofríe la cebolla y el ajo 4 min a fuego medio.",
+      "textoVoz": "Calienta el aceite en la olla y sofríe la cebolla y el ajo cuatro minutos a fuego medio.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_5",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 240,
+      "temporizador": {
+        "etiqueta": "Sofrito",
+        "segundos": 240
+      },
+      "tecnicaId": "sofreir",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Añade la zanahoria, la papa, el agua y la sal. Cuando hierva, cocina 20 min a fuego lento.",
+      "textoVoz": "Añade la zanahoria, la papa, el agua y la sal. Cuando hierva, cocina veinte minutos a fuego lento.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_6",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_7",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 1200,
+      "temporizador": {
+        "etiqueta": "Verduras",
+        "segundos": 1200
+      },
+      "senalHecho": "cuando la zanahoria se deshaga al pincharla",
+      "tecnicaId": "fuego_lento",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "Licúa por tandas hasta que quede una crema lisa.",
+      "duracionSeg": 180,
+      "tecnicaId": "licuar_caliente",
+      "requiereConfirmacion": true,
+      "seguridad": "Líquido caliente: llena la licuadora solo hasta la mitad y sujeta la tapa con un paño. El vapor puede levantarla."
+    },
+    {
+      "id": "p5",
+      "orden": 5,
+      "texto": "Prueba, ajusta de sal y añade la pimienta.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_8",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 60,
+      "requiereConfirmacion": false
+    }
+  ]
+}

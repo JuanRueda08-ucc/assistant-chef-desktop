@@ -50,14 +50,15 @@ describe('base de datos', () => {
     expect(contar('ingredientes')).toBe(semilla.ingredientes.length)
     expect(contar('tecnicas')).toBe(semilla.tecnicas.length)
     expect(contar('recetas')).toBe(semilla.recetas.length)
-    expect(contar('pasos')).toBe(9)
+    expect(contar('pasos')).toBe(semilla.recetas.reduce((n, r) => n + r.pasos.length, 0))
   })
 
   it('cargar la semilla dos veces no duplica nada', () => {
+    const antes = [contar('recetas'), contar('receta_ingredientes'), contar('paso_ingredientes')]
     cargarSemilla(db, leerSemilla())
-    expect(contar('recetas')).toBe(1)
-    expect(contar('receta_ingredientes')).toBe(13)
-    expect(contar('paso_ingredientes')).toBe(18)
+    expect([contar('recetas'), contar('receta_ingredientes'), contar('paso_ingredientes')]).toEqual(
+      antes
+    )
   })
 
   it('aplica las claves foráneas', () => {
@@ -122,24 +123,23 @@ describe('base de datos', () => {
 
 describe('repositorio de recetas', () => {
   it('lista el resumen de las recetas', () => {
-    expect(listarRecetas(db)).toEqual([
-      {
-        id: 'arroz_con_pollo',
-        slug: 'arroz-con-pollo',
-        titulo: 'Arroz con pollo',
-        descripcion: arrozConPollo.descripcion,
-        porcionesBase: 4,
-        tiempoTotalMin: 55,
-        tiempoActivoMin: 25,
-        dificultad: 'facil',
-        origen: 'revisada',
-        estadoRevision: 'borrador',
-        dietas: ['sin_gluten', 'sin_lactosa'],
-        alergenos: ['apio'],
-        equipo: ['olla'],
-        imagen: null
-      }
-    ])
+    expect(listarRecetas(db)).toHaveLength(leerSemilla().recetas.length)
+    expect(listarRecetas(db).find((r) => r.id === 'arroz_con_pollo')).toEqual({
+      id: 'arroz_con_pollo',
+      slug: 'arroz-con-pollo',
+      titulo: 'Arroz con pollo',
+      descripcion: arrozConPollo.descripcion,
+      porcionesBase: 4,
+      tiempoTotalMin: 55,
+      tiempoActivoMin: 25,
+      dificultad: 'facil',
+      origen: 'revisada',
+      estadoRevision: 'borrador',
+      dietas: ['sin_gluten', 'sin_lactosa'],
+      alergenos: ['apio'],
+      equipo: ['olla'],
+      imagen: null
+    })
   })
 
   it('devuelve la receta completa igual que la semilla, con las etiquetas derivadas', () => {
@@ -156,8 +156,9 @@ describe('repositorio de recetas', () => {
   })
 
   it('lista las recetas completas', () => {
-    expect(listarRecetasCompletas(db).map((r) => [r.id, r.pasos.length])).toEqual([
-      ['arroz_con_pollo', 9]
+    expect(listarRecetasCompletas(db).map((r) => [r.id, r.pasos.length])).toContainEqual([
+      'arroz_con_pollo',
+      9
     ])
   })
 })
@@ -193,15 +194,27 @@ describe('catálogo y búsqueda en la base', () => {
         descartadas: [],
         ofrecerGenerada: false
       })
-    expect(buscarEnBase(db, preferencias).resultados).toHaveLength(1)
+    expect(buscarEnBase(db, preferencias).resultados).toHaveLength(leerSemilla().recetas.length)
   })
 
   it('la receta en borrador queda descartada y se ofrece una generada', () => {
-    expect(buscarEnBase(db, preferencias)).toEqual({
-      resultados: [],
-      descartadas: [{ recetaId: 'arroz_con_pollo', motivos: ['no_revisada'] }],
-      ofrecerGenerada: true
+    const busqueda = buscarEnBase(db, preferencias)
+    expect(busqueda.resultados).toEqual([])
+    expect(busqueda.descartadas).toContainEqual({
+      recetaId: 'arroz_con_pollo',
+      motivos: ['no_revisada']
     })
+    expect(busqueda.ofrecerGenerada).toBe(true)
+  })
+
+  it('en desarrollo muestra los borradores, pero nunca las recetas retiradas', () => {
+    db.prepare(
+      "UPDATE recetas SET estado_revision = 'retirada' WHERE id = 'lentejas_guisadas'"
+    ).run()
+    const { resultados, descartadas } = buscarEnBase(db, preferencias, true)
+    expect(resultados.map((r) => r.receta.id)).toContain('arroz_con_pollo')
+    expect(resultados.map((r) => r.receta.id)).not.toContain('lentejas_guisadas')
+    expect(descartadas).toContainEqual({ recetaId: 'lentejas_guisadas', motivos: ['no_revisada'] })
   })
 
   it('busca sobre los datos de la base, sustituciones incluidas', () => {

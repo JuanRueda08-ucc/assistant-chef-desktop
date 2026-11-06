@@ -67,7 +67,7 @@ Ninguna modifica la receta que recibe. Detalles que no están en las secciones d
 | `tiempoTotalMin`, `tiempoActivoMin` | entero | activo = manos ocupadas |
 | `dificultad` | `facil` \| `media` \| `avanzada` | |
 | `origen` | `revisada` \| `generada` | las generadas se etiquetan en la interfaz |
-| `estadoRevision` | `borrador` \| `revisada` \| `retirada` | solo `revisada` aparece en la búsqueda |
+| `estadoRevision` | `borrador` \| `revisada` \| `retirada` | solo `revisada` aparece en la búsqueda; en desarrollo, también `borrador` con la etiqueta «Sin revisar» (0018) |
 | `dietas` | lista | `vegetariana`, `vegana`, `sin_gluten`, `sin_lactosa`… (se recalculan desde ingredientes, ver abajo) |
 | `alergenos` | lista | derivados de los ingredientes; nunca escritos a mano |
 | `equipo` | lista | `horno`, `sarten`, `olla`, `licuadora`… |

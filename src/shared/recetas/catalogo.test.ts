@@ -61,7 +61,9 @@ describe('agruparPorCategoria', () => {
       'especias',
       'despensa'
     ])
-    expect(ids(grupos.get('verduras') ?? [])).toEqual(['ajo', 'cebolla', 'pimiento_rojo', 'tomate'])
-    expect(grupos.get('frutas')).toEqual([])
+    const verduras = ids(grupos.get('verduras') ?? [])
+    expect(verduras.slice(0, 2)).toEqual(['ajo', 'cebolla'])
+    expect(verduras).toContain('tomate')
+    expect(verduras).not.toContain('arroz_blanco')
   })
 })

@@ -1,0 +1,171 @@
+{
+  "id": "pasta_atun",
+  "slug": "pasta-atun",
+  "titulo": "Pasta con atún y tomate",
+  "descripcion": "Una pasta de despensa, con atún en lata y salsa de tomate rápida.",
+  "porcionesBase": 2,
+  "tiempoTotalMin": 30,
+  "tiempoActivoMin": 15,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["olla", "sarten"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "pasta_seca",
+      "cantidad": 200,
+      "unidad": "g",
+      "redondeo": 10
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "atun_lata",
+      "cantidad": 160,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "escurrido"
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "tomate_triturado",
+      "cantidad": 200,
+      "unidad": "g",
+      "redondeo": 10
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "ajo",
+      "cantidad": 1,
+      "unidad": "unidad",
+      "redondeo": 1,
+      "preparacion": "picado"
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "aceite_oliva",
+      "cantidad": 15,
+      "unidad": "ml",
+      "redondeo": 5,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_6",
+      "ingredienteId": "oregano",
+      "cantidad": 1,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_7",
+      "ingredienteId": "sal",
+      "cantidad": 8,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_8",
+      "ingredienteId": "agua",
+      "cantidad": 2000,
+      "unidad": "ml",
+      "redondeo": 100
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Pon a hervir el agua en la olla con la sal.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_7",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_8",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 480,
+      "senalHecho": "cuando hierva con fuerza",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Echa la pasta y cuécela 10 min, o lo que indique el paquete.",
+      "textoVoz": "Echa la pasta y cuécela diez minutos, o lo que indique el paquete.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 600,
+      "temporizador": {
+        "etiqueta": "Pasta",
+        "segundos": 600
+      },
+      "senalHecho": "cuando esté tierna con un punto firme",
+      "tecnicaId": "cocer_pasta",
+      "requiereConfirmacion": true,
+      "seguridad": "Agua hirviendo: echa la pasta con cuidado."
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Mientras, calienta el aceite en la sartén y dora el ajo 1 min, sin que se queme.",
+      "textoVoz": "Mientras, calienta el aceite en la sartén y dora el ajo un minuto, sin que se queme.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_5",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 60,
+      "tecnicaId": "sofreir",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "Añade el tomate, el orégano y el atún y cocina 5 min a fuego medio.",
+      "textoVoz": "Añade el tomate, el orégano y el atún, y cocina cinco minutos a fuego medio.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_6",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 300,
+      "temporizador": {
+        "etiqueta": "Salsa",
+        "segundos": 300
+      },
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p5",
+      "orden": 5,
+      "texto": "Escurre la pasta y mézclala con la salsa.",
+      "duracionSeg": 120,
+      "requiereConfirmacion": false,
+      "seguridad": "Al escurrir, vierte alejando la cara del vapor."
+    }
+  ]
+}

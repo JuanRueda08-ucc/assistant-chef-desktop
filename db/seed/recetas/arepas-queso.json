@@ -1,0 +1,124 @@
+{
+  "id": "arepas_queso",
+  "slug": "arepas-queso",
+  "titulo": "Arepas con queso",
+  "descripcion": "Arepas de harina de maíz precocida, rellenas de queso y doradas en sartén.",
+  "porcionesBase": 4,
+  "tiempoTotalMin": 25,
+  "tiempoActivoMin": 20,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["sarten"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "harina_maiz",
+      "cantidad": 300,
+      "unidad": "g",
+      "redondeo": 10
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "agua",
+      "cantidad": 450,
+      "unidad": "ml",
+      "redondeo": 10,
+      "preparacion": "tibia"
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "sal",
+      "cantidad": 4,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "queso",
+      "cantidad": 150,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "rallado"
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "aceite_oliva",
+      "cantidad": 15,
+      "unidad": "ml",
+      "redondeo": 5,
+      "escalado": "suave"
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Mezcla la harina, el agua tibia y la sal hasta formar una masa suave.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 180,
+      "requiereConfirmacion": false
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Deja reposar la masa 5 min, tapada.",
+      "textoVoz": "Deja reposar la masa cinco minutos, tapada.",
+      "duracionSeg": 300,
+      "temporizador": {
+        "etiqueta": "Reposo",
+        "segundos": 300
+      },
+      "requiereConfirmacion": false,
+      "consejo": "Si queda dura, añade un poco más de agua."
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Forma bolas, ábrelas, rellena con el queso y ciérralas formando discos gruesos.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 420,
+      "requiereConfirmacion": false
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "Calienta el aceite en la sartén y cocina las arepas 5 min por cada lado a fuego medio.",
+      "textoVoz": "Calienta el aceite en la sartén y cocina las arepas cinco minutos por cada lado a fuego medio.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_5",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 600,
+      "temporizador": {
+        "etiqueta": "Arepas",
+        "segundos": 600
+      },
+      "senalHecho": "cuando estén doradas y suenen huecas al golpearlas",
+      "requiereConfirmacion": true,
+      "seguridad": "El queso fundido del interior quema: deja templar antes de morder."
+    }
+  ]
+}

@@ -1,0 +1,135 @@
+{
+  "id": "panqueques",
+  "slug": "panqueques",
+  "titulo": "Panqueques",
+  "descripcion": "Panqueques esponjosos para el desayuno, con ingredientes de despensa.",
+  "porcionesBase": 4,
+  "tiempoTotalMin": 25,
+  "tiempoActivoMin": 25,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["sarten"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "harina_trigo",
+      "cantidad": 200,
+      "unidad": "g",
+      "redondeo": 10
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "leche",
+      "cantidad": 300,
+      "unidad": "ml",
+      "redondeo": 10
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "huevo",
+      "cantidad": 1,
+      "unidad": "unidad",
+      "redondeo": 1
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "azucar",
+      "cantidad": 20,
+      "unidad": "g",
+      "redondeo": 5
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "polvo_hornear",
+      "cantidad": 8,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_6",
+      "ingredienteId": "mantequilla",
+      "cantidad": 20,
+      "unidad": "g",
+      "redondeo": 5
+    },
+    {
+      "id": "ir_7",
+      "ingredienteId": "sal",
+      "cantidad": 1,
+      "unidad": "pizca",
+      "redondeo": 1,
+      "escalado": "fijo"
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "En un bol, mezcla la harina, el azúcar, el polvo de hornear y la sal.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_5",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_7",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 120,
+      "requiereConfirmacion": false
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "En otro bol, bate la leche con el huevo.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 120,
+      "requiereConfirmacion": false
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Une las dos mezclas y remueve solo hasta integrar.",
+      "duracionSeg": 60,
+      "requiereConfirmacion": false,
+      "consejo": "Unos grumos están bien: remover de más los deja duros."
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "Derrite un poco de mantequilla en la sartén y cocina cada panqueque a fuego medio-bajo, unos 2 min por cada lado. Repite con toda la masa.",
+      "textoVoz": "Derrite un poco de mantequilla en la sartén y cocina cada panqueque a fuego medio bajo, unos dos minutos por cada lado. Repite con toda la masa.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_6",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 1080,
+      "senalHecho": "dales la vuelta cuando salgan burbujas en la superficie",
+      "requiereConfirmacion": true,
+      "seguridad": "La masa lleva huevo crudo: cocina los panqueques hasta que no quede masa líquida por dentro."
+    }
+  ]
+}

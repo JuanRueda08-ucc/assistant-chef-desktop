@@ -1,0 +1,147 @@
+{
+  "id": "tortilla_papa",
+  "slug": "tortilla-papa",
+  "titulo": "Tortilla de papa",
+  "descripcion": "Tortilla gruesa de papa y cebolla, jugosa por dentro y dorada por fuera.",
+  "porcionesBase": 4,
+  "tiempoTotalMin": 45,
+  "tiempoActivoMin": 25,
+  "dificultad": "media",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["sarten"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "papa",
+      "cantidad": 600,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en láminas finas"
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "huevo",
+      "cantidad": 5,
+      "unidad": "unidad",
+      "redondeo": 1
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "cebolla",
+      "cantidad": 150,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en láminas"
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "aceite_oliva",
+      "cantidad": 60,
+      "unidad": "ml",
+      "redondeo": 5
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "sal",
+      "cantidad": 5,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Pela las papas y córtalas en láminas finas. Corta la cebolla en láminas.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 600,
+      "requiereConfirmacion": true,
+      "consejo": "Láminas del mismo grosor se cocinan a la vez."
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Calienta el aceite en la sartén y cocina las papas y la cebolla 20 min a fuego medio-bajo, removiendo a ratos.",
+      "textoVoz": "Calienta el aceite en la sartén y cocina las papas y la cebolla veinte minutos a fuego medio bajo, removiendo a ratos.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 1200,
+      "temporizador": {
+        "etiqueta": "Papas",
+        "segundos": 1200
+      },
+      "senalHecho": "cuando las papas estén tiernas al pincharlas",
+      "requiereConfirmacion": true,
+      "seguridad": "Aceite caliente: añade los ingredientes alejándolos de ti para evitar salpicaduras."
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Bate los huevos con la sal, añade las papas escurridas y mezcla.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_5",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 120,
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "Vierte la mezcla en la sartén con un poco del aceite y cuaja 5 min a fuego medio-bajo.",
+      "textoVoz": "Vierte la mezcla en la sartén con un poco del aceite y cuaja cinco minutos a fuego medio bajo.",
+      "duracionSeg": 300,
+      "temporizador": {
+        "etiqueta": "Primer lado",
+        "segundos": 300
+      },
+      "senalHecho": "cuando los bordes estén firmes",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p5",
+      "orden": 5,
+      "texto": "Dale la vuelta con ayuda de un plato y cocina 4 min más.",
+      "textoVoz": "Dale la vuelta con ayuda de un plato y cocina cuatro minutos más.",
+      "duracionSeg": 240,
+      "temporizador": {
+        "etiqueta": "Segundo lado",
+        "segundos": 240
+      },
+      "senalHecho": "cuando el centro esté cuajado",
+      "tecnicaId": "voltear_tortilla",
+      "requiereConfirmacion": true,
+      "seguridad": "Voltéala sobre el fregadero: el aceite y el huevo caliente pueden gotear."
+    }
+  ]
+}

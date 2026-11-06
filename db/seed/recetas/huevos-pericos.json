@@ -1,0 +1,142 @@
+{
+  "id": "huevos_pericos",
+  "slug": "huevos-pericos",
+  "titulo": "Huevos pericos",
+  "descripcion": "Huevos revueltos con tomate y cebolla, un desayuno rápido y casero.",
+  "porcionesBase": 2,
+  "tiempoTotalMin": 15,
+  "tiempoActivoMin": 15,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["sarten"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "huevo",
+      "cantidad": 4,
+      "unidad": "unidad",
+      "redondeo": 1
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "tomate",
+      "cantidad": 150,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "picado"
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "cebolla",
+      "cantidad": 80,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "picada fina"
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "aceite_oliva",
+      "cantidad": 10,
+      "unidad": "ml",
+      "redondeo": 5,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "sal",
+      "cantidad": 2,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_6",
+      "ingredienteId": "pimienta_negra",
+      "cantidad": null,
+      "unidad": "al_gusto"
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Pica el tomate y la cebolla en dados pequeños.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 300,
+      "tecnicaId": "picar_brunoise",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Calienta el aceite en la sartén y sofríe la cebolla y el tomate 5 min a fuego medio.",
+      "textoVoz": "Calienta el aceite en la sartén y sofríe la cebolla y el tomate cinco minutos a fuego medio.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 300,
+      "temporizador": {
+        "etiqueta": "Sofrito",
+        "segundos": 300
+      },
+      "senalHecho": "cuando el tomate se haya ablandado",
+      "tecnicaId": "sofreir",
+      "requiereConfirmacion": true,
+      "seguridad": "Aceite caliente: añade los ingredientes alejándolos de ti para evitar salpicaduras."
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Bate los huevos con la sal y la pimienta en un plato hondo.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_5",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_6",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 60,
+      "requiereConfirmacion": false
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "Vierte los huevos en la sartén y remueve 3 min a fuego medio-bajo.",
+      "textoVoz": "Vierte los huevos en la sartén y remueve tres minutos a fuego medio bajo.",
+      "duracionSeg": 180,
+      "senalHecho": "cuando estén cuajados y sin partes líquidas",
+      "requiereConfirmacion": true,
+      "consejo": "Apaga un poco antes: el calor de la sartén los termina.",
+      "seguridad": "Sirve los huevos bien cuajados si los comen niños, embarazadas o personas mayores."
+    }
+  ]
+}

@@ -1,0 +1,213 @@
+{
+  "id": "pollo_horno_papas",
+  "slug": "pollo-horno-papas",
+  "titulo": "Pollo al horno con papas",
+  "descripcion": "Muslos de pollo y papas asados en la misma bandeja, con limón y especias.",
+  "porcionesBase": 4,
+  "tiempoTotalMin": 70,
+  "tiempoActivoMin": 15,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["horno"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "pollo_muslo",
+      "cantidad": 1000,
+      "unidad": "g",
+      "redondeo": 50
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "papa",
+      "cantidad": 800,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en gajos"
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "cebolla",
+      "cantidad": 150,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en gajos"
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "ajo",
+      "cantidad": 3,
+      "unidad": "unidad",
+      "redondeo": 1,
+      "preparacion": "picado"
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "limon",
+      "cantidad": 1,
+      "unidad": "unidad",
+      "redondeo": 0.5
+    },
+    {
+      "id": "ir_6",
+      "ingredienteId": "aceite_oliva",
+      "cantidad": 40,
+      "unidad": "ml",
+      "redondeo": 5,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_7",
+      "ingredienteId": "sal",
+      "cantidad": 8,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_8",
+      "ingredienteId": "pimenton",
+      "cantidad": 5,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_9",
+      "ingredienteId": "oregano",
+      "cantidad": 2,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_10",
+      "ingredienteId": "pimienta_negra",
+      "cantidad": null,
+      "unidad": "al_gusto"
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Enciende el horno a 200 °C.",
+      "textoVoz": "Enciende el horno a doscientos grados.",
+      "duracionSeg": 600,
+      "temporizador": {
+        "etiqueta": "Precalentar",
+        "segundos": 600
+      },
+      "requiereConfirmacion": false
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Corta las papas y la cebolla en gajos y pica el ajo.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 480,
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "En un bol, mezcla el pollo con el ajo, el jugo del limón, el aceite, la sal y las especias.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_5",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_6",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_7",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_8",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_9",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_10",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 300,
+      "requiereConfirmacion": true,
+      "seguridad": "Lávate las manos y limpia la tabla y el cuchillo después de tocar la carne cruda."
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "Coloca el pollo, las papas y la cebolla en una bandeja, sin amontonarlos.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 120,
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p5",
+      "orden": 5,
+      "texto": "Hornea 40 min, dando la vuelta a las papas a mitad de tiempo.",
+      "textoVoz": "Hornea cuarenta minutos, dando la vuelta a las papas a mitad de tiempo.",
+      "duracionSeg": 2400,
+      "temporizador": {
+        "etiqueta": "Horno",
+        "segundos": 2400
+      },
+      "senalHecho": "cuando el pollo esté dorado y las papas tiernas",
+      "requiereConfirmacion": true,
+      "seguridad": "Usa guantes de horno. El pollo debe llegar a 74 °C en el centro; si no tienes termómetro, el jugo debe salir transparente."
+    },
+    {
+      "id": "p6",
+      "orden": 6,
+      "texto": "Saca la bandeja y deja reposar 5 min antes de servir.",
+      "textoVoz": "Saca la bandeja y deja reposar cinco minutos antes de servir.",
+      "duracionSeg": 300,
+      "temporizador": {
+        "etiqueta": "Reposo",
+        "segundos": 300
+      },
+      "requiereConfirmacion": true,
+      "seguridad": "La bandeja quema: déjala sobre una superficie resistente al calor."
+    }
+  ]
+}

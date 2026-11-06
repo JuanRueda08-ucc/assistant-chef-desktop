@@ -1,0 +1,193 @@
+{
+  "id": "carne_molida_guisada",
+  "slug": "carne-molida-guisada",
+  "titulo": "Carne molida guisada",
+  "descripcion": "Carne molida en salsa de tomate con pimiento y comino, ideal con arroz o arepas.",
+  "porcionesBase": 4,
+  "tiempoTotalMin": 30,
+  "tiempoActivoMin": 20,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["sarten"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "carne_molida",
+      "cantidad": 500,
+      "unidad": "g",
+      "redondeo": 50
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "cebolla",
+      "cantidad": 150,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "picada"
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "pimiento_rojo",
+      "cantidad": 100,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "picado"
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "ajo",
+      "cantidad": 2,
+      "unidad": "unidad",
+      "redondeo": 1,
+      "preparacion": "picado"
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "tomate_triturado",
+      "cantidad": 200,
+      "unidad": "g",
+      "redondeo": 10
+    },
+    {
+      "id": "ir_6",
+      "ingredienteId": "comino",
+      "cantidad": 3,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_7",
+      "ingredienteId": "aceite_oliva",
+      "cantidad": 15,
+      "unidad": "ml",
+      "redondeo": 5,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_8",
+      "ingredienteId": "sal",
+      "cantidad": 6,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_9",
+      "ingredienteId": "pimienta_negra",
+      "cantidad": null,
+      "unidad": "al_gusto"
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Pica la cebolla, el pimiento y el ajo.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 360,
+      "tecnicaId": "picar_brunoise",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Calienta el aceite en la sartén y sofríe las verduras 5 min a fuego medio.",
+      "textoVoz": "Calienta el aceite en la sartén y sofríe las verduras cinco minutos a fuego medio.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_7",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 300,
+      "temporizador": {
+        "etiqueta": "Sofrito",
+        "segundos": 300
+      },
+      "senalHecho": "hasta que la cebolla esté transparente",
+      "tecnicaId": "sofreir",
+      "requiereConfirmacion": true,
+      "seguridad": "Aceite caliente: añade los ingredientes alejándolos de ti para evitar salpicaduras."
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Añade la carne, la sal y la pimienta y cocina 8 min, separándola con la cuchara.",
+      "textoVoz": "Añade la carne, la sal y la pimienta, y cocina ocho minutos, separándola con la cuchara.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_8",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_9",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 480,
+      "temporizador": {
+        "etiqueta": "Carne",
+        "segundos": 480
+      },
+      "senalHecho": "cuando no quede ninguna parte rosada",
+      "requiereConfirmacion": true,
+      "seguridad": "La carne molida debe llegar a 71 °C: no debe quedar rosada por dentro. Lávate las manos y limpia la tabla y el cuchillo después de tocar la carne cruda."
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "Agrega el tomate y el comino y cocina 10 min a fuego lento.",
+      "textoVoz": "Agrega el tomate y el comino, y cocina diez minutos a fuego lento.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_5",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_6",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 600,
+      "temporizador": {
+        "etiqueta": "Guiso",
+        "segundos": 600
+      },
+      "senalHecho": "cuando la salsa haya espesado",
+      "tecnicaId": "fuego_lento",
+      "requiereConfirmacion": true
+    }
+  ]
+}

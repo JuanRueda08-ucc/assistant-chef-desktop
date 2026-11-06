@@ -1,0 +1,231 @@
+{
+  "id": "arroz_verduras",
+  "slug": "arroz-verduras",
+  "titulo": "Arroz con verduras",
+  "descripcion": "Arroz suelto con zanahoria, pimiento y guisantes, sin carne ni lácteos.",
+  "porcionesBase": 4,
+  "tiempoTotalMin": 40,
+  "tiempoActivoMin": 15,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["olla"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "arroz_blanco",
+      "cantidad": 300,
+      "unidad": "g",
+      "redondeo": 10
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "zanahoria",
+      "cantidad": 120,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en cubos pequeños"
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "pimiento_rojo",
+      "cantidad": 120,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en cubos pequeños"
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "cebolla",
+      "cantidad": 120,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "picada"
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "guisantes",
+      "cantidad": 100,
+      "unidad": "g",
+      "redondeo": 10,
+      "opcional": true
+    },
+    {
+      "id": "ir_6",
+      "ingredienteId": "ajo",
+      "cantidad": 2,
+      "unidad": "unidad",
+      "redondeo": 1,
+      "preparacion": "picado"
+    },
+    {
+      "id": "ir_7",
+      "ingredienteId": "aceite_oliva",
+      "cantidad": 30,
+      "unidad": "ml",
+      "redondeo": 5,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_8",
+      "ingredienteId": "agua",
+      "cantidad": 600,
+      "unidad": "ml",
+      "redondeo": 50
+    },
+    {
+      "id": "ir_9",
+      "ingredienteId": "sal",
+      "cantidad": 6,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_10",
+      "ingredienteId": "comino",
+      "cantidad": 2,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Corta la zanahoria y el pimiento en cubos pequeños y pica la cebolla y el ajo.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_6",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 420,
+      "tecnicaId": "picar_brunoise",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Calienta el aceite en la olla y sofríe las verduras 6 min a fuego medio.",
+      "textoVoz": "Calienta el aceite en la olla y sofríe las verduras seis minutos a fuego medio.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_6",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_7",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 360,
+      "temporizador": {
+        "etiqueta": "Sofrito",
+        "segundos": 360
+      },
+      "senalHecho": "cuando la zanahoria empiece a ablandarse",
+      "tecnicaId": "sofreir",
+      "requiereConfirmacion": true,
+      "seguridad": "Aceite caliente: añade los ingredientes alejándolos de ti para evitar salpicaduras."
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Añade el arroz y el comino y remueve 2 min.",
+      "textoVoz": "Añade el arroz y el comino, y remueve dos minutos.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_10",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 120,
+      "senalHecho": "cuando los granos se vean translúcidos en los bordes",
+      "tecnicaId": "nacarar",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "Vierte el agua, añade la sal y lleva a ebullición.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_8",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_9",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 300,
+      "senalHecho": "cuando hierva por toda la superficie",
+      "requiereConfirmacion": true,
+      "seguridad": "Vierte el agua despacio: al tocar la olla caliente salta vapor."
+    },
+    {
+      "id": "p5",
+      "orden": 5,
+      "texto": "Baja el fuego, tapa y cocina 15 min sin remover. Añade los guisantes en los últimos 5 min.",
+      "textoVoz": "Baja el fuego, tapa y cocina quince minutos sin remover. Añade los guisantes en los últimos cinco minutos.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_5",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 900,
+      "temporizador": {
+        "etiqueta": "Arroz",
+        "segundos": 900
+      },
+      "senalHecho": "cuando el arroz haya absorbido el agua y esté tierno",
+      "tecnicaId": "fuego_lento",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p6",
+      "orden": 6,
+      "texto": "Apaga el fuego y deja reposar 5 min tapado.",
+      "textoVoz": "Apaga el fuego y deja reposar cinco minutos tapado.",
+      "duracionSeg": 300,
+      "temporizador": {
+        "etiqueta": "Reposo",
+        "segundos": 300
+      },
+      "requiereConfirmacion": false,
+      "consejo": "El reposo termina de soltar los granos."
+    }
+  ]
+}

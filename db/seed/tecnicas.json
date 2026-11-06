@@ -38,5 +38,45 @@
       "Remueve para cubrir todos los granos de grasa.",
       "Para cuando los granos se vean translúcidos en los bordes."
     ]
+  },
+  {
+    "id": "cocer_pasta",
+    "nombre": "Cocer pasta",
+    "descripcion": "Hervirla en abundante agua con sal hasta que esté tierna pero con un punto firme.",
+    "pasosCortos": [
+      "Espera a que el agua hierva con fuerza antes de echarla.",
+      "Remueve al principio para que no se pegue.",
+      "Prueba un trozo un minuto antes del tiempo del paquete."
+    ]
+  },
+  {
+    "id": "fuego_lento",
+    "nombre": "Cocinar a fuego lento",
+    "descripcion": "Mantener un líquido con burbujas pequeñas y suaves, sin que hierva con fuerza.",
+    "pasosCortos": [
+      "Lleva el líquido a ebullición.",
+      "Baja el fuego hasta ver pocas burbujas.",
+      "Remueve de vez en cuando para que no se pegue."
+    ]
+  },
+  {
+    "id": "licuar_caliente",
+    "nombre": "Licuar líquidos calientes",
+    "descripcion": "Triturar una sopa caliente sin que el vapor levante la tapa de la licuadora.",
+    "pasosCortos": [
+      "Deja templar unos minutos.",
+      "Llena la licuadora solo hasta la mitad.",
+      "Sujeta la tapa con un paño y empieza a velocidad baja."
+    ]
+  },
+  {
+    "id": "voltear_tortilla",
+    "nombre": "Voltear una tortilla",
+    "descripcion": "Dar la vuelta a una tortilla gruesa con ayuda de un plato.",
+    "pasosCortos": [
+      "Afloja los bordes con una espátula.",
+      "Cubre la sartén con un plato más grande y gíralo con decisión sobre el fregadero.",
+      "Desliza la tortilla de nuevo a la sartén."
+    ]
   }
 ]

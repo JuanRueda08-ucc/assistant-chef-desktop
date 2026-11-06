@@ -1,0 +1,121 @@
+{
+  "id": "quesadillas_queso",
+  "slug": "quesadillas-queso",
+  "titulo": "Quesadillas de queso y pimiento",
+  "descripcion": "Tortillas de trigo doradas, rellenas de queso fundido y pimiento salteado.",
+  "porcionesBase": 2,
+  "tiempoTotalMin": 15,
+  "tiempoActivoMin": 15,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["sarten"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "tortilla_trigo",
+      "cantidad": 4,
+      "unidad": "unidad",
+      "redondeo": 1
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "queso",
+      "cantidad": 200,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "rallado"
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "pimiento_rojo",
+      "cantidad": 80,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en tiras"
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "aceite_oliva",
+      "cantidad": 10,
+      "unidad": "ml",
+      "redondeo": 5,
+      "escalado": "suave"
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Corta el pimiento en tiras finas y ralla el queso.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 180,
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Calienta el aceite en la sartén y saltea el pimiento 3 min. Retíralo.",
+      "textoVoz": "Calienta el aceite en la sartén y saltea el pimiento tres minutos. Retíralo.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 180,
+      "senalHecho": "cuando esté blando",
+      "tecnicaId": "sofreir",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Reparte el queso y el pimiento sobre dos tortillas y cúbrelas con las otras dos.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 120,
+      "requiereConfirmacion": false
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "Dora cada quesadilla 2 min por cada lado a fuego medio.",
+      "textoVoz": "Dora cada quesadilla dos minutos por cada lado a fuego medio.",
+      "duracionSeg": 360,
+      "temporizador": {
+        "etiqueta": "Quesadillas",
+        "segundos": 360
+      },
+      "senalHecho": "cuando estén doradas y el queso fundido",
+      "requiereConfirmacion": true,
+      "seguridad": "El queso fundido quema: deja templar un minuto antes de morder."
+    }
+  ]
+}

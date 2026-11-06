@@ -1,0 +1,191 @@
+{
+  "id": "sopa_pollo",
+  "slug": "sopa-pollo",
+  "titulo": "Sopa de pollo con papa",
+  "descripcion": "Sopa casera de pollo con papa, zanahoria y cilantro.",
+  "porcionesBase": 4,
+  "tiempoTotalMin": 55,
+  "tiempoActivoMin": 15,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": ["olla"],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "pollo_muslo",
+      "cantidad": 500,
+      "unidad": "g",
+      "redondeo": 50
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "papa",
+      "cantidad": 400,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en cubos"
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "zanahoria",
+      "cantidad": 150,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en rodajas"
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "cebolla",
+      "cantidad": 100,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en trozos"
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "ajo",
+      "cantidad": 2,
+      "unidad": "unidad",
+      "redondeo": 1
+    },
+    {
+      "id": "ir_6",
+      "ingredienteId": "cilantro",
+      "cantidad": 15,
+      "unidad": "g",
+      "redondeo": 5,
+      "preparacion": "picado"
+    },
+    {
+      "id": "ir_7",
+      "ingredienteId": "agua",
+      "cantidad": 1800,
+      "unidad": "ml",
+      "redondeo": 100
+    },
+    {
+      "id": "ir_8",
+      "ingredienteId": "sal",
+      "cantidad": 8,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_9",
+      "ingredienteId": "pimienta_negra",
+      "cantidad": null,
+      "unidad": "al_gusto"
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Pela y corta la papa y la zanahoria, trocea la cebolla y pica el cilantro.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_6",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 480,
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Pon en la olla el pollo, la cebolla, el ajo, el agua y la sal. Cuando hierva, cocina 25 min a fuego lento.",
+      "textoVoz": "Pon en la olla el pollo, la cebolla, el ajo, el agua y la sal. Cuando hierva, cocina veinticinco minutos a fuego lento.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_5",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_7",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_8",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 1500,
+      "temporizador": {
+        "etiqueta": "Caldo",
+        "segundos": 1500
+      },
+      "tecnicaId": "fuego_lento",
+      "requiereConfirmacion": true,
+      "consejo": "Retira con una cuchara la espuma que suba.",
+      "seguridad": "Lávate las manos y limpia la tabla y el cuchillo después de tocar la carne cruda."
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Añade la papa y la zanahoria y cocina 15 min más.",
+      "textoVoz": "Añade la papa y la zanahoria, y cocina quince minutos más.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 900,
+      "temporizador": {
+        "etiqueta": "Verduras",
+        "segundos": 900
+      },
+      "senalHecho": "cuando la papa esté tierna al pincharla",
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p4",
+      "orden": 4,
+      "texto": "Saca el pollo, desmenúzalo y devuélvelo a la olla.",
+      "duracionSeg": 300,
+      "requiereConfirmacion": true,
+      "seguridad": "El pollo debe llegar a 74 °C: al abrirlo no debe quedar rosado. Sácalo con pinzas, está muy caliente."
+    },
+    {
+      "id": "p5",
+      "orden": 5,
+      "texto": "Añade el cilantro y la pimienta y sirve.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_6",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_9",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 120,
+      "requiereConfirmacion": false
+    }
+  ]
+}

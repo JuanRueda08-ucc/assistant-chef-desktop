@@ -1,0 +1,129 @@
+{
+  "id": "ensalada_atun",
+  "slug": "ensalada-atun",
+  "titulo": "Ensalada de atún",
+  "descripcion": "Ensalada fresca y sin cocción, con atún, tomate, pepino y limón.",
+  "porcionesBase": 2,
+  "tiempoTotalMin": 10,
+  "tiempoActivoMin": 10,
+  "dificultad": "facil",
+  "origen": "revisada",
+  "estadoRevision": "borrador",
+  "equipo": [],
+  "imagen": null,
+  "ingredientes": [
+    {
+      "id": "ir_1",
+      "ingredienteId": "atun_lata",
+      "cantidad": 160,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "escurrido"
+    },
+    {
+      "id": "ir_2",
+      "ingredienteId": "lechuga",
+      "cantidad": 150,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "lavada"
+    },
+    {
+      "id": "ir_3",
+      "ingredienteId": "tomate",
+      "cantidad": 150,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en gajos"
+    },
+    {
+      "id": "ir_4",
+      "ingredienteId": "pepino",
+      "cantidad": 100,
+      "unidad": "g",
+      "redondeo": 10,
+      "preparacion": "en rodajas"
+    },
+    {
+      "id": "ir_5",
+      "ingredienteId": "limon",
+      "cantidad": 1,
+      "unidad": "unidad",
+      "redondeo": 0.5
+    },
+    {
+      "id": "ir_6",
+      "ingredienteId": "aceite_oliva",
+      "cantidad": 15,
+      "unidad": "ml",
+      "redondeo": 5,
+      "escalado": "suave"
+    },
+    {
+      "id": "ir_7",
+      "ingredienteId": "sal",
+      "cantidad": 1,
+      "unidad": "g",
+      "redondeo": 1,
+      "escalado": "suave"
+    }
+  ],
+  "pasos": [
+    {
+      "id": "p1",
+      "orden": 1,
+      "texto": "Lava y corta la lechuga, el tomate y el pepino.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_2",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_3",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_4",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 360,
+      "requiereConfirmacion": true
+    },
+    {
+      "id": "p2",
+      "orden": 2,
+      "texto": "Escurre el atún y sepáralo con un tenedor.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_1",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 60,
+      "requiereConfirmacion": false,
+      "seguridad": "Cuidado con el borde de la lata: corta."
+    },
+    {
+      "id": "p3",
+      "orden": 3,
+      "texto": "Mézclalo todo y aliña con el limón, el aceite y la sal.",
+      "ingredientes": [
+        {
+          "ingredienteRecetaId": "ir_5",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_6",
+          "fraccion": 1
+        },
+        {
+          "ingredienteRecetaId": "ir_7",
+          "fraccion": 1
+        }
+      ],
+      "duracionSeg": 120,
+      "requiereConfirmacion": false
+    }
+  ]
+}
