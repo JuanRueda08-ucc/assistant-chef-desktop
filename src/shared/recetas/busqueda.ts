@@ -34,13 +34,16 @@ export const UMBRAL_COBERTURA = 0.6
  * sustitución`. Los básicos de despensa cuentan como presentes y los opcionales no cuentan.
  * Empates: menos faltantes, menos tiempo total, título.
  *
- * Las recetas deben llevar `dietas` y `alergenos` ya derivados del catálogo.
+ * Las recetas deben llevar `dietas` y `alergenos` ya derivados del catálogo. Con
+ * `incluirBorradores` (solo en desarrollo, 0018) los borradores pasan el filtro de revisión; las
+ * retiradas nunca.
  */
 export function buscarRecetas(
   preferencias: Preferencias,
   recetas: readonly Receta[],
   catalogo: Catalogo,
-  sustituciones: readonly Sustitucion[]
+  sustituciones: readonly Sustitucion[],
+  opciones: { incluirBorradores: boolean } = { incluirBorradores: false }
 ): ResultadoBusqueda {
   const porId = comoMapa(catalogo)
   const disponibles = new Set(preferencias.ingredientes)
@@ -51,7 +54,7 @@ export function buscarRecetas(
   const descartadas: Descarte[] = []
 
   for (const receta of recetas) {
-    const motivos = motivosDescarte(receta, preferencias)
+    const motivos = motivosDescarte(receta, preferencias, opciones.incluirBorradores)
     if (motivos.length > 0) {
       descartadas.push({ recetaId: receta.id, motivos })
       continue
@@ -74,9 +77,16 @@ export function buscarRecetas(
   }
 }
 
-export function motivosDescarte(receta: Receta, preferencias: Preferencias): MotivoDescarte[] {
+export function motivosDescarte(
+  receta: Receta,
+  preferencias: Preferencias,
+  incluirBorradores = false
+): MotivoDescarte[] {
   const motivos: MotivoDescarte[] = []
-  if (receta.estadoRevision !== 'revisada') motivos.push('no_revisada')
+  const visible =
+    receta.estadoRevision === 'revisada' ||
+    (incluirBorradores && receta.estadoRevision === 'borrador')
+  if (!visible) motivos.push('no_revisada')
   if (!preferencias.restricciones.every((d) => receta.dietas.includes(d))) {
     motivos.push('restriccion')
   }

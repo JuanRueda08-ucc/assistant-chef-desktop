@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest'
-import { crearCuenta, type AlmacenSesion, type SesionGuardada } from './cuenta'
+import { crearCuenta, crearCuentaLocal, type AlmacenSesion, type SesionGuardada } from './cuenta'
 
 // Supabase Auth simulado: solo lo que usa main (/signup, /verify, /token, /user, /logout,
 // /recover, /resend), con la forma de sus respuestas y `error_code`.
@@ -128,6 +128,17 @@ function almacen(): AlmacenSesion & { valor: SesionGuardada | null } {
 }
 
 const datos = { nombre: 'Luis', email: 'luis@example.com', contrasena: 'sarten-2026' }
+
+describe('cuenta local de desarrollo', () => {
+  it('siempre está dentro, sin token, y salir no la cierra', async () => {
+    const cuenta = crearCuentaLocal()
+    expect((await cuenta.iniciar()).usuario?.id).toBe('usuario-local')
+    expect(await cuenta.token()).toBeNull()
+    await cuenta.salir()
+    cuenta.caducada()
+    expect(cuenta.estado().usuario?.id).toBe('usuario-local')
+  })
+})
 
 describe('cuenta en main con Supabase Auth', () => {
   it('registra, confirma con código, guarda la sesión y la recupera al reiniciar', async () => {

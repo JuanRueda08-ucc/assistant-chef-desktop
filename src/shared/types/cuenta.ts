@@ -7,6 +7,13 @@ export interface Usuario {
   email: string
 }
 
+/** Usuario del modo de desarrollo sin cuenta (decisión 0018); nunca en la app empaquetada. */
+export const USUARIO_LOCAL: Usuario = {
+  id: 'usuario-local',
+  nombre: 'Desarrollo',
+  email: 'sin cuenta'
+}
+
 export interface EstadoCuenta {
   /** `null` si no hay sesión: la app muestra Acceso. */
   usuario: Usuario | null

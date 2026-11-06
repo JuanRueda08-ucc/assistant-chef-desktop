@@ -8,7 +8,7 @@ import { registrarIpc } from './ipc'
 import { obtenerIdInstalacion } from './instalacion'
 import { crearClienteBackend, validarApiUrl } from './backend'
 import { crearAlmacenSesion } from './almacen-sesion'
-import { crearCuenta, type Cuenta } from './cuenta'
+import { crearCuenta, crearCuentaLocal, type Cuenta } from './cuenta'
 import { crearVozLocal } from './voz/local'
 import { crearLectorLocal } from './voz/lector'
 import { obtenerSesionCocinando } from './db/sesiones'
@@ -112,15 +112,19 @@ app.whenReady().then(() => {
     const supabaseUrl = process.env.CHEF_SUPABASE_URL ?? import.meta.env.CHEF_SUPABASE_URL
     const clavePublica =
       process.env.CHEF_SUPABASE_CLAVE_PUBLICA ?? import.meta.env.CHEF_SUPABASE_CLAVE_PUBLICA
-    if (!supabaseUrl || !clavePublica)
+    // Sin esos datos, en desarrollo se entra sin cuenta (0018); empaquetada, la app no arranca.
+    if ((!supabaseUrl || !clavePublica) && app.isPackaged)
       throw new Error(
-        'Faltan CHEF_SUPABASE_URL y CHEF_SUPABASE_CLAVE_PUBLICA en .env (ver docs/despliegue.md).'
+        'Faltan CHEF_SUPABASE_URL y CHEF_SUPABASE_CLAVE_PUBLICA (ver docs/despliegue.md).'
       )
-    const sesionCuenta = crearCuenta({
-      supabaseUrl: validarApiUrl(supabaseUrl),
-      clavePublica,
-      almacen: crearAlmacenSesion(app.getPath('userData'))
-    })
+    const sesionCuenta =
+      supabaseUrl && clavePublica
+        ? crearCuenta({
+            supabaseUrl: validarApiUrl(supabaseUrl),
+            clavePublica,
+            almacen: crearAlmacenSesion(app.getPath('userData'))
+          })
+        : crearCuentaLocal()
     cuenta = sesionCuenta
     const backend = crearClienteBackend(apiUrl, instalacion, fetch, Date.now, {
       token: sesionCuenta.token,
@@ -129,7 +133,8 @@ app.whenReady().then(() => {
     voz = crearVozLocal(
       app.isPackaged ? join(process.resourcesPath, 'voz') : join(app.getAppPath(), 'resources/voz')
     )
-    registrarIpc(db, backend, voz, lector, sesionCuenta)
+    // Las recetas sin revisar solo se ven en desarrollo (0018).
+    registrarIpc(db, backend, voz, lector, sesionCuenta, { verBorradores: !app.isPackaged })
   } catch (error) {
     dialog.showErrorBox(
       'No se pudo preparar la app',

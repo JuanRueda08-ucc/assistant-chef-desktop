@@ -9,6 +9,7 @@ import {
   type JSONWebKeySet,
   type JWTVerifyGetKey
 } from 'jose'
+import { USUARIO_LOCAL } from '@shared/types/cuenta'
 
 export interface UsuarioVerificado {
   id: string
@@ -21,6 +22,12 @@ export interface Cuentas {
   /** Usuario del JWT `Authorization: Bearer`, o `null` si falta, caducó o no es válido. */
   usuario(cabeceras: Headers): Promise<UsuarioVerificado | null>
 }
+
+/**
+ * Modo de desarrollo sin Supabase (decisión 0018): acepta cualquier petición como el usuario local.
+ * Solo lo usa principal.ts, que escucha en 127.0.0.1; la Edge Function siempre exige el JWT.
+ */
+export const cuentasLocales: Cuentas = { usuario: async () => USUARIO_LOCAL }
 
 export interface OpcionesCuentas {
   /** URL del proyecto: https://<ref>.supabase.co */

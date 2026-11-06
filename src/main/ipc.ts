@@ -43,7 +43,8 @@ export function registrarIpc(
   backend: ReturnType<typeof crearClienteBackend>,
   voz: VozLocal,
   lector: ReturnType<typeof crearLectorLocal>,
-  cuenta: Cuenta
+  cuenta: Cuenta,
+  opciones: { verBorradores: boolean } = { verBorradores: false }
 ): void {
   let propietario: number | null = null
   // --- Cuenta (0016) ------------------------------------------------------------------------
@@ -105,7 +106,7 @@ export function registrarIpc(
       contexto = contextoCompacto(sesion, Date.now())
     } else {
       const catalogo = listarIngredientes(db)
-      const busqueda = buscarEnBase(db, peticion.preferencias)
+      const busqueda = buscarEnBase(db, peticion.preferencias, opciones.verBorradores)
       contexto = JSON.stringify({
         preferencias: peticion.preferencias,
         catalogo: catalogo
@@ -217,7 +218,7 @@ export function registrarIpc(
   ipcMain.handle(
     CANALES_IPC.recetasBuscar,
     (_evento, preferencias: unknown): Resultado<ApiChef['recetas']['buscar']> =>
-      buscarEnBase(db, esquemaPreferencias.parse(preferencias))
+      buscarEnBase(db, esquemaPreferencias.parse(preferencias), opciones.verBorradores)
   )
 
   ipcMain.handle(CANALES_IPC.sesionRetomar, (): Resultado<ApiChef['sesion']['retomar']> =>

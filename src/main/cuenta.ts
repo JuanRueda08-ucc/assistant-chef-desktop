@@ -14,6 +14,7 @@ import type {
   ResultadoCuenta,
   Usuario
 } from '@shared/types/cuenta'
+import { USUARIO_LOCAL } from '@shared/types/cuenta'
 
 /** Dónde se guarda la sesión entre arranques; en index.ts, un archivo cifrado con safeStorage. */
 export interface AlmacenSesion {
@@ -86,6 +87,28 @@ export const fallo = (codigo: CodigoErrorCuenta, mensaje = MENSAJES[codigo]): Re
 })
 
 export type Cuenta = ReturnType<typeof crearCuenta>
+
+/**
+ * Modo de desarrollo sin Supabase (decisión 0018): siempre hay un usuario local y no hay token.
+ * Solo lo usa index.ts cuando la app no está empaquetada y faltan los datos del proyecto.
+ */
+export function crearCuentaLocal(): Cuenta {
+  const estado = (): EstadoCuenta => ({ usuario: USUARIO_LOCAL, sinConexion: false })
+  const ok = async (): Promise<ResultadoCuenta> => ({ ok: true, estado: estado() })
+  return {
+    iniciar: async () => estado(),
+    estado,
+    token: async () => null,
+    registrar: ok,
+    verificar: ok,
+    reenviarCodigo: ok,
+    entrar: ok,
+    salir: ok,
+    recuperar: ok,
+    restablecer: ok,
+    caducada: () => {}
+  }
+}
 
 export function crearCuenta(opciones: {
   /** URL del proyecto de Supabase (https://<ref>.supabase.co). */

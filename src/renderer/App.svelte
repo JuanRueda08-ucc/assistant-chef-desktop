@@ -1,5 +1,6 @@
 <script lang="ts">
   import { onMount } from 'svelte'
+  import { USUARIO_LOCAL } from '@shared/types/cuenta'
   import busto from './assets/chef/chef_busto.png'
   import Momentos from './componentes/Momentos.svelte'
   import ChatChef from './componentes/ChatChef.svelte'
@@ -37,7 +38,9 @@
       {/if}
       {#if usuario}
         <span class="usuario" title={usuario.email}>{usuario.nombre}</span>
-        <button type="button" class="salir" onclick={() => app.salir()}>Salir</button>
+        {#if usuario.id !== USUARIO_LOCAL.id}
+          <button type="button" class="salir" onclick={() => app.salir()}>Salir</button>
+        {/if}
       {/if}
     </div>
   </header>

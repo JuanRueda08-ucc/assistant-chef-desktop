@@ -7,9 +7,19 @@ import type { BaseDatos } from './conexion'
 import { listarRecetasCompletas } from './recetas'
 
 /** Ejecuta la búsqueda pura sobre los datos de la base. */
-export function buscarEnBase(db: BaseDatos, preferencias: Preferencias): ResultadoBusqueda {
+export function buscarEnBase(
+  db: BaseDatos,
+  preferencias: Preferencias,
+  incluirBorradores = false
+): ResultadoBusqueda {
   const catalogo = listarIngredientes(db)
   if (!hayIngredientesSeleccionados(preferencias.ingredientes, catalogo))
     return { resultados: [], descartadas: [], ofrecerGenerada: false }
-  return buscarRecetas(preferencias, listarRecetasCompletas(db), catalogo, listarSustituciones(db))
+  return buscarRecetas(
+    preferencias,
+    listarRecetasCompletas(db),
+    catalogo,
+    listarSustituciones(db),
+    { incluirBorradores }
+  )
 }

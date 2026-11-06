@@ -103,7 +103,7 @@
     <section class="comparar" aria-labelledby="titulo-elegir">
       <h1 id="titulo-elegir">
         {resultados.length}
-        {resultados.length === 1 ? 'receta' : 'recetas'} con lo que tienes
+        {resultados.length === 1 ? 'receta' : 'recetas'} para elegir
       </h1>
       <p class="subtitulo">
         {resultados.length > 1 ? 'Ordenadas por lo poco que te falta.' : ''}
@@ -120,7 +120,10 @@
               aria-current={r.receta.id === actual.receta.id ? 'true' : undefined}
               onclick={() => (app.recetaVisibleId = r.receta.id)}
             >
-              <span class="nombre">{r.receta.titulo}</span>
+              <span class="nombre"
+                >{r.receta.titulo}{#if r.receta.estadoRevision === 'borrador'}
+                  <small class="sin-revisar">Sin revisar</small>{/if}</span
+              >
               <span class="datos">
                 <span><Icono nombre="reloj" tamano={16} />{r.receta.tiempoTotalMin} min</span>
                 <span>{NOMBRE_DIFICULTAD[r.receta.dificultad]}</span>
@@ -294,6 +297,13 @@
     font-family: var(--fuente-titulo);
     font-weight: var(--peso-fuerte);
     font-size: var(--texto-m);
+  }
+  .sin-revisar {
+    display: block;
+    font-family: var(--fuente-texto);
+    font-size: var(--texto-xs);
+    font-weight: 600;
+    color: var(--color-tinta-suave);
   }
   .datos {
     grid-column: 1;

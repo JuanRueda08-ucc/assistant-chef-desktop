@@ -1,6 +1,6 @@
 import { exportJWK, generateKeyPair, SignJWT, type JSONWebKeySet } from 'jose'
 import { beforeAll, describe, expect, it } from 'vitest'
-import { crearCuentas, type Cuentas } from './cuentas'
+import { crearCuentas, cuentasLocales, type Cuentas } from './cuentas'
 
 // JWT como los de Supabase Auth, firmados con una clave de prueba (ES256).
 const URL_SUPABASE = 'https://proyecto-prueba.supabase.co'
@@ -43,6 +43,12 @@ beforeAll(async () => {
       .setExpirationTime('1h')
       .sign(ajena.privateKey)
   cuentas = crearCuentas({ supabaseUrl: URL_SUPABASE, jwks })
+})
+
+describe('modo de desarrollo sin cuentas', () => {
+  it('atiende como el usuario local sin pedir token', async () => {
+    expect((await cuentasLocales.usuario(new Headers()))?.id).toBe('usuario-local')
+  })
 })
 
 describe('JWT de Supabase en el backend', () => {

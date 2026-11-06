@@ -2,7 +2,7 @@
 // mismo manejador corre como Edge Function de Supabase (edge.ts, decisión 0017).
 
 import { crearApp } from './app'
-import { crearCuentas } from './cuentas'
+import { crearCuentas, cuentasLocales } from './cuentas'
 import { AlmacenMemoria, Limitador, limitesDesdeEntorno } from './limite'
 import { crearProveedor } from './proveedores'
 import { iniciarServidor } from './servidor-node'
@@ -19,16 +19,15 @@ async function main(): Promise<void> {
   const limites = limitesDesdeEntorno(process.env)
   const puerto = Number(process.env.SERVIDOR_PUERTO) || 8787
   const supabaseUrl = process.env.CHEF_SUPABASE_URL
-  if (!supabaseUrl)
-    throw new Error(
-      'Falta CHEF_SUPABASE_URL en .env: el backend comprueba las cuentas con tu proyecto de Supabase.'
-    )
+  if (!supabaseUrl && process.env.NODE_ENV === 'production')
+    throw new Error('Falta CHEF_SUPABASE_URL: el backend comprueba las cuentas con Supabase.')
+  if (!supabaseUrl) console.warn('Sin CHEF_SUPABASE_URL: modo de desarrollo sin cuentas (0018).')
 
   const { url } = await iniciarServidor(
     crearApp({
       proveedor,
       limitador: new Limitador(new AlmacenMemoria(), limites),
-      cuentas: crearCuentas({ supabaseUrl })
+      cuentas: supabaseUrl ? crearCuentas({ supabaseUrl }) : cuentasLocales
     }),
     puerto
   )
