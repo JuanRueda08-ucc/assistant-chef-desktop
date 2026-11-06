@@ -50,7 +50,7 @@ describe('lista libre de ingredientes', () => {
     expect(r.ambiguos.map((a) => a.texto)).toEqual(['pimiento'])
     expect(r.desconocidos).toEqual(['tofu'])
     expect(explicarPendientes(r)).toBe(
-      '«pimiento» puede ser pimiento rojo o pimiento verde: dime cuál. «tofu» no está en el catálogo: queda en tu lista sin identificar. Sal ya lo damos por hecho.'
+      '«pimiento» puede ser pimiento rojo o pimiento verde: dime cuál. «tofu» no está en el catálogo: queda en tu despensa con alérgenos sin verificar. Sal ya lo damos por hecho.'
     )
     expect(explicarPendientes(resolverIngredientes(catalogo, ['ajo']))).toBe('')
   })

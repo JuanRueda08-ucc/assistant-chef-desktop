@@ -12,8 +12,19 @@ export function abrirBase(ruta: string): BaseDatos {
   db.pragma('journal_mode = WAL')
   db.pragma('foreign_keys = ON')
   migrarSesionesPorUsuario(db)
+  migrarAlergenosVerificados(db)
   db.exec(esquemaSql)
   return db
+}
+
+/** Bases anteriores a los ingredientes sin verificar (0019): todo su catálogo estaba revisado. */
+function migrarAlergenosVerificados(db: BaseDatos): void {
+  const columnas = db.prepare("SELECT name FROM pragma_table_info('ingredientes')").all() as {
+    name: string
+  }[]
+  if (columnas.length === 0 || columnas.some((c) => c.name === 'alergenos_verificados')) return
+  db.exec(`ALTER TABLE ingredientes ADD COLUMN alergenos_verificados INTEGER NOT NULL DEFAULT 1
+    CHECK (alergenos_verificados IN (0, 1));`)
 }
 
 /**

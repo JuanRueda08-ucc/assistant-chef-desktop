@@ -20,6 +20,7 @@ CREATE TABLE IF NOT EXISTS ingredientes (
   es_basico_despensa   INTEGER NOT NULL DEFAULT 0 CHECK (es_basico_despensa IN (0, 1)),
   alergenos            TEXT NOT NULL DEFAULT '[]'
                        CHECK (json_valid(alergenos) AND json_type(alergenos) = 'array'),
+  alergenos_verificados INTEGER NOT NULL DEFAULT 1 CHECK (alergenos_verificados IN (0, 1)),
   dietas_incompatibles TEXT NOT NULL DEFAULT '[]'
                        CHECK (json_valid(dietas_incompatibles) AND json_type(dietas_incompatibles) = 'array'),
   densidad_g_ml        REAL CHECK (densidad_g_ml IS NULL OR densidad_g_ml > 0),

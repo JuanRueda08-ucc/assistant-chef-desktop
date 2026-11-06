@@ -84,6 +84,11 @@ export interface Ingrediente {
   /** Sal, aceite, agua: se asume que el usuario lo tiene. */
   esBasicoDespensa: boolean
   alergenos: Alergeno[]
+  /**
+   * `false` si una persona no ha revisado sus alérgenos (0019): `alergenos` no es fiable, la receta
+   * que lo use no declara ninguna dieta y se avisa al usuario.
+   */
+  alergenosVerificados: boolean
   /** Por ejemplo, la carne es incompatible con `vegetariana`. */
   dietasIncompatibles: Dieta[]
   /** Para convertir taza ↔ gramos. */

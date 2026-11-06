@@ -32,6 +32,7 @@ interface FilaIngrediente {
   categoria: string
   es_basico_despensa: number
   alergenos: string
+  alergenos_verificados: number
   dietas_incompatibles: string
   densidad_g_ml: number | null
   peso_unidad_g: number | null
@@ -62,6 +63,7 @@ export function listarIngredientes(db: BaseDatos): Ingrediente[] {
       categoria: f.categoria,
       esBasicoDespensa: f.es_basico_despensa === 1,
       alergenos: JSON.parse(f.alergenos),
+      alergenosVerificados: f.alergenos_verificados === 1,
       dietasIncompatibles: JSON.parse(f.dietas_incompatibles),
       densidadGMl: f.densidad_g_ml,
       pesoUnidadG: f.peso_unidad_g

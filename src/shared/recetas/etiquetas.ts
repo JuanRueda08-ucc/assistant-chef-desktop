@@ -22,6 +22,8 @@ export type Catalogo = ReadonlyMap<string, Ingrediente> | readonly Ingrediente[]
  * con seguridad de sus alérgenos y de otras dietas.
  */
 export function dietasIncompatiblesDe(ingrediente: Ingrediente): Set<Dieta> {
+  // Sin verificar no se puede garantizar nada: la receta no declara ninguna dieta (0019).
+  if (!ingrediente.alergenosVerificados) return new Set(DIETAS)
   const incompatibles = new Set<Dieta>(ingrediente.dietasIncompatibles)
   const alergenos = new Set<Alergeno>(ingrediente.alergenos)
 
@@ -62,6 +64,19 @@ export function derivarEtiquetas(
     dietas: DIETAS.filter((d) => !incompatibles.has(d)),
     alergenos: ALERGENOS.filter((a) => alergenos.has(a))
   }
+}
+
+/** Nombres de los ingredientes de la receta cuyos alérgenos nadie ha revisado (0019). */
+export function ingredientesSinVerificar(
+  receta: Pick<Receta, 'ingredientes'>,
+  catalogo: Catalogo
+): string[] {
+  const porId = comoMapa(catalogo)
+  const nombres = receta.ingredientes.flatMap((ir) => {
+    const ingrediente = porId.get(ir.ingredienteId)
+    return ingrediente && !ingrediente.alergenosVerificados ? [ingrediente.nombre] : []
+  })
+  return [...new Set(nombres)]
 }
 
 /** Devuelve una copia de la receta con `dietas` y `alergenos` recalculados. */

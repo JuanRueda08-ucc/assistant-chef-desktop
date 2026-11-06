@@ -22,6 +22,7 @@ const busqueda: ResultadoBusqueda = {
       coberturaConSustituciones: 1,
       puntuacion: 1,
       faltantes: [],
+      ingredientesSinVerificar: [],
       opcionalesFaltantes: []
     }
   ],

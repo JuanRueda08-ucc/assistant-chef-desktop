@@ -270,8 +270,8 @@
       </p>
     {:else if consulta.trim()}
       <p class="vacio">
-        «{consulta.trim()}» no está en el catálogo. Pulsa Intro para añadirlo a tu lista sin
-        identificar.
+        «{consulta.trim()}» no está en el catálogo. Pulsa Intro para añadirlo a tu despensa; sus
+        alérgenos quedarán sin verificar.
       </p>
     {:else}
       <p class="vacio">
@@ -281,107 +281,121 @@
   </section>
 
   <aside class="preferencias" aria-labelledby="titulo-lista">
-    <section class="bloque">
-      <div class="fila">
-        <h2 id="titulo-lista">Mi despensa <span class="cuantos">{enDespensa}</span></h2>
-        {#if enDespensa > 0 && !confirmarVaciar}
-          <button type="button" class="mas" onclick={() => (confirmarVaciar = true)}>Vaciar</button>
-        {/if}
-      </div>
-      {#if confirmarVaciar && enDespensa > 0}
-        <div class="confirmar" role="group" aria-label="Confirmar vaciar la despensa">
-          <span>¿Quitar todos los ingredientes?</span>
-          <button type="button" class="mas" onclick={vaciarDespensa}>Sí, vaciar</button>
-          <button type="button" class="mas" onclick={() => (confirmarVaciar = false)}>No</button>
+    <div class="cuerpo">
+      <section class="bloque">
+        <div class="fila">
+          <h2 id="titulo-lista">Mi despensa <span class="cuantos">{enDespensa}</span></h2>
+          {#if enDespensa > 0 && !confirmarVaciar}
+            <button type="button" class="mas" onclick={() => (confirmarVaciar = true)}
+              >Vaciar</button
+            >
+          {/if}
         </div>
-      {/if}
-      {#if enDespensa > 0}
-        <ul class="lista" aria-label="Ingredientes añadidos">
-          {#each lista as ingrediente (ingrediente.id)}
-            <li>
-              {ingrediente.nombre}
-              <button
-                type="button"
-                aria-label="Quitar {ingrediente.nombre}"
-                onclick={() => alternar(prefs.ingredientes, ingrediente.id)}
-                ><Icono nombre="cerrar" tamano={16} /></button
-              >
-            </li>
-          {/each}
-          {#each prefs.ingredientesSinIdentificar as texto (texto)}
-            <li class="sin-identificar">
-              <button
-                type="button"
-                class="texto"
-                title="Buscarlo con otro nombre"
-                onclick={() => corregirPendiente(texto)}
-                >{texto} <small>sin identificar</small></button
-              >
-              <button
-                type="button"
-                aria-label="Quitar {texto}"
-                onclick={() => quitarPendiente(texto)}><Icono nombre="cerrar" tamano={16} /></button
-              >
-            </li>
-          {/each}
-        </ul>
-        {#if prefs.ingredientesSinIdentificar.length > 0}
+        {#if confirmarVaciar && enDespensa > 0}
+          <div class="confirmar" role="group" aria-label="Confirmar vaciar la despensa">
+            <span>¿Quitar todos los ingredientes?</span>
+            <button type="button" class="mas" onclick={vaciarDespensa}>Sí, vaciar</button>
+            <button type="button" class="mas" onclick={() => (confirmarVaciar = false)}>No</button>
+          </div>
+        {/if}
+        {#if enDespensa > 0}
+          <ul class="lista" aria-label="Ingredientes añadidos">
+            {#each lista as ingrediente (ingrediente.id)}
+              <li>
+                {ingrediente.nombre}
+                <button
+                  type="button"
+                  aria-label="Quitar {ingrediente.nombre}"
+                  onclick={() => alternar(prefs.ingredientes, ingrediente.id)}
+                  ><Icono nombre="cerrar" tamano={16} /></button
+                >
+              </li>
+            {/each}
+            {#each prefs.ingredientesSinIdentificar as texto (texto)}
+              <li class="sin-identificar">
+                <button
+                  type="button"
+                  class="texto"
+                  title="Buscarlo con otro nombre"
+                  onclick={() => corregirPendiente(texto)}
+                  >{texto} <small>alérgenos sin verificar</small></button
+                >
+                <button
+                  type="button"
+                  aria-label="Quitar {texto}"
+                  onclick={() => quitarPendiente(texto)}
+                  ><Icono nombre="cerrar" tamano={16} /></button
+                >
+              </li>
+            {/each}
+          </ul>
+          {#if prefs.ingredientesSinIdentificar.length > 0}
+            <p class="ayuda">
+              Lo que tiene alérgenos sin verificar no cuenta para las recetas guardadas. Púlsalo
+              para buscarlo con otro nombre.
+            </p>
+          {/if}
+        {:else}
           <p class="ayuda">
-            Lo que está sin identificar no cuenta para buscar recetas. Púlsalo para buscarlo con
-            otro nombre.
+            Tu despensa está vacía. Busca ingredientes, elígelos por categoría o díselos al chef. Se
+            guarda para la próxima vez.
           </p>
         {/if}
-      {:else}
-        <p class="ayuda">
-          Tu despensa está vacía. Busca ingredientes, elígelos por categoría o díselos al chef. Se
-          guarda para la próxima vez.
-        </p>
-      {/if}
-      {#if basicos.length > 0}
-        <p class="basicos">
-          Damos por hecho que tienes {unirLista(basicos).toLocaleLowerCase('es')}.
-        </p>
-      {/if}
-    </section>
+        {#if prefs.alergias.length > 0 && prefs.ingredientesSinIdentificar.length > 0}
+          <p class="aviso" role="status">
+            Tienes alergias registradas y no puedo comprobar
+            {unirLista(prefs.ingredientesSinIdentificar.map((t) => `«${t}»`))}. Revisa su etiqueta
+            antes de usarlo.
+          </p>
+        {/if}
+        {#if basicos.length > 0}
+          <p class="basicos">
+            Damos por hecho que tienes {unirLista(basicos).toLocaleLowerCase('es')}.
+          </p>
+        {/if}
+      </section>
 
-    <div class="porciones">
-      <span id="etiqueta-porciones" class="nombre">Somos</span>
-      <div class="contador" role="group" aria-labelledby="etiqueta-porciones">
-        <button
-          type="button"
-          aria-label="Una porción menos"
-          disabled={prefs.porciones <= PORCIONES_MIN}
-          onclick={() => (prefs.porciones -= 1)}><Icono nombre="menos" /></button
-        >
-        <output aria-live="polite">{prefs.porciones}</output>
-        <button
-          type="button"
-          aria-label="Una porción más"
-          disabled={prefs.porciones >= PORCIONES_MAX}
-          onclick={() => (prefs.porciones += 1)}><Icono nombre="mas" /></button
-        >
+      <div class="porciones">
+        <span id="etiqueta-porciones" class="nombre">Somos</span>
+        <div class="contador" role="group" aria-labelledby="etiqueta-porciones">
+          <button
+            type="button"
+            aria-label="Una porción menos"
+            disabled={prefs.porciones <= PORCIONES_MIN}
+            onclick={() => (prefs.porciones -= 1)}><Icono nombre="menos" /></button
+          >
+          <output aria-live="polite">{prefs.porciones}</output>
+          <button
+            type="button"
+            aria-label="Una porción más"
+            disabled={prefs.porciones >= PORCIONES_MAX}
+            onclick={() => (prefs.porciones += 1)}><Icono nombre="mas" /></button
+          >
+        </div>
       </div>
+
+      <section class="bloque" aria-labelledby="titulo-preferencias">
+        <div class="fila">
+          <h2 id="titulo-preferencias">Preferencias</h2>
+          <button type="button" class="mas" onclick={() => (panelPreferencias = true)}
+            >Cambiar preferencias</button
+          >
+        </div>
+        <dl class="resumen">
+          {#each resumen as r (r.nombre)}
+            <dt>{r.nombre}</dt>
+            <dd>{r.valor}</dd>
+          {/each}
+        </dl>
+      </section>
     </div>
-
-    <section class="bloque" aria-labelledby="titulo-preferencias">
-      <div class="fila">
-        <h2 id="titulo-preferencias">Preferencias</h2>
-        <button type="button" class="mas" onclick={() => (panelPreferencias = true)}
-          >Cambiar preferencias</button
-        >
-      </div>
-      <dl class="resumen">
-        {#each resumen as r (r.nombre)}
-          <dt>{r.nombre}</dt>
-          <dd>{r.valor}</dd>
-        {/each}
-      </dl>
-    </section>
 
     <div class="pie">
       {#if app.error}<p class="error" role="alert">{app.error}</p>{/if}
       {#if marcadosElegibles === 0}
-        <p class="ayuda" role="status">Añade al menos un ingrediente para buscar recetas.</p>
+        <p class="ayuda" role="status">
+          Añade al menos un ingrediente del catálogo para buscar recetas.
+        </p>
       {/if}
       <Boton ancho disabled={app.ocupado || marcadosElegibles === 0} onclick={() => app.buscar()}>
         {marcadosElegibles === 0
@@ -637,15 +651,22 @@
 
   .preferencias {
     position: relative;
-    overflow-y: auto;
+    overflow: hidden;
     background: var(--color-superficie);
     border: var(--borde) solid var(--color-separador);
     border-radius: var(--radio-xl);
-    padding: var(--espacio-5);
+    display: flex;
+    flex-direction: column;
+    min-height: 0;
+  }
+  .cuerpo {
+    flex: 1;
+    min-height: 0;
+    overflow-y: auto;
+    padding: var(--espacio-5) var(--espacio-5) var(--espacio-3);
     display: flex;
     flex-direction: column;
     gap: var(--espacio-4);
-    min-height: 0;
   }
   .preferencias h2 {
     font-size: var(--texto-l);
@@ -771,8 +792,10 @@
     margin: 0;
     font-weight: 600;
   }
+  /* Fuera del desplazamiento: con la despensa llena, buscar recetas sigue a la vista. */
   .pie {
-    margin-top: auto;
+    padding: var(--espacio-3) var(--espacio-5) var(--espacio-4);
+    border-top: var(--borde) solid var(--color-separador);
     display: flex;
     flex-direction: column;
     gap: var(--espacio-2);

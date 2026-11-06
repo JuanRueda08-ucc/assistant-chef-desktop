@@ -42,6 +42,8 @@ export interface ResultadoReceta {
   coberturaConSustituciones: number
   /** Para ordenar: cobertura menos penalización por faltante, más bonus por sustitución. */
   puntuacion: number
+  /** Ingredientes con alérgenos sin verificar (0019): la interfaz debe avisar. */
+  ingredientesSinVerificar: string[]
   /** Panel "qué falta". */
   faltantes: Faltante[]
   /** Opcionales que el usuario no tiene; no penalizan, solo se informan. */

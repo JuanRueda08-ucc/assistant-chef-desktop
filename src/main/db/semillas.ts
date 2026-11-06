@@ -75,12 +75,13 @@ const bool = (valor: boolean): number => (valor ? 1 : 0)
 export function cargarSemilla(db: BaseDatos, semilla: Semilla): void {
   const upsertIngrediente = db.prepare(`
     INSERT INTO ingredientes (id, nombre, sinonimos, categoria, es_basico_despensa, alergenos,
-      dietas_incompatibles, densidad_g_ml, peso_unidad_g)
+      alergenos_verificados, dietas_incompatibles, densidad_g_ml, peso_unidad_g)
     VALUES (@id, @nombre, @sinonimos, @categoria, @esBasicoDespensa, @alergenos,
-      @dietasIncompatibles, @densidadGMl, @pesoUnidadG)
+      @alergenosVerificados, @dietasIncompatibles, @densidadGMl, @pesoUnidadG)
     ON CONFLICT (id) DO UPDATE SET nombre = excluded.nombre, sinonimos = excluded.sinonimos,
       categoria = excluded.categoria, es_basico_despensa = excluded.es_basico_despensa,
-      alergenos = excluded.alergenos, dietas_incompatibles = excluded.dietas_incompatibles,
+      alergenos = excluded.alergenos, alergenos_verificados = excluded.alergenos_verificados,
+      dietas_incompatibles = excluded.dietas_incompatibles,
       densidad_g_ml = excluded.densidad_g_ml, peso_unidad_g = excluded.peso_unidad_g`)
 
   const upsertTecnica = db.prepare(`
@@ -126,6 +127,7 @@ export function cargarSemilla(db: BaseDatos, semilla: Semilla): void {
         sinonimos: json(ing.sinonimos),
         esBasicoDespensa: bool(ing.esBasicoDespensa),
         alergenos: json(ing.alergenos),
+        alergenosVerificados: bool(ing.alergenosVerificados),
         dietasIncompatibles: json(ing.dietasIncompatibles)
       })
     }

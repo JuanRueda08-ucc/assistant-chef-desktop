@@ -46,6 +46,7 @@ export const esquemaIngrediente = z.strictObject({
   categoria: z.enum(CATEGORIAS_INGREDIENTE),
   esBasicoDespensa: z.boolean().default(false),
   alergenos: z.array(esquemaAlergeno).default([]),
+  alergenosVerificados: z.boolean().default(true),
   dietasIncompatibles: z.array(esquemaDieta).default([]),
   densidadGMl: z.number().positive().nullable().default(null),
   pesoUnidadG: z.number().positive().nullable().default(null)

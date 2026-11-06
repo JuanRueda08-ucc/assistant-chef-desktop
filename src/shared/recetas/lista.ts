@@ -122,7 +122,7 @@ export function explicarPendientes(resuelta: ListaResuelta): string {
     )
   if (resuelta.desconocidos.length)
     partes.push(
-      `${unirLista(resuelta.desconocidos.map((t) => `«${t}»`))} no ${resuelta.desconocidos.length === 1 ? 'está' : 'están'} en el catálogo: ${resuelta.desconocidos.length === 1 ? 'queda' : 'quedan'} en tu lista sin identificar.`
+      `${unirLista(resuelta.desconocidos.map((t) => `«${t}»`))} no ${resuelta.desconocidos.length === 1 ? 'está' : 'están'} en el catálogo: ${resuelta.desconocidos.length === 1 ? 'queda' : 'quedan'} en tu despensa con alérgenos sin verificar.`
     )
   if (resuelta.basicos.length)
     partes.push(

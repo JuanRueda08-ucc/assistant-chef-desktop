@@ -179,6 +179,13 @@
           </ul>
         {/if}
 
+        {#if actual.ingredientesSinVerificar.length > 0}
+          <p class="sin-verificar" role="status">
+            Alérgenos sin verificar: {actual.ingredientesSinVerificar.join(', ')}. Revisa sus
+            etiquetas{app.preferencias.alergias.length > 0 ? ', sobre todo por tus alergias' : ''}.
+          </p>
+        {/if}
+
         {#if app.globo}
           <div class="chef">
             <ChefBlob pose="busto" tamano={56} />
@@ -409,6 +416,15 @@
     border: var(--borde) solid var(--color-tinta);
     font-weight: var(--peso-fuerte);
     font-size: var(--texto-s);
+  }
+  .sin-verificar {
+    margin: 0;
+    padding: var(--espacio-3) var(--espacio-4);
+    border: var(--borde) dashed var(--color-tinta);
+    border-radius: var(--radio-m);
+    background: var(--color-acento-suave);
+    font-size: var(--texto-s);
+    font-weight: 600;
   }
   .etiquetas {
     display: flex;

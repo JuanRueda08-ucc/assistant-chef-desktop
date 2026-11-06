@@ -2,6 +2,7 @@ import { describe, expect, it } from 'vitest'
 import ingredientes from '../../../db/seed/ingredientes.json'
 import tecnicas from '../../../db/seed/tecnicas.json'
 import arrozConPollo from '../../../db/seed/recetas/arroz-con-pollo.json'
+import { escalarReceta } from '@shared/recetas/escalado'
 import { leerSemilla, prepararSemilla } from './semillas'
 
 // Comprobaciones de contenido que el esquema no cubre, para todas las recetas de la semilla.
@@ -23,6 +24,12 @@ describe('contenido de las recetas', () => {
         expect(paso.temporizador.segundos).toBeLessThanOrEqual(paso.duracionSeg ?? 0)
       // Con cifras en pantalla, la voz lleva su propia versión.
       if (/\d/.test(paso.texto)) expect(paso.textoVoz, paso.id).toBeTruthy()
+    }
+    // Escala a 1 y a 12 porciones sin cantidades nulas ni negativas.
+    for (const porciones of [1, 12]) {
+      for (const ir of escalarReceta(receta, porciones).receta.ingredientes) {
+        if (ir.unidad !== 'al_gusto') expect(ir.cantidad, ir.ingredienteId).toBeGreaterThan(0)
+      }
     }
     // Carne, pollo o pescado crudos: algún paso indica la temperatura interna segura.
     if (receta.ingredientes.some((i) => CRUDOS.includes(i.ingredienteId)))

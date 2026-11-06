@@ -94,6 +94,27 @@ describe('base de datos', () => {
     expect(() => insertar.run('s3', 'luis')).not.toThrow()
   })
 
+  it('el catálogo guarda si los alérgenos están verificados y migra bases antiguas', () => {
+    expect(listarIngredientes(db).every((i) => i.alergenosVerificados)).toBe(true)
+    const ruta = join(mkdtempSync(join(tmpdir(), 'chef-')), 'antigua.sqlite')
+    const vieja = new Database(ruta)
+    vieja.exec(`CREATE TABLE ingredientes (id TEXT PRIMARY KEY, nombre TEXT NOT NULL,
+        sinonimos TEXT NOT NULL DEFAULT '[]', categoria TEXT NOT NULL,
+        es_basico_despensa INTEGER NOT NULL DEFAULT 0, alergenos TEXT NOT NULL DEFAULT '[]',
+        dietas_incompatibles TEXT NOT NULL DEFAULT '[]', densidad_g_ml REAL, peso_unidad_g REAL);
+      INSERT INTO ingredientes (id, nombre, categoria) VALUES ('viejo', 'Viejo', 'despensa');`)
+    vieja.close()
+    const migrada = abrirBase(ruta)
+    try {
+      expect(listarIngredientes(migrada)[0]).toMatchObject({
+        id: 'viejo',
+        alergenosVerificados: true
+      })
+    } finally {
+      migrada.close()
+    }
+  })
+
   it('migra una base anterior a las cuentas sin perder sus filas', () => {
     const ruta = join(mkdtempSync(join(tmpdir(), 'chef-')), 'vieja.sqlite')
     const vieja = new Database(ruta)

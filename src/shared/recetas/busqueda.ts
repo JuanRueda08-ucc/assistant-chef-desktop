@@ -11,7 +11,12 @@ import type {
 } from '../types/busqueda'
 import { DIFICULTADES, type Ingrediente, type Receta, type Sustitucion } from '../types/receta'
 import type { Preferencias } from '../types/sesion'
-import { comoMapa, dietasIncompatiblesDe, type Catalogo } from './etiquetas'
+import {
+  comoMapa,
+  dietasIncompatiblesDe,
+  ingredientesSinVerificar,
+  type Catalogo
+} from './etiquetas'
 import { limpiar } from './redondeo'
 import { resumirReceta } from './resumen'
 
@@ -150,6 +155,7 @@ function puntuar(
     puntuacion: limpiar(
       cobertura - PENALIZACION_FALTANTE * faltantes.length + BONUS_SUSTITUCION * sustituibles
     ),
+    ingredientesSinVerificar: ingredientesSinVerificar(receta, porId),
     faltantes,
     opcionalesFaltantes: [...opcionales]
       .filter((id) => !tiene(id))
@@ -199,6 +205,8 @@ export function destinoPermitido(
   preferencias: Pick<Preferencias, 'restricciones' | 'alergias'>
 ): boolean {
   if (!destino) return false
+  // Con alergias registradas no se propone como sustituto algo sin verificar.
+  if (!destino.alergenosVerificados && preferencias.alergias.length > 0) return false
   const incompatibles = dietasIncompatiblesDe(destino)
   return (
     !preferencias.restricciones.some((d) => incompatibles.has(d)) &&
