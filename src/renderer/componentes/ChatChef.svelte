@@ -228,10 +228,12 @@
   }
   form {
     display: flex;
+    flex-wrap: wrap;
+    justify-content: flex-end;
     gap: var(--espacio-2);
   }
   input {
-    flex: 1;
+    flex: 1 0 100%;
     min-width: 0;
     min-height: var(--alto-control);
     border: var(--borde) solid var(--color-borde-control);
