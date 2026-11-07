@@ -30,7 +30,7 @@ La app debe ser muy funcional e interactiva. Una persona entra, reúne sus ingre
 - [ ] **Tarea 39. El chef propone:** guardadas, internet o memoria en una sola lista, con «dame otras». **Hecha y probada de memoria. Falta probar la búsqueda real cuando el autor active la facturación;** su pantalla se probó con un servidor simulado.
 - [x] **Tarea 40. Receta completa:** generar, validar y cocinar la elegida; sustituye a la tarea 17. **Hecha de memoria.** Las ideas que vengan de internet tienen el botón desactivado hasta resolver las condiciones de Google.
 - [x] **Tarea 41. Mis recetas:** guardar las generadas por cuenta, al terminar de cocinar; aparecen al buscar y en su propia pantalla.
-- [ ] **Tarea 42. Chat y voz** para pedir todo lo anterior. **Chat hecho.** Falta la voz: hoy solo Cocinar puede abrir el micrófono, y cambiarlo requiere la decisión del autor.
+- [x] **Tarea 42. Chat y voz** para pedir todo lo anterior: chat y botón «Hablar» (0020). Falta que el autor lo pruebe con su micrófono.
 
 ## Búsqueda en internet y costos
 
@@ -58,7 +58,7 @@ Comprobado el 2026-11-06 con la clave del autor: Gemini responde sin búsqueda, 
 ## Pendiente con el autor
 
 - **Fecha:** el autor mencionó el **18 de noviembre de 2026** para su entrega o integración (dicho el 2026-11-07); hay tiempo para la interfaz (43).
-- **Voz para pedir recetas:** decidir si se añade un botón «Hablar» en el chat de Preparar y Elegir, con el micrófono abierto solo mientras se usa.
+- **Voz para pedir recetas:** elegido y hecho el botón «Hablar» (0020). Falta su prueba con micrófono y decidir si el chef debe responder en voz alta allí.
 - **Interfaz (dicho el 2026-11-07, para después; ver `estado.md`):** la materia es Diseño de Interfaces y la interfaz no le convence: desorganizada y con demasiada información. Hay que hacer un repaso propio.
 - Revisar las 18 recetas en la app y aprobarlas; faltan también sus fotos (tarea 18).
 - Activar la facturación cuando pueda y poner la clave en `.env` si cambia. La clave nunca se pide ni se escribe en el repositorio.

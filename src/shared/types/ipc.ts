@@ -47,7 +47,10 @@ export const CANALES_IPC = {
   vozDetener: 'voz:detener',
   vozRepetir: 'voz:repetir',
   vozNarrar: 'voz:narrar',
-  vozCallar: 'voz:callar'
+  vozCallar: 'voz:callar',
+  vozDictadoIniciar: 'voz:dictado-iniciar',
+  vozDictadoTerminar: 'voz:dictado-terminar',
+  vozTranscribir: 'voz:transcribir'
 } as const
 
 export interface DatosIniciarCocina {
@@ -76,6 +79,8 @@ export type ResumenReceta = Pick<
 >
 
 /** API que el preload expone como `window.api`. */
+export type ResultadoTranscripcion = { ok: true; texto: string } | { ok: false; mensaje: string }
+
 export interface ApiChef {
   /** Cuenta real (decisión 0016). Main guarda el token; aquí solo llegan usuario y resultados. */
   cuenta: {
@@ -99,6 +104,11 @@ export interface ApiChef {
     repetir(datos: Record<string, never>): Promise<ResultadoVozLocal>
     narrar(datos: { sesionId: string; pasoId: string }): Promise<AudioNarracion | null>
     callar(datos: Record<string, never>): Promise<void>
+    /** Botón «Hablar» del chat (0020): permite el micrófono solo hasta terminar. */
+    dictadoIniciar(datos: Record<string, never>): Promise<void>
+    dictadoTerminar(datos: Record<string, never>): Promise<void>
+    /** Convierte en texto una frase de hasta ocho segundos. No se guarda. */
+    transcribir(audio: ArrayBuffer): Promise<ResultadoTranscripcion>
   }
   catalogo: {
     /** Catálogo completo de ingredientes, ordenado por nombre. */

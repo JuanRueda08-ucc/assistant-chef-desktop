@@ -1,5 +1,6 @@
 <script lang="ts">
   import { app } from '../estado/app.svelte'
+  import { dictar } from '../voz/dictado'
   import Boton from './Boton.svelte'
   import Icono from './Icono.svelte'
 
@@ -22,6 +23,52 @@
     void [app.conversacion.length, app.chatOcupado, app.chatError]
     if (mensajes) mensajes.scrollTop = mensajes.scrollHeight
   })
+
+  // «Hablar» (0020): solo fuera de Cocinar, que tiene su propio micrófono. La frase se envía sola.
+  const puedeHablar = $derived(app.pantalla !== 'cocinar')
+  let voz = $state<'apagada' | 'escuchando' | 'entendiendo'>('apagada')
+  let vozError = $state<string | null>(null)
+  let controlVoz: AbortController | null = null
+  const detenerVoz = (): void => controlVoz?.abort()
+  $effect(() => {
+    if (!app.chatAbierto || !puedeHablar) detenerVoz()
+    return detenerVoz
+  })
+  async function hablar(): Promise<void> {
+    if (voz !== 'apagada' || app.chatOcupado || app.ocupado) return
+    vozError = null
+    const control = new AbortController()
+    controlVoz = control
+    voz = 'escuchando'
+    let pcm: ArrayBuffer | null = null
+    try {
+      await window.api.voz.dictadoIniciar({})
+      pcm = await dictar(control.signal)
+      if (!pcm && !control.signal.aborted) vozError = 'No te oí. Inténtalo de nuevo o escríbelo.'
+    } catch {
+      vozError = 'No pude abrir el micrófono. Revisa el permiso del sistema o escríbelo.'
+    } finally {
+      // El micrófono ya está cerrado; el permiso también se retira aunque esto falle.
+      void window.api.voz.dictadoTerminar({}).catch(() => {})
+    }
+    if (!pcm || control.signal.aborted) {
+      voz = 'apagada'
+      return
+    }
+    voz = 'entendiendo'
+    try {
+      const r = await window.api.voz.transcribir(pcm)
+      if (control.signal.aborted) return
+      voz = 'apagada'
+      if (r.ok) await app.enviarChat(r.texto)
+      else vozError = r.mensaje
+    } catch {
+      vozError = 'No pude entender el audio. Inténtalo de nuevo o escríbelo.'
+    } finally {
+      voz = 'apagada'
+    }
+  }
+
   async function enviar(): Promise<void> {
     const consulta = texto.trim()
     if (!consulta || app.chatOcupado || app.ocupado) return
@@ -59,7 +106,13 @@
         </p>
       {/each}
       {#if app.chatOcupado}<p class="estado">El chef está revisando tu petición…</p>{/if}
+      {#if voz === 'escuchando'}
+        <p class="estado" role="status">Te escucho. El micrófono se apaga solo al terminar.</p>
+      {:else if voz === 'entendiendo'}
+        <p class="estado" role="status">Entendiendo lo que dijiste…</p>
+      {/if}
       {#if app.chatError}<p class="error" role="alert">{app.chatError}</p>{/if}
+      {#if vozError}<p class="error" role="alert">{vozError}</p>{/if}
     </div>
     <form
       onsubmit={(evento) => {
@@ -78,6 +131,13 @@
         autocomplete="off"
         disabled={app.chatOcupado || terminado}
       />
+      {#if puedeHablar}
+        <Boton
+          variante="secundario"
+          disabled={voz !== 'apagada' || app.chatOcupado || app.ocupado}
+          onclick={() => void hablar()}>{voz === 'escuchando' ? 'Escuchando…' : 'Hablar'}</Boton
+        >
+      {/if}
       <Boton
         disabled={!texto.trim() || app.chatOcupado || app.ocupado || terminado}
         onclick={() => void enviar()}>{app.chatOcupado ? 'Consultando…' : 'Enviar'}</Boton

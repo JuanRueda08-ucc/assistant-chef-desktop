@@ -11,6 +11,7 @@ import { cargarSemilla, leerSemilla } from './db/semillas'
 const { handle } = vi.hoisted(() => ({ handle: vi.fn() }))
 vi.mock('electron', () => ({ ipcMain: { handle } }))
 import { registrarIpc } from './ipc'
+import { dictado } from './voz/dictado'
 import type { Cuenta } from './cuenta'
 
 afterEach(() => handle.mockClear())
@@ -55,7 +56,8 @@ describe('voz:token IPC', () => {
           narrar: vi.fn(),
           conversar,
           proponerRecetas: vi.fn(),
-          generarReceta: vi.fn()
+          generarReceta: vi.fn(),
+          transcribir: vi.fn()
         },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
@@ -103,7 +105,8 @@ describe('voz:token IPC', () => {
           narrar: vi.fn(),
           conversar: vi.fn(),
           proponerRecetas: vi.fn(),
-          generarReceta: vi.fn()
+          generarReceta: vi.fn(),
+          transcribir: vi.fn()
         },
         voz,
         lector,
@@ -159,7 +162,8 @@ describe('voz:token IPC', () => {
           narrar: vi.fn(),
           conversar: vi.fn(),
           proponerRecetas: vi.fn(),
-          generarReceta: vi.fn()
+          generarReceta: vi.fn(),
+          transcribir: vi.fn()
         },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
@@ -194,6 +198,7 @@ describe('cuenta IPC', () => {
     const voz = { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() }
     const proponerRecetas = vi.fn()
     const generarReceta = vi.fn()
+    const transcribir = vi.fn()
     try {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
@@ -203,7 +208,8 @@ describe('cuenta IPC', () => {
           narrar: vi.fn(),
           conversar: vi.fn(),
           proponerRecetas,
-          generarReceta
+          generarReceta,
+          transcribir
         },
         voz,
         { leer: vi.fn(), detener: vi.fn() },
@@ -385,6 +391,25 @@ describe('cuenta IPC', () => {
         []
       )
       descartarSesionCocinando(db, 'u1')
+
+      // «Hablar» permite el micrófono solo mientras dura, y un texto vacío no llega al chat.
+      await canal(CANALES_IPC.vozDictadoIniciar)(null, {})
+      expect(dictado.activo).toBe(true)
+      await canal(CANALES_IPC.vozDictadoTerminar)(null, {})
+      expect(dictado.activo).toBe(false)
+      transcribir.mockResolvedValueOnce({ ok: true, datos: { texto: ' dame ideas ' } })
+      const audio = new ArrayBuffer(320)
+      expect(await canal(CANALES_IPC.vozTranscribir)(null, audio)).toEqual({
+        ok: true,
+        texto: 'dame ideas'
+      })
+      transcribir.mockResolvedValueOnce({ ok: true, datos: { texto: '  ' } })
+      expect(await canal(CANALES_IPC.vozTranscribir)(null, audio)).toMatchObject({ ok: false })
+      await expect(
+        Promise.resolve().then(() =>
+          canal(CANALES_IPC.vozTranscribir)(null, new ArrayBuffer(256_002))
+        )
+      ).rejects.toThrow()
 
       // La receta de otra cuenta no se retoma.
       guardarSesion(db, sesionNueva(), 'otra')

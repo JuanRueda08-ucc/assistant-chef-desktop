@@ -23,7 +23,10 @@ const api: ApiChef = {
     detener: (datos) => ipcRenderer.invoke(CANALES_IPC.vozDetener, datos),
     repetir: (datos) => ipcRenderer.invoke(CANALES_IPC.vozRepetir, datos),
     narrar: (datos) => ipcRenderer.invoke(CANALES_IPC.vozNarrar, datos),
-    callar: (datos) => ipcRenderer.invoke(CANALES_IPC.vozCallar, datos)
+    callar: (datos) => ipcRenderer.invoke(CANALES_IPC.vozCallar, datos),
+    dictadoIniciar: (datos) => ipcRenderer.invoke(CANALES_IPC.vozDictadoIniciar, datos),
+    dictadoTerminar: (datos) => ipcRenderer.invoke(CANALES_IPC.vozDictadoTerminar, datos),
+    transcribir: (audio) => ipcRenderer.invoke(CANALES_IPC.vozTranscribir, audio)
   },
   catalogo: {
     ingredientes: () => ipcRenderer.invoke(CANALES_IPC.catalogoIngredientes)

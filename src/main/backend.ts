@@ -61,6 +61,7 @@ export function crearClienteBackend(
   conversar: (peticion: PeticionChat) => Promise<RespuestaChat>
   proponerRecetas: (peticion: PeticionIdeas) => Promise<Respuesta<RespuestaIdeas>>
   generarReceta: (peticion: PeticionRecetaGenerada) => Promise<Respuesta<RecetaGenerada>>
+  transcribir: (audio: string) => Promise<Respuesta<{ texto: string }>>
 } {
   const base = validarApiUrl(apiUrl)
   const cabeceras = async (): Promise<Record<string, string>> => {
@@ -74,7 +75,7 @@ export function crearClienteBackend(
   const url = new URL(`${base.pathname.replace(/\/$/, '')}/voz/token`, base.origin)
   const cache = new Map<string, AudioNarracion>()
   /** Ideas (búsqueda 25 s y memoria 8 + 15 s) y receta (dos intentos de hasta 25 + 40 s). */
-  async function pedirRecetas<T>(
+  async function pedirDatos<T>(
     ruta: string,
     peticion: unknown,
     esperaMs: number,
@@ -84,7 +85,7 @@ export function crearClienteBackend(
     let respuesta: Response
     try {
       respuesta = await solicitar(
-        new URL(`${base.pathname.replace(/\/$/, '')}/recetas/${ruta}`, base.origin),
+        new URL(`${base.pathname.replace(/\/$/, '')}/${ruta}`, base.origin),
         {
           method: 'POST',
           headers: await cabeceras(),
@@ -121,16 +122,22 @@ export function crearClienteBackend(
   }
   return {
     proponerRecetas: (peticion) =>
-      pedirRecetas('proponer', peticion, 60_000, esquemaRespuestaIdeas, {
+      pedirDatos('recetas/proponer', peticion, 60_000, esquemaRespuestaIdeas, {
         limite: 'Has llegado al límite de ideas de hoy.',
         fallo: 'El chef no pudo proponer ideas. Puedes intentarlo más tarde.',
         invalida: 'El chef devolvió ideas no válidas. Inténtalo de nuevo.'
       }),
     generarReceta: (peticion) =>
-      pedirRecetas('generar', peticion, 130_000, esquemaRecetaGenerada, {
+      pedirDatos('recetas/generar', peticion, 130_000, esquemaRecetaGenerada, {
         limite: 'Has llegado al límite de recetas de hoy.',
         fallo: 'El chef no logró escribir una receta segura con esta idea. Prueba con otra.',
         invalida: 'El chef devolvió una receta no válida. Inténtalo de nuevo.'
+      }),
+    transcribir: (audio) =>
+      pedirDatos('voz/transcribir', { audio }, 30_000, z.strictObject({ texto: z.string() }), {
+        limite: 'Has llegado al límite de voz de hoy. Puedes seguir escribiendo.',
+        fallo: 'No pude entender el audio. Inténtalo de nuevo o escríbelo.',
+        invalida: 'No pude entender el audio. Inténtalo de nuevo o escríbelo.'
       }),
     async conversar(peticion) {
       let respuesta: Response

@@ -112,6 +112,10 @@ export class ProveedorFalso implements ProveedorIA {
           'Soy tu ayudante de cocina. Modo de prueba: escribe «tengo pollo y arroz», «somos 2» o «busca recetas». Para preguntas abiertas configura Gemini en el backend.'
         )
   }
+  async transcribir(): Promise<string> {
+    this.fallarSiToca()
+    return 'dame ideas'
+  }
   async narrar(): Promise<null> {
     this.fallarSiToca()
     return null

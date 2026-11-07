@@ -15,6 +15,7 @@ import {
   esquemaPeticionIdeas,
   esquemaPeticionReceta,
   esquemaPeticionSustitucion,
+  esquemaPeticionTranscripcion,
   esquemaPeticionVoz,
   esquemaTokenVoz
 } from './peticiones'
@@ -117,6 +118,14 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
         delProveedor(async () =>
           esquemaRespuestaNarracion.parse({ audio: await dep.proveedor.narrar(cuerpo.texto) })
         )
+    },
+    '/voz/transcribir': {
+      grupo: 'voz',
+      esquema: esquemaPeticionTranscripcion,
+      manejar: async (cuerpo: z.output<typeof esquemaPeticionTranscripcion>) =>
+        delProveedor(async () => ({
+          texto: (await dep.proveedor.transcribir(cuerpo.audio)).trim().slice(0, 2000)
+        }))
     },
     '/voz/token': {
       grupo: 'voz',

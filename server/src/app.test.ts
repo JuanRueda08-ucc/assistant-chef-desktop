@@ -78,6 +78,16 @@ describe('POST /voz/token', () => {
   })
 })
 
+describe('POST /voz/transcribir', () => {
+  it('devuelve el texto y rechaza lo que no es base64', async () => {
+    const { manejar } = banco()
+    const r = await leer(await manejar(post('/voz/transcribir', { audio: 'UklGRg==' })))
+    expect(r).toMatchObject({ estado: 200, cuerpo: { texto: 'dame ideas' } })
+    const mal = await leer(await manejar(post('/voz/transcribir', { audio: 'no es base64!' })))
+    expect(mal.estado).toBe(400)
+  })
+})
+
 describe('POST /recetas/generar', () => {
   it('valida la receta del modelo, le pone identidad y deriva las etiquetas', async () => {
     const modelo = { ...recetaModelo(), dietas: ['vegana'], alergenos: [], id: 'id_del_modelo' }

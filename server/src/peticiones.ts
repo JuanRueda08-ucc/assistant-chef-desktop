@@ -44,6 +44,11 @@ export { esquemaPeticionIdeas } from '@shared/esquemas/ideas'
 
 export const esquemaPeticionVoz = z.strictObject({})
 
+/** Ocho segundos de PCM16 a 16 kHz en un WAV, en base64 (unos 342 KB). */
+export const esquemaPeticionTranscripcion = z.strictObject({
+  audio: z.base64().min(1).max(350_000)
+})
+
 /** Respuesta del proveedor para el token de voz. */
 export { esquemaTokenVoz } from '@shared/esquemas/voz'
 

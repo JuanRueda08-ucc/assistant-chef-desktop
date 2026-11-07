@@ -35,7 +35,9 @@ import { guardarPreferencias, leerPreferencias } from './db/preferencias'
 import { obtenerSesion, obtenerSesionCocinando } from './db/sesiones'
 import type { crearClienteBackend } from './backend'
 import { fallo, type Cuenta } from './cuenta'
+import { dictado, MS_MAX_DICTADO } from './voz/dictado'
 import type { VozLocal } from './voz/local'
+import { pcmAWavBase64 } from './voz/wav'
 import type { crearLectorLocal } from './voz/lector'
 
 /** Recetas escritas por la IA que siguen esperando a cocinarse; al cocinar pasan a la sesión. */
@@ -90,6 +92,7 @@ export function registrarIpc(
   ipcMain.handle(CANALES_IPC.cuentaEntrar, conDatos(esquemaEntrar, cuenta.entrar))
   ipcMain.handle(CANALES_IPC.cuentaSalir, async () => {
     await preparada
+    dictado.activo = false
     voz.detener()
     lector.detener()
     propietario = null
@@ -170,6 +173,38 @@ export function registrarIpc(
   const esquemaAudio = z
     .instanceof(ArrayBuffer)
     .refine((a) => a.byteLength > 0 && a.byteLength <= 6400 && a.byteLength % 2 === 0)
+  let caducidadDictado: ReturnType<typeof setTimeout> | undefined
+  const terminarDictado = (): void => {
+    clearTimeout(caducidadDictado)
+    dictado.activo = false
+  }
+  ipcMain.handle(CANALES_IPC.vozDictadoIniciar, (_evento, datos: unknown) => {
+    esquemaPeticionTokenVoz.parse(datos)
+    usuarioId()
+    clearTimeout(caducidadDictado)
+    dictado.activo = true
+    caducidadDictado = setTimeout(terminarDictado, MS_MAX_DICTADO)
+  })
+  ipcMain.handle(CANALES_IPC.vozDictadoTerminar, (_evento, datos: unknown) => {
+    esquemaPeticionTokenVoz.parse(datos)
+    terminarDictado()
+  })
+  ipcMain.handle(
+    CANALES_IPC.vozTranscribir,
+    async (_evento, audio: unknown): Promise<Resultado<ApiChef['voz']['transcribir']>> => {
+      const pcm = z
+        .instanceof(ArrayBuffer)
+        .refine((a) => a.byteLength > 0 && a.byteLength <= 256_000 && a.byteLength % 2 === 0)
+        .parse(audio)
+      usuarioId()
+      const respuesta = await backend.transcribir(pcmAWavBase64(pcm))
+      if (!respuesta.ok) return respuesta
+      const texto = respuesta.datos.texto.trim()
+      return texto
+        ? { ok: true, texto }
+        : { ok: false, mensaje: 'No te entendí. Inténtalo de nuevo o escríbelo.' }
+    }
+  )
   ipcMain.handle(CANALES_IPC.vozIniciar, async (evento, datos: unknown) => {
     esquemaPeticionTokenVoz.parse(datos)
     exigirCocina()

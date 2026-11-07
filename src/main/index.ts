@@ -1,3 +1,4 @@
+import { dictado } from './voz/dictado'
 import { app, shell, BrowserWindow, dialog } from 'electron'
 import { join } from 'path'
 import { electronApp, optimizer, is } from '@electron-toolkit/utils'
@@ -59,7 +60,7 @@ function crearVentana(): void {
           'mediaTypes' in detalles &&
           detalles.mediaTypes?.length === 1 &&
           detalles.mediaTypes[0] === 'audio' &&
-          hayCocinaActiva()
+          (hayCocinaActiva() || dictado.activo)
       )
     }
   )
@@ -68,7 +69,7 @@ function crearVentana(): void {
       contenido === ventana.webContents &&
       permiso === 'media' &&
       detalles.mediaType === 'audio' &&
-      hayCocinaActiva()
+      (hayCocinaActiva() || dictado.activo)
   )
   ventana.webContents.on('render-process-gone', () => {
     voz?.detener()
@@ -76,6 +77,7 @@ function crearVentana(): void {
   })
   ventana.webContents.on('did-start-navigation', (_evento, _url, _inPlace, mainFrame) => {
     if (mainFrame) {
+      dictado.activo = false
       voz?.detener()
       lector.detener()
     }

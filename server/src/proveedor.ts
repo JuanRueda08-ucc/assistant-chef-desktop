@@ -34,6 +34,8 @@ export interface ProveedorIA {
   /** Token efímero para que el cliente abra la sesión de voz en tiempo real. */
   crearTokenVoz(instalacion: string): Promise<TokenVoz>
   narrar(texto: string): Promise<AudioNarracion | null>
+  /** Lo que se dijo en un WAV en base64, para el chat. Vacío si no se entiende. */
+  transcribir(audio: string): Promise<string>
   conversar(peticion: PeticionChat): Promise<unknown>
   /**
    * Receta en bruto (JSON del modelo). `errorAnterior` trae el motivo por el que se rechazó el
