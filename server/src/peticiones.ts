@@ -8,6 +8,7 @@ import {
   esquemaId,
   esquemaIngrediente
 } from '@shared/esquemas/receta'
+import { esquemaIdeaModelo } from '@shared/esquemas/ideas'
 import { esquemaPreferencias } from '@shared/esquemas/sesion'
 import { CONTEXTOS_SUSTITUCION } from '@shared/types/receta'
 
@@ -22,7 +23,9 @@ export const esquemaPeticionReceta = z.strictObject({
   tecnicas: z
     .array(z.strictObject({ id: esquemaId, nombre: z.string().min(1) }))
     .max(1000)
-    .default([])
+    .default([]),
+  /** La idea elegida; la receta la desarrolla. */
+  idea: esquemaIdeaModelo.nullable().default(null)
 })
 
 export const esquemaPeticionSustitucion = z.strictObject({

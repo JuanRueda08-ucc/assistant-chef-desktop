@@ -1,7 +1,7 @@
 // Estado de la sesión de cocina y del avatar. Debe coincidir con docs/ia-chef.md.
 // `SesionCocina` solo cambia a través de las herramientas del chef (tarea 8).
 
-import type { Alergeno, Dieta, Dificultad, Equipo, Receta } from './receta'
+import type { Alergeno, Dieta, Dificultad, Equipo, Receta, RecetaGenerada } from './receta'
 
 export const FASES = ['preparar', 'elegir', 'cocinar', 'terminado'] as const
 export type Fase = (typeof FASES)[number]
@@ -78,6 +78,8 @@ export interface SesionCocina {
   recetaId: string | null
   /** Copia ya escalada y con sustituciones: lo que se muestra. */
   recetaAdaptada: Receta | null
+  /** Receta original escrita por la IA, que no está en la base; `null` si `recetaId` es de la base. */
+  recetaGenerada: RecetaGenerada | null
   porciones: number
   sustituciones: SustitucionAplicada[]
   /** `orden` del paso actual; `null` fuera de la fase `cocinar`. */

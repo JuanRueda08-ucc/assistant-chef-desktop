@@ -163,16 +163,17 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   | `/voz/token` | `{}` | `{ token, expiraEn }` |
   | `/voz/narrar` | `{ texto }` (máx. 2000 caracteres) | `{ audio: { datos, mimeType: 'audio/wav' } \| null }` |
   | `/chat` | `{ pantalla, contexto, mensajes }` | `{ contenido: { role: 'model', parts }, simulado }` |
-  | `/recetas/generar` | `{ preferencias, catalogo, tecnicas? }` | `{ receta }` |
+  | `/recetas/generar` | `{ preferencias, catalogo, tecnicas?, idea? }` | `{ receta, ingredientesNuevos }` |
   | `/recetas/proponer` | `{ ingredientes, porciones, restricciones, alergias, tiempoMaxMin, nivel, equipo, excluir }` | `{ ideas, fuente, fuentes, sugerenciasBusqueda }` |
   | `/sustituciones/sugerir` | `{ ingredienteId, recetaId?, tituloReceta?, preferencias: { ingredientes?, restricciones?, alergias? }, catalogo }` | `{ sustituciones }` |
 
   El catálogo lo manda la app (es la fuente de verdad y puede crecer); el backend solo guarda los contadores de uso.
 - **Generar receta** (`validar-receta.ts`):
-  - El servidor pone `id` (`gen_…`), `slug`, `origen: generada` y `estadoRevision: borrador`. Ignora `dietas` y `alergenos` del modelo y los deriva del catálogo.
-  - Valida con `esquemaReceta` (estricto) y exige que los ingredientes estén en el catálogo y que las técnicas existan.
+  - El servidor pone `id` (`gen_…`), `slug`, `origen: generada`, `estadoRevision: borrador`, `imagen: null` y, si hay idea, su título. Ignora `dietas` y `alergenos` del modelo y los deriva del catálogo.
+  - Se genera sin búsqueda en Google, con más tiempo de espera que el chat (25 s y 40 s de respaldo).
+  - Valida con `esquemaReceta` (estricto) y exige que los ingredientes estén en el catálogo o declarados en `ingredientesNuevos`, y que las técnicas existan. Del nuevo solo se acepta id, nombre y categoría; un nombre exacto del catálogo usa ese ingrediente.
+  - `problemasRecetaGenerada` (`shared/recetas/receta-generada.ts`) rechaza lo que choca con alergias o dieta (también en título y pasos), supera tiempo, nivel o equipo, tiene un temporizador más largo que la receta o lleva proteína animal sin `seguridad`. Main la repite al recibirla y al empezar a cocinar.
   - Si falla, hace un reintento pasándole el error al modelo. Si vuelve a fallar, responde 422 `receta_invalida`.
-  - La seguridad alimentaria y `ingredienteNuevo` llegan en la tarea 17.
 - **Sugerir sustituciones** (`sugerencias.ts`): de lo que devuelve el modelo se queda con lo válido, como mucho 3, en su orden.
   - Descarta lo que no está en el catálogo, el propio ingrediente, las repetidas y lo que rompe restricciones o alergias (`destinoPermitido`).
   - El resultado son `Sustitucion` con `fuente: generada`. `resuelve` lo calcula el código.

@@ -1,7 +1,7 @@
 // Ideas de recetas que propone el chef con la IA (tarea 39, decisión 0019): cortas, para elegir.
 // La receta completa se escribe solo para la idea elegida (tarea 40).
 
-import type { Alergeno, Dieta, Dificultad, Equipo } from './receta'
+import type { Alergeno, Dieta, Dificultad, Equipo, RecetaGenerada } from './receta'
 
 export const FUENTES_IDEA = ['internet', 'memoria'] as const
 /** `internet`: Gemini buscó en Google. `memoria`: la creó sin buscar, y la pantalla lo indica. */
@@ -60,3 +60,6 @@ export type ResultadoIdeas =
       sugerenciasBusqueda: string | null
     }
   | { ok: false; mensaje: string }
+
+export type ResultadoRecetaGenerada =
+  ({ ok: true } & RecetaGenerada) | { ok: false; mensaje: string }

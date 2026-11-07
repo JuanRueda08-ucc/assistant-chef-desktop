@@ -91,7 +91,7 @@ const contiene = (nombre: string, palabras: readonly string[]): boolean =>
   palabras.some((p) => new RegExp(`\\b${p}(es|s)?\\b`).test(nombre))
 
 /** Choca con lo registrado por la persona, aunque el ingrediente no esté en el catálogo. */
-function choca(
+export function choca(
   nombre: string,
   ingrediente: Ingrediente | null,
   preferencias: Pick<Preferencias, 'alergias' | 'restricciones'>
@@ -105,6 +105,18 @@ function choca(
   return (
     preferencias.alergias.some((a) => contiene(texto, PALABRAS_ALERGENO[a] ?? [])) ||
     preferencias.restricciones.some((d) => contiene(texto, PALABRAS_DIETA[d]))
+  )
+}
+
+/** Carne, pescado, marisco o huevo: su cocción importa para la seguridad alimentaria. */
+export function esProteinaAnimal(ingrediente: Ingrediente): boolean {
+  // Sin datos revisados solo queda el nombre; en el catálogo, un caldo de pollo no cuenta.
+  if (!ingrediente.alergenosVerificados)
+    return contiene(normalizarTexto(ingrediente.nombre), [...CARNES, ...DEL_MAR, 'huevo'])
+  return (
+    ingrediente.categoria === 'proteinas' &&
+    (dietasIncompatiblesDe(ingrediente).has('vegetariana') ||
+      ingrediente.alergenos.includes('huevo'))
   )
 }
 

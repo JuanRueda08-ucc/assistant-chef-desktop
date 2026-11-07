@@ -1,5 +1,8 @@
 import { esquemaRespuestaIdeas } from '@shared/esquemas/ideas'
-import type { PeticionIdeas, RespuestaIdeas } from '@shared/types/ideas'
+import { esquemaRecetaGenerada } from '@shared/esquemas/receta'
+import type { IdeaModelo, PeticionIdeas, RespuestaIdeas } from '@shared/types/ideas'
+import type { Ingrediente, RecetaGenerada, Tecnica } from '@shared/types/receta'
+import type { Preferencias } from '@shared/types/sesion'
 import { esquemaTokenVoz } from '@shared/esquemas/voz'
 import type { RespuestaTokenVoz } from '@shared/types/voz'
 import type { AudioNarracion } from '@shared/types/voz'
@@ -16,6 +19,16 @@ export interface SesionBackend {
 }
 
 export const MENSAJE_SESION_CADUCADA = 'Tu sesión ha caducado. Vuelve a entrar en tu cuenta.'
+
+/** Lo que main pide al backend para escribir la receta de una idea. */
+export interface PeticionRecetaGenerada {
+  preferencias: Preferencias
+  catalogo: Ingrediente[]
+  tecnicas: Pick<Tecnica, 'id' | 'nombre'>[]
+  idea: IdeaModelo
+}
+
+type Respuesta<T> = { ok: true; datos: T } | { ok: false; mensaje: string }
 
 /** HTTPS, o HTTP solo en localhost; sin credenciales, query ni fragmento. */
 export function validarApiUrl(apiUrl: string): URL {
@@ -46,9 +59,8 @@ export function crearClienteBackend(
   pedirTokenVoz: () => Promise<RespuestaTokenVoz>
   narrar: (texto: string) => Promise<AudioNarracion | null>
   conversar: (peticion: PeticionChat) => Promise<RespuestaChat>
-  proponerRecetas: (
-    peticion: PeticionIdeas
-  ) => Promise<{ ok: true; datos: RespuestaIdeas } | { ok: false; mensaje: string }>
+  proponerRecetas: (peticion: PeticionIdeas) => Promise<Respuesta<RespuestaIdeas>>
+  generarReceta: (peticion: PeticionRecetaGenerada) => Promise<Respuesta<RecetaGenerada>>
 } {
   const base = validarApiUrl(apiUrl)
   const cabeceras = async (): Promise<Record<string, string>> => {
@@ -61,53 +73,65 @@ export function crearClienteBackend(
   }
   const url = new URL(`${base.pathname.replace(/\/$/, '')}/voz/token`, base.origin)
   const cache = new Map<string, AudioNarracion>()
+  /** Ideas (búsqueda 25 s y memoria 8 + 15 s) y receta (dos intentos de hasta 25 + 40 s). */
+  async function pedirRecetas<T>(
+    ruta: string,
+    peticion: unknown,
+    esperaMs: number,
+    esquema: z.ZodType<T>,
+    textos: { limite: string; fallo: string; invalida: string }
+  ): Promise<Respuesta<T>> {
+    let respuesta: Response
+    try {
+      respuesta = await solicitar(
+        new URL(`${base.pathname.replace(/\/$/, '')}/recetas/${ruta}`, base.origin),
+        {
+          method: 'POST',
+          headers: await cabeceras(),
+          body: JSON.stringify(peticion),
+          redirect: 'error',
+          signal: AbortSignal.timeout(esperaMs)
+        }
+      )
+    } catch (error) {
+      const timeout = error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name)
+      return {
+        ok: false,
+        mensaje: timeout
+          ? ERRORES_PROVEEDOR.proveedor_timeout
+          : 'No pude conectar con el chef. Comprueba que el backend esté iniciado.'
+      }
+    }
+    if (respuesta.status === 401) {
+      sesion.caducada()
+      return { ok: false, mensaje: MENSAJE_SESION_CADUCADA }
+    }
+    if (respuesta.status === 429) return { ok: false, mensaje: textos.limite }
+    if (!respuesta.ok) {
+      const error = z
+        .object({ error: z.object({ codigo: esquemaCodigoErrorProveedor }) })
+        .safeParse(await respuesta.json().catch(() => null))
+      return {
+        ok: false,
+        mensaje: error.success ? ERRORES_PROVEEDOR[error.data.error.codigo] : textos.fallo
+      }
+    }
+    const datos = esquema.safeParse(await respuesta.json().catch(() => null))
+    return datos.success ? { ok: true, datos: datos.data } : { ok: false, mensaje: textos.invalida }
+  }
   return {
-    async proponerRecetas(peticion) {
-      let respuesta: Response
-      try {
-        respuesta = await solicitar(
-          new URL(`${base.pathname.replace(/\/$/, '')}/recetas/proponer`, base.origin),
-          {
-            method: 'POST',
-            headers: await cabeceras(),
-            body: JSON.stringify(peticion),
-            redirect: 'error',
-            // Búsqueda (25 s) y, si falla, memoria con sus dos modelos (8 + 15 s).
-            signal: AbortSignal.timeout(60_000)
-          }
-        )
-      } catch (error) {
-        const timeout =
-          error instanceof Error && ['TimeoutError', 'AbortError'].includes(error.name)
-        return {
-          ok: false,
-          mensaje: timeout
-            ? ERRORES_PROVEEDOR.proveedor_timeout
-            : 'No pude conectar con el chef. Comprueba que el backend esté iniciado.'
-        }
-      }
-      if (respuesta.status === 401) {
-        sesion.caducada()
-        return { ok: false, mensaje: MENSAJE_SESION_CADUCADA }
-      }
-      if (respuesta.status === 429)
-        return { ok: false, mensaje: 'Has llegado al límite de ideas de hoy.' }
-      if (!respuesta.ok) {
-        const error = z
-          .object({ error: z.object({ codigo: esquemaCodigoErrorProveedor }) })
-          .safeParse(await respuesta.json().catch(() => null))
-        return {
-          ok: false,
-          mensaje: error.success
-            ? ERRORES_PROVEEDOR[error.data.error.codigo]
-            : 'El chef no pudo proponer ideas. Puedes intentarlo más tarde.'
-        }
-      }
-      const datos = esquemaRespuestaIdeas.safeParse(await respuesta.json().catch(() => null))
-      return datos.success
-        ? { ok: true, datos: datos.data }
-        : { ok: false, mensaje: 'El chef devolvió ideas no válidas. Inténtalo de nuevo.' }
-    },
+    proponerRecetas: (peticion) =>
+      pedirRecetas('proponer', peticion, 60_000, esquemaRespuestaIdeas, {
+        limite: 'Has llegado al límite de ideas de hoy.',
+        fallo: 'El chef no pudo proponer ideas. Puedes intentarlo más tarde.',
+        invalida: 'El chef devolvió ideas no válidas. Inténtalo de nuevo.'
+      }),
+    generarReceta: (peticion) =>
+      pedirRecetas('generar', peticion, 130_000, esquemaRecetaGenerada, {
+        limite: 'Has llegado al límite de recetas de hoy.',
+        fallo: 'El chef no logró escribir una receta segura con esta idea. Prueba con otra.',
+        invalida: 'El chef devolvió una receta no válida. Inténtalo de nuevo.'
+      }),
     async conversar(peticion) {
       let respuesta: Response
       try {

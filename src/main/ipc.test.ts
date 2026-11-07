@@ -1,9 +1,10 @@
 import { afterEach, describe, expect, it, vi } from 'vitest'
+import { esquemaIngrediente, esquemaReceta } from '@shared/esquemas/receta'
 import { CANALES_IPC } from '@shared/types/ipc'
 import type { ResultadoCuenta, Usuario } from '@shared/types/cuenta'
 import { preferencias, sesionNueva } from '@shared/cocina/fixtures.test-utils'
 import { abrirBase } from './db/conexion'
-import { guardarSesion } from './db/sesiones'
+import { descartarSesionCocinando, guardarSesion } from './db/sesiones'
 import { cargarSemilla, leerSemilla } from './db/semillas'
 
 const { handle } = vi.hoisted(() => ({ handle: vi.fn() }))
@@ -48,7 +49,13 @@ describe('voz:token IPC', () => {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
         db,
-        { pedirTokenVoz: vi.fn(), narrar: vi.fn(), conversar, proponerRecetas: vi.fn() },
+        {
+          pedirTokenVoz: vi.fn(),
+          narrar: vi.fn(),
+          conversar,
+          proponerRecetas: vi.fn(),
+          generarReceta: vi.fn()
+        },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
         cuentaFalsa()
@@ -90,7 +97,13 @@ describe('voz:token IPC', () => {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
         db,
-        { pedirTokenVoz: vi.fn(), narrar: vi.fn(), conversar: vi.fn(), proponerRecetas: vi.fn() },
+        {
+          pedirTokenVoz: vi.fn(),
+          narrar: vi.fn(),
+          conversar: vi.fn(),
+          proponerRecetas: vi.fn(),
+          generarReceta: vi.fn()
+        },
         voz,
         lector,
         cuentaFalsa()
@@ -140,7 +153,13 @@ describe('voz:token IPC', () => {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
         db,
-        { pedirTokenVoz, narrar: vi.fn(), conversar: vi.fn(), proponerRecetas: vi.fn() },
+        {
+          pedirTokenVoz,
+          narrar: vi.fn(),
+          conversar: vi.fn(),
+          proponerRecetas: vi.fn(),
+          generarReceta: vi.fn()
+        },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
         cuentaFalsa()
@@ -173,11 +192,18 @@ describe('cuenta IPC', () => {
     const cuenta = cuentaFalsa()
     const voz = { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() }
     const proponerRecetas = vi.fn()
+    const generarReceta = vi.fn()
     try {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
         db,
-        { pedirTokenVoz: vi.fn(), narrar: vi.fn(), conversar: vi.fn(), proponerRecetas },
+        {
+          pedirTokenVoz: vi.fn(),
+          narrar: vi.fn(),
+          conversar: vi.fn(),
+          proponerRecetas,
+          generarReceta
+        },
         voz,
         { leer: vi.fn(), detener: vi.fn() },
         cuenta
@@ -248,6 +274,84 @@ describe('cuenta IPC', () => {
           excluir: []
         })
       ).toMatchObject({ ok: false })
+
+      // La receta de una idea se comprueba, se cocina desde la sesión y se retoma sin estar en la base.
+      const receta = esquemaReceta.parse({
+        ...leerSemilla().recetas.find((r) => r.id === 'arroz_con_pollo'),
+        id: 'gen_prueba',
+        slug: 'gen-prueba',
+        titulo: 'Guiso de yuca',
+        origen: 'generada',
+        estadoRevision: 'borrador',
+        pasos: [{ id: 'p1', orden: 1, texto: 'Cocina la yuca.', requiereConfirmacion: true }],
+        ingredientes: [
+          { id: 'ir_1', ingredienteId: 'nuevo_yuca', cantidad: 500, unidad: 'g', redondeo: 5 }
+        ]
+      })
+      const nueva = esquemaIngrediente.parse({
+        id: 'nuevo_yuca',
+        nombre: 'Yuca',
+        categoria: 'verduras',
+        alergenos: ['huevo'],
+        // El backend no decide esto: main lo corrige.
+        alergenosVerificados: true
+      })
+      generarReceta.mockResolvedValue({
+        ok: true,
+        datos: { receta, ingredientesNuevos: [nueva] }
+      })
+      const idea = {
+        titulo: 'Guiso de yuca',
+        descripcion: 'x',
+        ingredientes: ['yuca'],
+        tiempoTotalMin: 10,
+        dificultad: 'facil'
+      }
+      const sinAlergias = preferencias({ ingredientes: ['cebolla'] })
+      expect(
+        await canal(CANALES_IPC.recetasGenerar)(null, {
+          idea,
+          preferencias: { ...sinAlergias, alergias: ['huevo'] }
+        })
+      ).toMatchObject({ ok: false })
+      const generada = await canal(CANALES_IPC.recetasGenerar)(null, {
+        idea,
+        preferencias: sinAlergias
+      })
+      expect(generada).toMatchObject({
+        ok: true,
+        receta: { origen: 'generada', dietas: [], alergenos: ['huevo'] },
+        ingredientesNuevos: [{ alergenosVerificados: false }]
+      })
+      expect(() =>
+        canal(CANALES_IPC.sesionIniciar)(null, {
+          recetaId: 'gen_prueba',
+          porciones: 2,
+          preferencias: { ...sinAlergias, alergias: ['huevo'] }
+        })
+      ).toThrow(/ya no encaja/)
+      const sesion = await canal(CANALES_IPC.sesionIniciar)(null, {
+        recetaId: 'gen_prueba',
+        porciones: 2,
+        preferencias: sinAlergias
+      })
+      expect(sesion).toMatchObject({
+        recetaId: 'gen_prueba',
+        recetaAdaptada: {
+          titulo: 'Guiso de yuca',
+          ingredientes: [{ cantidad: expect.any(Number) }]
+        },
+        recetaGenerada: { receta: { id: 'gen_prueba' } }
+      })
+      expect(await canal(CANALES_IPC.sesionRetomar)(null)).toMatchObject({ recetaId: 'gen_prueba' })
+      expect(
+        await canal(CANALES_IPC.sesionAplicar)(null, {
+          nombre: 'cambiar_porciones',
+          argumentos: { porciones: 6 },
+          confirmado: true
+        })
+      ).toMatchObject({ resultado: { ok: true }, sesion: { porciones: 6 } })
+      descartarSesionCocinando(db, 'u1')
 
       // La receta de otra cuenta no se retoma.
       guardarSesion(db, sesionNueva(), 'otra')

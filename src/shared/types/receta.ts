@@ -188,6 +188,15 @@ export interface Receta {
   pasos: Paso[]
 }
 
+/**
+ * Receta escrita por la IA para una idea (tarea 40). Sus ingredientes fuera del catálogo van aparte y
+ * siempre con `alergenosVerificados: false`; no entran en el catálogo compartido.
+ */
+export interface RecetaGenerada {
+  receta: Receta
+  ingredientesNuevos: Ingrediente[]
+}
+
 /** Tabla `sustituciones`. */
 export interface Sustitucion {
   id: string

@@ -146,7 +146,11 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
         for (let intento = 0; intento < 2; intento++) {
           const bruta = await delProveedor(() => dep.proveedor.generarReceta(cuerpo, error))
           const validacion = validarRecetaGenerada(bruta, cuerpo, id)
-          if (validacion.ok) return { receta: validacion.receta }
+          if (validacion.ok)
+            return {
+              receta: validacion.receta,
+              ingredientesNuevos: validacion.ingredientesNuevos
+            }
           error = validacion.error
         }
         throw new ErrorApi(

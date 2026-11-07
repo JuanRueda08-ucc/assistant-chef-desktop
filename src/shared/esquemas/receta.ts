@@ -19,6 +19,7 @@ import {
   type IngredienteReceta,
   type Paso,
   type Receta,
+  type RecetaGenerada,
   type Sustitucion,
   type Tecnica,
   type TemporizadorPaso
@@ -186,6 +187,11 @@ export const esquemaReceta = z
     })
   })
 
+export const esquemaRecetaGenerada = z.strictObject({
+  receta: esquemaReceta,
+  ingredientesNuevos: z.array(esquemaIngrediente).max(30)
+})
+
 export const esquemaSustitucion = z
   .strictObject({
     id: esquemaId,
@@ -216,4 +222,7 @@ export type _ComprobarTemporizadorPaso = Afirmar<
 >
 export type _ComprobarPaso = Afirmar<Igual<z.output<typeof esquemaPaso>, Paso>>
 export type _ComprobarReceta = Afirmar<Igual<z.output<typeof esquemaReceta>, Receta>>
+export type _ComprobarRecetaGenerada = Afirmar<
+  Igual<z.output<typeof esquemaRecetaGenerada>, RecetaGenerada>
+>
 export type _ComprobarSustitucion = Afirmar<Igual<z.output<typeof esquemaSustitucion>, Sustitucion>>

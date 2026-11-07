@@ -8,6 +8,7 @@ import { crearSesionCocina } from '@shared/cocina/sesion'
 import { actualizarTemporizadores } from '@shared/cocina/temporizadores'
 import type { AplicacionHerramienta, LlamadaHerramienta } from '@shared/ia/herramientas'
 import type { DatosIniciarCocina } from '@shared/types/ipc'
+import type { RecetaGenerada } from '@shared/types/receta'
 import type { SesionCocina } from '@shared/types/sesion'
 import { listarIngredientes, listarSustituciones, listarTecnicas } from './db/catalogo'
 import type { BaseDatos } from './db/conexion'
@@ -23,17 +24,19 @@ export function iniciarCocina(
   usuarioId: string,
   datos: DatosIniciarCocina,
   ahora: number,
-  id: string = randomUUID()
+  id: string = randomUUID(),
+  generada: RecetaGenerada | null = null
 ): SesionCocina {
-  const receta = obtenerReceta(db, datos.recetaId)
+  const receta = generada?.receta ?? obtenerReceta(db, datos.recetaId)
   if (!receta) throw new Error(`no existe la receta ${datos.recetaId}`)
   const sesion = crearSesionCocina({
     id,
     preferencias: datos.preferencias,
     receta,
     porciones: datos.porciones,
-    catalogo: listarIngredientes(db),
-    ahora
+    catalogo: [...listarIngredientes(db), ...(generada?.ingredientesNuevos ?? [])],
+    ahora,
+    recetaGenerada: generada
   })
   db.transaction(() => {
     descartarSesionCocinando(db, usuarioId)
@@ -76,11 +79,13 @@ export function aplicarEnCocina(
 }
 
 function contextoDe(db: BaseDatos, sesion: SesionCocina): ContextoCocina {
-  const receta = sesion.recetaId === null ? null : obtenerReceta(db, sesion.recetaId)
+  const generada = sesion.recetaGenerada
+  const receta =
+    generada?.receta ?? (sesion.recetaId === null ? null : obtenerReceta(db, sesion.recetaId))
   if (!receta) throw new Error(`la receta de la sesión ${sesion.id} ya no existe`)
   return {
     receta,
-    catalogo: listarIngredientes(db),
+    catalogo: [...listarIngredientes(db), ...(generada?.ingredientesNuevos ?? [])],
     sustituciones: listarSustituciones(db),
     tecnicas: listarTecnicas(db)
   }

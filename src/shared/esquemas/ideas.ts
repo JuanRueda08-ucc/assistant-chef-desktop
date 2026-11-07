@@ -53,6 +53,12 @@ export const esquemaProponerIpc = z.strictObject({
   excluir: z.array(z.string().max(120)).max(100)
 })
 
+/** Lo que el renderer pide a main para escribir la receta de una idea. */
+export const esquemaGenerarIpc = z.strictObject({
+  idea: esquemaIdeaModelo,
+  preferencias: esquemaPreferencias
+})
+
 export type _ComprobarIdeaModelo = Afirmar<Igual<z.output<typeof esquemaIdeaModelo>, IdeaModelo>>
 export type _ComprobarFuenteWeb = Afirmar<Igual<z.output<typeof esquemaFuenteWeb>, FuenteWeb>>
 export type _ComprobarPeticionIdeas = Afirmar<

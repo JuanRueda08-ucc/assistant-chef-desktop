@@ -25,7 +25,7 @@ La repetición de la prueba personal (34) queda aplazada por decisión del autor
 - [x] 37. Despensa guardada por cuenta, con preferencias y alergias
 - [x] 38. Ingredientes nuevos con «alérgenos sin verificar»
 - [ ] 39. El chef propone: guardadas, internet o memoria en una sola lista, con «dame otras» (la búsqueda real requiere que el autor active la facturación)
-- [ ] 40. Receta completa: generar, validar y cocinar la elegida
+- [x] 40. Receta completa: generar, validar y cocinar la elegida (de memoria; las ideas de internet, pendientes de las condiciones de Google)
 - [ ] 41. Mis recetas: guardar las generadas por cuenta
 - [ ] 42. Chat y voz para pedir todo lo anterior
 

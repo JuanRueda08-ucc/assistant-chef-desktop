@@ -18,6 +18,9 @@ export const PAUSA_BUSQUEDA_MS = 10 * 60 * 1000
 /** Tiempo máximo por intento: los dos juntos quedan por debajo de los 30 s que espera main. */
 export const ESPERA_MODELO_MS = 8_000
 export const ESPERA_RESPALDO_MS = 15_000
+/** Una receta completa es mucho más larga que un turno de chat. */
+export const ESPERA_RECETA_MS = 25_000
+export const ESPERA_RECETA_RESPALDO_MS = 40_000
 
 export const INSTRUCCIONES_CHEF = [
   'Eres el chef de una app de cocina. Habla en español, en una o dos frases por turno.',

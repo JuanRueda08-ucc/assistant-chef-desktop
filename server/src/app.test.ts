@@ -96,6 +96,68 @@ describe('POST /recetas/generar', () => {
     expect(r.cuerpo.receta.pasos).toHaveLength(9)
   })
 
+  it('marca como sin verificar lo que está fuera del catálogo y usa el del catálogo si coincide', async () => {
+    const modelo = recetaModelo()
+    const ingredientes = modelo.ingredientes as { ingredienteId: string }[]
+    ingredientes[0]!.ingredienteId = 'yuca'
+    ingredientes[1]!.ingredienteId = 'mi_cebolla'
+    const { manejar } = banco({
+      recetas: [
+        {
+          ...modelo,
+          ingredientesNuevos: [
+            { id: 'yuca', nombre: 'Yuca', categoria: 'verduras' },
+            { id: 'mi_cebolla', nombre: 'Cebolla', categoria: 'verduras' }
+          ]
+        }
+      ]
+    })
+    const r = await leer(await manejar(post('/recetas/generar', cuerpoReceta())))
+    expect(r.estado).toBe(200)
+    expect(r.cuerpo.ingredientesNuevos).toMatchObject([
+      { id: 'nuevo_yuca', nombre: 'Yuca', alergenos: [], alergenosVerificados: false }
+    ])
+    expect(r.cuerpo.receta.ingredientes[0].ingredienteId).toBe('nuevo_yuca')
+    expect(r.cuerpo.receta.ingredientes[1].ingredienteId).toBe('cebolla')
+    expect(r.cuerpo.receta.dietas).toEqual([])
+  })
+
+  it('un ingrediente nuevo no puede declarar alérgenos ni imagen', async () => {
+    const { manejar } = banco({
+      recetas: [
+        {
+          ...recetaModelo(),
+          imagen: 'https://ejemplo.invalid/foto.png',
+          ingredientesNuevos: [{ id: 'x', nombre: 'Salsa', categoria: 'despensa', alergenos: [] }]
+        },
+        { ...recetaModelo(), imagen: 'https://ejemplo.invalid/foto.png' }
+      ]
+    })
+    const r = await leer(await manejar(post('/recetas/generar', cuerpoReceta())))
+    expect(r.estado).toBe(200)
+    expect(r.cuerpo.receta.imagen).toBeNull()
+  })
+
+  it('reintenta si la receta choca con una alergia y usa el título de la idea', async () => {
+    const cuerpo = cuerpoReceta() as { preferencias: { alergias: string[] } }
+    cuerpo.preferencias.alergias = ['apio']
+    const { manejar, proveedor } = banco({ recetas: [recetaModelo(), recetaModelo()] })
+    const r = await leer(await manejar(post('/recetas/generar', cuerpo)))
+    expect(r.estado).toBe(422)
+    expect(proveedor.llamadasReceta[1]?.errorAnterior).toMatch(/choca/)
+
+    const { manejar: conIdea } = banco({ recetas: [recetaModelo()] })
+    const idea = {
+      titulo: 'Arroz de la casa',
+      descripcion: 'x',
+      ingredientes: ['arroz'],
+      tiempoTotalMin: 30,
+      dificultad: 'facil'
+    }
+    const r2 = await leer(await conIdea(post('/recetas/generar', { ...cuerpoReceta(), idea })))
+    expect(r2.cuerpo.receta.titulo).toBe('Arroz de la casa')
+  })
+
   it('reintenta una vez con el error y acepta el segundo intento', async () => {
     const invalida = { ...recetaModelo(), pasos: [] }
     const { manejar, proveedor } = banco({ recetas: [invalida, recetaModelo()] })

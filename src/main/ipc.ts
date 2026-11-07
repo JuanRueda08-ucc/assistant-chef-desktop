@@ -5,8 +5,11 @@ import { PORCIONES_MAX, PORCIONES_MIN, esquemaPreferencias } from '@shared/esque
 import { esquemaLlamadaHerramienta } from '@shared/ia/herramientas'
 import { esquemaChatIpc } from '@shared/ia/chat'
 import { contextoCompacto } from '@shared/ia/contexto'
-import { esquemaProponerIpc } from '@shared/esquemas/ideas'
+import { esquemaGenerarIpc, esquemaProponerIpc } from '@shared/esquemas/ideas'
+import { conEtiquetas } from '@shared/recetas/etiquetas'
 import { evaluarIdeas } from '@shared/recetas/ideas'
+import { problemasRecetaGenerada } from '@shared/recetas/receta-generada'
+import type { RecetaGenerada } from '@shared/types/receta'
 import { esquemaLeerPaso, esquemaPeticionTokenVoz } from '@shared/esquemas/voz'
 import {
   esquemaCodigo,
@@ -19,7 +22,7 @@ import type { ResultadoCuenta } from '@shared/types/cuenta'
 import { CANALES_IPC, type ApiChef } from '@shared/types/ipc'
 import { aplicarEnCocina, iniciarCocina, retomarCocina } from './cocina'
 import { buscarEnBase } from './db/busqueda'
-import { listarIngredientes } from './db/catalogo'
+import { listarIngredientes, listarTecnicas } from './db/catalogo'
 import type { BaseDatos } from './db/conexion'
 import { listarRecetas, obtenerReceta } from './db/recetas'
 import { guardarPreferencias, leerPreferencias } from './db/preferencias'
@@ -28,6 +31,9 @@ import type { crearClienteBackend } from './backend'
 import { fallo, type Cuenta } from './cuenta'
 import type { VozLocal } from './voz/local'
 import type { crearLectorLocal } from './voz/lector'
+
+/** Recetas escritas por la IA que siguen esperando a cocinarse; al cocinar pasan a la sesión. */
+const MAX_GENERADAS = 20
 
 type Resultado<F extends (...args: never[]) => Promise<unknown>> = Awaited<ReturnType<F>>
 
@@ -259,6 +265,44 @@ export function registrarIpc(
     }
   )
 
+  const generadas = new Map<string, { usuarioId: string; generada: RecetaGenerada }>()
+
+  ipcMain.handle(
+    CANALES_IPC.recetasGenerar,
+    async (_evento, datos: unknown): Promise<Resultado<ApiChef['recetas']['generar']>> => {
+      const { idea, preferencias } = esquemaGenerarIpc.parse(datos)
+      const usuario = usuarioId()
+      const catalogo = listarIngredientes(db)
+      const respuesta = await backend.generarReceta({
+        idea,
+        preferencias,
+        catalogo,
+        tecnicas: listarTecnicas(db).map(({ id, nombre }) => ({ id, nombre }))
+      })
+      if (!respuesta.ok) return respuesta
+      // Lo que no decide el modelo se fija aquí, también si el backend fallara (0019).
+      const ingredientesNuevos = respuesta.datos.ingredientesNuevos.map((i) => ({
+        ...i,
+        alergenosVerificados: false
+      }))
+      const generada: RecetaGenerada = {
+        receta: conEtiquetas({ ...respuesta.datos.receta, origen: 'generada', imagen: null }, [
+          ...catalogo,
+          ...ingredientesNuevos
+        ]),
+        ingredientesNuevos
+      }
+      if (problemasRecetaGenerada(generada, preferencias, catalogo).length > 0)
+        return {
+          ok: false,
+          mensaje: 'La receta no encaja con tus alergias, tu dieta o tu tiempo. Prueba con otra.'
+        }
+      if (generadas.size >= MAX_GENERADAS) generadas.delete(generadas.keys().next().value!)
+      generadas.set(generada.receta.id, { usuarioId: usuario, generada })
+      return { ok: true, ...generada }
+    }
+  )
+
   ipcMain.handle(CANALES_IPC.preferenciasLeer, (): Resultado<ApiChef['preferencias']['leer']> =>
     leerPreferencias(db, usuarioId())
   )
@@ -273,8 +317,19 @@ export function registrarIpc(
 
   ipcMain.handle(
     CANALES_IPC.sesionIniciar,
-    (_evento, datos: unknown): Resultado<ApiChef['sesion']['iniciar']> =>
-      iniciarCocina(db, usuarioId(), esquemaIniciarCocina.parse(datos), Date.now())
+    (_evento, datos: unknown): Resultado<ApiChef['sesion']['iniciar']> => {
+      const peticion = esquemaIniciarCocina.parse(datos)
+      const usuario = usuarioId()
+      const guardada = generadas.get(peticion.recetaId)
+      const generada = guardada?.usuarioId === usuario ? guardada.generada : null
+      // Las alergias o la dieta pueden haber cambiado desde que se escribió.
+      if (
+        generada &&
+        problemasRecetaGenerada(generada, peticion.preferencias, listarIngredientes(db)).length > 0
+      )
+        throw new Error('Esta receta ya no encaja con tus preferencias. Pide otra idea.')
+      return iniciarCocina(db, usuario, peticion, Date.now(), undefined, generada)
+    }
   )
 
   ipcMain.handle(

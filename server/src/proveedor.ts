@@ -11,6 +11,8 @@ export interface PeticionReceta {
   catalogo: Ingrediente[]
   /** Técnicas que puede referenciar un paso (`tecnicaId`). */
   tecnicas: Pick<Tecnica, 'id' | 'nombre'>[]
+  /** La idea elegida; la receta la desarrolla. */
+  idea: IdeaModelo | null
 }
 
 export interface PeticionSustitucion {
@@ -25,7 +27,7 @@ export type { PeticionIdeas } from '@shared/types/ideas'
 export type { TokenVoz } from '@shared/types/voz'
 import type { TokenVoz } from '@shared/types/voz'
 import type { AudioNarracion } from '@shared/types/voz'
-import type { PeticionIdeas } from '@shared/types/ideas'
+import type { IdeaModelo, PeticionIdeas } from '@shared/types/ideas'
 
 export interface ProveedorIA {
   readonly nombre: string

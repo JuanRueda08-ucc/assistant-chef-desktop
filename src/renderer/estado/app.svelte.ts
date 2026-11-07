@@ -20,7 +20,7 @@ import {
 import type { ResultadoBusqueda } from '@shared/types/busqueda'
 import type { EstadoCuenta } from '@shared/types/cuenta'
 import type { FuenteIdea, FuenteWeb, IdeaReceta } from '@shared/types/ideas'
-import type { Ingrediente } from '@shared/types/receta'
+import type { Ingrediente, RecetaGenerada } from '@shared/types/receta'
 import type { EstadoAvatar, Preferencias, SesionCocina } from '@shared/types/sesion'
 
 export type Pantalla = 'preparar' | 'elegir' | 'cocinar'
@@ -70,9 +70,14 @@ class EstadoApp {
   ideasCargando = $state(false)
   ideasError = $state<string | null>(null)
   ideaVisibleId = $state<string | null>(null)
+  /** Recetas completas ya escritas, por id de idea, para no gastar otra petición al volver a ella. */
+  recetasDeIdeas = $state.raw<Record<string, RecetaGenerada>>({})
+  ideaGenerandoId = $state<string | null>(null)
+  recetaIdeaError = $state<string | null>(null)
   /** Títulos ya mostrados, para que «dame otras» no los repita. */
   private ideasVistas: string[] = []
   private pedidoIdeas = 0
+  private pedidoRecetaIdea = 0
   recetaVisibleId = $state<string | null>(null)
   // raw: la sesión llega entera de main en cada cambio y se pasa a funciones de shared que copian.
   sesion = $state.raw<SesionCocina | null>(null)
@@ -301,6 +306,42 @@ class EstadoApp {
     this.ideasError = null
     this.ideaVisibleId = null
     this.ideasVistas = []
+    this.pedidoRecetaIdea++
+    this.recetasDeIdeas = {}
+    this.ideaGenerandoId = null
+    this.recetaIdeaError = null
+  }
+
+  /** Escribe la receta completa de una idea (tarea 40). Solo una a la vez. */
+  async generarRecetaDeIdea(idea: IdeaReceta): Promise<void> {
+    if (this.ideaGenerandoId || this.recetasDeIdeas[idea.id]) return
+    const pedido = ++this.pedidoRecetaIdea
+    this.ideaGenerandoId = idea.id
+    this.recetaIdeaError = null
+    try {
+      const { titulo, descripcion, ingredientes, tiempoTotalMin, dificultad } = idea
+      const r = await window.api.recetas.generar({
+        idea: { titulo, descripcion, ingredientes, tiempoTotalMin, dificultad },
+        preferencias: $state.snapshot(this.preferencias)
+      })
+      if (pedido !== this.pedidoRecetaIdea) return
+      if (r.ok) {
+        const { receta, ingredientesNuevos } = r
+        this.recetasDeIdeas = {
+          ...this.recetasDeIdeas,
+          [idea.id]: { receta, ingredientesNuevos }
+        }
+      } else {
+        this.recetaIdeaError = r.mensaje
+      }
+    } catch (e) {
+      if (pedido === this.pedidoRecetaIdea) {
+        this.recetaIdeaError = mensaje(e)
+        void this.comprobarCuenta()
+      }
+    } finally {
+      if (pedido === this.pedidoRecetaIdea) this.ideaGenerandoId = null
+    }
   }
 
   /**

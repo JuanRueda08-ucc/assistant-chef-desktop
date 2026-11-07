@@ -91,7 +91,9 @@
       })
   })
   const catalogo = $derived(
-    Object.fromEntries(app.catalogo.map((i) => [i.id, i])) as Record<string, Ingrediente>
+    Object.fromEntries(
+      [...app.catalogo, ...(sesion?.recetaGenerada?.ingredientesNuevos ?? [])].map((i) => [i.id, i])
+    ) as Record<string, Ingrediente>
   )
 
   const ingredientesPaso = $derived(
@@ -254,6 +256,7 @@
     <header class="cabeza">
       <div class="titulo">
         <h1>{receta.titulo}</h1>
+        {#if receta.origen === 'generada'}<p class="generada">Receta generada</p>{/if}
         <p class="avance">Paso {paso.orden} de {total}</p>
       </div>
       <ol class="progreso" aria-label="Pasos de la receta">
@@ -553,6 +556,12 @@
 {/if}
 
 <style>
+  .generada {
+    margin: 0;
+    font-size: var(--texto-xs);
+    font-weight: 600;
+    color: var(--color-tinta-suave);
+  }
   .controles-voz {
     align-self: stretch;
     display: flex;

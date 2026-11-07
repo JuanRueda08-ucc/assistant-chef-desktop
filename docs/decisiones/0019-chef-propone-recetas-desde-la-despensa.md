@@ -13,4 +13,6 @@
 
 **Actualización (2026-11-07):** las ideas las comprueba `recetas/ideas.ts` en main: el código calcula lo que tienes y lo que falta, y descarta lo que choque con alergias, dieta, tiempo o nivel. Son filtros por palabras y catálogo, no una garantía, así que la interfaz siempre avisa. Las condiciones de Google limitan modificar y guardar resultados con búsqueda: ver `plan-chef-recetas.md`.
 
+**Actualización (2026-11-07, tarea 40):** la receta completa se escribe sin búsqueda, solo al pedirla, y no entra en las tablas de recetas ni el catálogo compartido: `SesionCocina.recetaGenerada` la conserva con sus ingredientes nuevos, para retomarla y reescalarla. Hasta cocinarla vive en memoria en main, a nombre de la cuenta. Un ingrediente nuevo nunca declara alérgenos desde el modelo; si se parece a uno del catálogo, hereda los de ese, siempre sin verificar. Guardarla en base llega con «Mis recetas» (tarea 41).
+
 **Consecuencias:** las recetas generadas dejan de ser el último recurso oculto y pasan a ser parte central del flujo. La tarea 17 se sustituye por las tareas 38 a 42. Sube la dependencia de Gemini: hay que contemplar saturación, tiempos de espera y costos. La búsqueda queda sin probar hasta activar la facturación.

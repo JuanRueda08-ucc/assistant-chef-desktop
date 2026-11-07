@@ -20,7 +20,8 @@ import {
   esquemaDificultad,
   esquemaEquipo,
   esquemaId,
-  esquemaReceta
+  esquemaReceta,
+  esquemaRecetaGenerada
 } from './receta'
 
 /** Límites de `cambiar_porciones` en docs/ia-chef.md. */
@@ -80,6 +81,8 @@ export const esquemaSesionCocina = z.strictObject({
   preferencias: esquemaPreferencias,
   recetaId: esquemaId.nullable(),
   recetaAdaptada: esquemaReceta.nullable(),
+  // Las sesiones guardadas antes de la tarea 40 no lo traen.
+  recetaGenerada: esquemaRecetaGenerada.nullable().default(null),
   porciones: esquemaPorciones,
   sustituciones: z.array(esquemaSustitucionAplicada),
   pasoActual: z.number().int().positive().nullable(),

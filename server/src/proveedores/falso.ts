@@ -185,36 +185,51 @@ function recetaSencilla(peticion: PeticionReceta): unknown {
   const elegidos = peticion.catalogo
     .filter((i) => !i.esBasicoDespensa && disponibles.has(i.id))
     .slice(0, 3)
-  const usados = elegidos.length > 0 ? elegidos : peticion.catalogo.slice(0, 1)
-  const ingredientes = usados.map((i, n) => ({
-    id: `ir_${n + 1}`,
-    ingredienteId: i.id,
-    cantidad: 100,
-    unidad: 'g',
-    redondeo: 10
+  const libres = peticion.preferencias.ingredientesSinIdentificar.slice(0, 2)
+  const usados =
+    elegidos.length > 0 ? elegidos : libres.length > 0 ? [] : peticion.catalogo.slice(0, 1)
+  const nuevos = libres.map((nombre, n) => ({
+    id: `libre_${n + 1}`,
+    nombre,
+    categoria: 'despensa'
   }))
-  const nombres = usados.map((i) => i.nombre.toLocaleLowerCase('es')).join(', ')
+  const ingredientes = [...usados.map((i) => i.id), ...nuevos.map((i) => i.id)].map(
+    (ingredienteId, n) => ({
+      id: `ir_${n + 1}`,
+      ingredienteId,
+      cantidad: 100,
+      unidad: 'g',
+      redondeo: 10
+    })
+  )
+  const nombres = [...usados.map((i) => i.nombre), ...libres]
+    .map((n) => n.toLocaleLowerCase('es'))
+    .join(', ')
+  const tiempo = Math.min(20, peticion.preferencias.tiempoMaxMin ?? 20)
+  const { equipo } = peticion.preferencias
   return {
     titulo: `Salteado rápido de ${nombres}`,
     descripcion: 'Receta generada de prueba por el proveedor falso.',
     porcionesBase: peticion.preferencias.porciones,
-    tiempoTotalMin: 20,
-    tiempoActivoMin: 15,
+    tiempoTotalMin: tiempo,
+    tiempoActivoMin: tiempo,
     dificultad: 'facil',
-    equipo: ['sarten'],
+    equipo: equipo.length === 0 || equipo.includes('sarten') ? ['sarten'] : [],
+    ingredientesNuevos: nuevos,
     ingredientes,
     pasos: [
       {
         id: 'p1',
         orden: 1,
         texto: 'Corta todos los ingredientes en trozos pequeños.',
-        ingredientes: ingredientes.map((i) => ({ ingredienteRecetaId: i.id, fraccion: 1 })),
         requiereConfirmacion: true
       },
       {
         id: 'p2',
         orden: 2,
         texto: 'Saltéalos 8 minutos a fuego medio-alto.',
+        ingredientes: ingredientes.map((i) => ({ ingredienteRecetaId: i.id, fraccion: 1 })),
+        seguridad: 'Si lleva carne, pescado o huevo, cocínalo hasta que no quede crudo por dentro.',
         duracionSeg: 480,
         temporizador: { etiqueta: 'Salteado', segundos: 480 },
         requiereConfirmacion: true

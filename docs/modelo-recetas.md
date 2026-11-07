@@ -59,6 +59,8 @@ Ninguna modifica la receta que recibe. Detalles que no están en las secciones d
 
 ## Ideas del chef
 
+Al pedir «Ver receta completa» se escribe la receta (`RecetaGenerada`: `receta` e `ingredientesNuevos`) y `estadoIngredienteGenerado()` calcula qué tienes.
+
 `IdeaReceta` (`types/ideas.ts`) no es una receta: título, descripción, nombres de ingredientes, tiempo y dificultad. `evaluarIdeas()` calcula `tienes`, `faltan` y `sinVerificar`, y descarta las que chocan con alergias o dieta (también por palabras en el título o en ingredientes fuera del catálogo), superan el tiempo o el nivel, se repiten o no usan nada de la despensa. No se guardan en SQLite.
 
 ## Ingredientes sin verificar
@@ -165,7 +167,9 @@ La búsqueda desde la app requiere al menos un ingrediente del catálogo selecci
 ## Validación de recetas generadas
 
 - Pasa el esquema (zod) sin campos extra.
-- Todo ingrediente existe en el catálogo o se marca `ingredienteNuevo` para revisión.
-- Proteínas animales llevan `seguridad` con temperatura o señal de cocción.
+- Todo ingrediente existe en el catálogo o se declara en `ingredientesNuevos`, con `alergenosVerificados: false`.
+- Proteínas animales llevan `seguridad` en un paso que las use: lo comprueba el código, no si el texto es correcto.
 - Alérgenos y dietas se derivan, no se aceptan del modelo.
+- No chocan con alergias ni dieta (también en título y pasos), ni superan tiempo, nivel o equipo.
 - Si falla, un reintento con el error; si vuelve a fallar, no se muestra.
+- Mientras se cocina, la receta original está en `SesionCocina.recetaGenerada`, no en las tablas de recetas (0019).

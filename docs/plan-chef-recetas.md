@@ -28,7 +28,7 @@ La app debe ser muy funcional e interactiva. Una persona entra, reúne sus ingre
 - [x] **Tarea 37. Despensa guardada** por cuenta, junto con preferencias y alergias.
 - [x] **Tarea 38. Ingredientes nuevos** con «alérgenos sin verificar». Falta crear el ingrediente real al guardar una receta generada (tareas 40 y 41).
 - [ ] **Tarea 39. El chef propone:** guardadas, internet o memoria en una sola lista, con «dame otras». **Hecha y probada de memoria. Falta probar la búsqueda real cuando el autor active la facturación;** su pantalla se probó con un servidor simulado.
-- [ ] **Tarea 40. Receta completa:** generar, validar y cocinar la elegida; sustituye a la tarea 17.
+- [x] **Tarea 40. Receta completa:** generar, validar y cocinar la elegida; sustituye a la tarea 17. **Hecha de memoria.** Las ideas que vengan de internet tienen el botón desactivado hasta resolver las condiciones de Google.
 - [ ] **Tarea 41. Mis recetas:** guardar las generadas por cuenta.
 - [ ] **Tarea 42. Chat y voz** para pedir todo lo anterior.
 
@@ -39,7 +39,7 @@ Comprobado el 2026-11-06 con la clave del autor: Gemini responde sin búsqueda, 
 - **Activarla:** recarga mínima de **5 USD**, en prepago y **sin recarga automática**. Al llegar a 0 USD, las claves se detienen en vez de cobrar. El saldo no se devuelve y caduca a los 12 meses.
 - **Precios:** 5.000 búsquedas gratis al mes y 14 USD por cada 1.000 más; máximo 1.500 al día. Con facturación, el proyecto pasa a plan de pago y también se cobra el texto: `gemini-3.5-flash-lite` 0,30/2,50 USD y `gemini-3.8-flash` 0,75/3,75 USD por millón de tokens de entrada/salida (el segundo se duplica desde el 1 de enero de 2027).
 - **Cuándo:** el autor la activará **antes de la tarea 39**; avisarle al llegar. Antes no se usa, y hasta entonces la app usa el modo de memoria.
-- **Condiciones de Google (leídas el 2026-11-07, sin asesoría legal):** un resultado con búsqueda debe mostrarse **con sus sugerencias de búsqueda** (ya se hace, en un iframe sin scripts) y solo a quien lo pidió. No se puede **modificar ni mezclar con otro contenido**, ni copiar o almacenar sus enlaces. No se puede **guardar en caché, analizar ni usar para entrenar**, salvo guardar el texto hasta **2 años** para fines limitados, como mostrar a la persona su historial. Esto **afecta a las tareas 40 y 41**: convertir un resultado con búsqueda en una receta estructurada y guardarla en «Mis recetas» podría no estar permitido. **Decisión pendiente del autor** antes de la tarea 40; una salida es generar la receta completa sin búsqueda, de memoria, y usar internet solo para inspirar la idea, pero también hay que revisarla contra las condiciones.
+- **Condiciones de Google (leídas el 2026-11-07, sin asesoría legal):** un resultado con búsqueda debe mostrarse **con sus sugerencias de búsqueda** (ya se hace, en un iframe sin scripts) y solo a quien lo pidió. No se puede **modificar ni mezclar con otro contenido**, ni copiar o almacenar sus enlaces. No se puede **guardar en caché, analizar ni usar para entrenar**, salvo guardar el texto hasta **2 años** para fines limitados, como mostrar a la persona su historial. Esto **afecta a las tareas 40 y 41**: convertir un resultado con búsqueda en una receta estructurada y guardarla en «Mis recetas» podría no estar permitido. El autor eligió el 2026-11-07 seguir de memoria por ahora y resolverlo al activar la facturación (ver la sección siguiente). Generar la receta completa sin búsqueda a partir de una idea encontrada también hay que revisarlo contra las condiciones.
 - **Alternativas revisadas:** OpenAI y Anthropic, 10 USD por 1.000 búsquedas; Grok, unos 5 USD (fuente de terceros); Kimi, 2 a 3 USD; DeepSeek, unos 5 yuanes (fuente de terceros). Se descartan por ahora porque habría que adaptar chat, narración y voz. Las bibliotecas TheMealDB, Spoonacular y Edamam se descartan por idioma, límites o instrucciones ausentes.
 
 ## Lo que enseñaron las pruebas con Gemini real (2026-11-06)
@@ -47,6 +47,13 @@ Comprobado el 2026-11-06 con la clave del autor: Gemini responde sin búsqueda, 
 - **El modelo no es fiable para la seguridad.** Dijo «he anotado tu alergia» sin llamar a la herramienta, y guardó solo una parte de «soy vegetariano y no como lácteos». Por eso `nota-preferencias.ts` añade al chat lo guardado de verdad, calculado del estado. No depender solo del texto de las instrucciones en nada de seguridad: las recetas generadas (tareas 39 y 40) necesitan la misma red de seguridad en código.
 - **Saturación:** `gemini-3.8-flash` responde 503 o tarda más de 80 s. Tras un fallo se usa `gemini-3.5-flash-lite` durante 5 minutos, lo que bajó el chat de 10–29 s a unos 3–6 s, con algún turno más lento (hasta 14 s).
 - **Límite por minuto:** varias peticiones seguidas dan 429 en el plan gratis. Tenerlo en cuenta al proponer varias recetas. Puede cambiar con la facturación.
+
+## Internet y memoria: lo que quiere el autor (2026-11-07)
+
+- **Hoy, de memoria:** sin facturación, Gemini crea ideas y recetas con lo que ya sabe. Le parece bien para ahora y no hay que pagar para seguir.
+- **Internet importa:** una receta de memoria no está comprobada por nadie (tiempos de cocción, por ejemplo). Quiere que, con facturación, Gemini busque recetas famosas o con reseñas reales, para ampliar las opciones y no depender solo de la IA.
+- **Límite que hay que tener presente:** la búsqueda no comprueba reseñas. Gemini resume lo que encuentra y no hay datos fiables de puntuación; solo se puede pedir que prefiera esas fuentes y mostrarlas para que la persona las abra. No afirmar en pantalla «receta verificada» por venir de internet.
+- **Sin decidir:** cómo cumplir las condiciones de Google al pasar de una idea encontrada a una receta completa (ver arriba). Si la receta la escribe Gemini aparte, ya no es la receta famosa encontrada. La fidelidad a la fuente y las condiciones chocan. El autor lo entendió y lo aplazó: al activar la facturación, revisar las condiciones y probar con búsquedas reales cuánto se parece la receta a la fuente, y decidir con eso. Hasta entonces, `DetalleIdea` no ofrece la receta de una idea con `fuente: internet`.
 
 ## Pendiente con el autor
 

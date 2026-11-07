@@ -1,11 +1,19 @@
 <script lang="ts">
-  import { NOMBRE_DIFICULTAD } from '@shared/textos'
+  import { escalarReceta } from '@shared/recetas/escalado'
+  import { indexar, ingredientesSinVerificar } from '@shared/recetas/etiquetas'
+  import {
+    estadoIngredienteGenerado,
+    type EstadoIngredienteGenerado
+  } from '@shared/recetas/receta-generada'
+  import { NOMBRE_ALERGENO, NOMBRE_DIFICULTAD } from '@shared/textos'
   import type { FuenteIdea, FuenteWeb, IdeaReceta } from '@shared/types/ideas'
+  import { app } from '../estado/app.svelte'
+  import { describirIngrediente } from '../lib/medidas'
   import Boton from './Boton.svelte'
   import Icono from './Icono.svelte'
 
   // Detalle de una idea del chef. Lo que tienes, lo que falta y lo que no se puede verificar lo
-  // calcula el código (recetas/ideas.ts). La receta completa llega en la tarea 40.
+  // calcula el código (recetas/ideas.ts). Al pedirla, muestra la receta completa ya comprobada.
   interface Props {
     idea: IdeaReceta
     fuente: FuenteIdea
@@ -14,46 +22,126 @@
     tieneAlergias: boolean
   }
   let { idea, fuente, fuentes, sugerenciasBusqueda, tieneAlergias }: Props = $props()
+
+  const ETIQUETA_ESTADO: Record<EstadoIngredienteGenerado, string> = {
+    tienes: 'Lo tienes',
+    basico: 'Básico',
+    falta: 'Falta',
+    opcional: 'Opcional'
+  }
+  const generada = $derived(app.recetasDeIdeas[idea.id] ?? null)
+  const generando = $derived(app.ideaGenerandoId === idea.id)
+  const catalogo = $derived([...app.catalogo, ...(generada?.ingredientesNuevos ?? [])])
+  const receta = $derived(
+    generada ? escalarReceta(generada.receta, app.preferencias.porciones).receta : null
+  )
+  const sinVerificar = $derived(
+    receta ? ingredientesSinVerificar(receta, catalogo) : idea.sinVerificar
+  )
+  const ingredientes = $derived.by(() => {
+    if (!receta) return []
+    const porId = indexar(catalogo)
+    return receta.ingredientes.map((ir) => {
+      const ingrediente = porId.get(ir.ingredienteId)
+      return {
+        id: ir.id,
+        estado: estadoIngredienteGenerado(ir, ingrediente, app.preferencias),
+        ...describirIngrediente({
+          cantidad: ir.cantidad,
+          unidad: ir.unidad,
+          ingrediente,
+          idIngrediente: ir.ingredienteId,
+          preparacion: ir.preparacion
+        })
+      }
+    })
+  })
 </script>
 
 <article class="idea" aria-labelledby="titulo-idea">
   <div class="contenido">
-    <p class="marca">Idea del chef · generada por IA</p>
+    <p class="marca">{receta ? 'Receta generada' : 'Idea del chef · generada por IA'}</p>
     <h2 id="titulo-idea">{idea.titulo}</h2>
     <p class="descripcion">{idea.descripcion}</p>
 
     <ul class="datos" aria-label="Datos de la idea">
-      <li><Icono nombre="reloj" tamano={18} />Unos {idea.tiempoTotalMin} min</li>
-      <li><Icono nombre="nivel" tamano={18} />{NOMBRE_DIFICULTAD[idea.dificultad]}</li>
+      <li>
+        <Icono nombre="reloj" tamano={18} />{receta
+          ? `${receta.tiempoTotalMin} min`
+          : `Unos ${idea.tiempoTotalMin} min`}
+      </li>
+      {#if receta}
+        <li>
+          <Icono nombre="personas" tamano={18} />{receta.porcionesBase}
+          {receta.porcionesBase === 1 ? 'porción' : 'porciones'}
+        </li>
+      {/if}
+      <li>
+        <Icono nombre="nivel" tamano={18} />{NOMBRE_DIFICULTAD[(receta ?? idea).dificultad]}
+      </li>
     </ul>
 
-    {#if idea.sinVerificar.length > 0}
+    {#if receta?.alergenos.length}
+      <ul class="etiquetas" aria-label="Alérgenos">
+        {#each receta.alergenos as a (a)}
+          <li>Contiene {NOMBRE_ALERGENO[a].toLocaleLowerCase('es')}</li>
+        {/each}
+      </ul>
+    {/if}
+
+    {#if sinVerificar.length > 0}
       <p class="sin-verificar" role="status">
-        Alérgenos sin verificar: {idea.sinVerificar.join(', ')}. No puedo confirmar que encaje con
-        tus alergias o tu dieta; revisa sus etiquetas{tieneAlergias
+        Alérgenos sin verificar: {sinVerificar.join(', ')}. No puedo confirmar que encaje con tus
+        alergias o tu dieta; revisa sus etiquetas{tieneAlergias
           ? ', sobre todo por tus alergias'
           : ''}.
       </p>
     {/if}
 
-    <div class="columnas">
-      <section aria-labelledby="titulo-tienes">
-        <h3 id="titulo-tienes">Lo tienes ({idea.tienes.length})</h3>
-        <ul class="lista">
-          {#each idea.tienes as nombre (nombre)}<li>{nombre}</li>{/each}
+    {#if receta}
+      <p class="aviso-ia">
+        La escribió una IA y nadie la ha revisado. Vigila los tiempos y el punto de cocción, y
+        cocina bien la carne, el pescado y el huevo.
+      </p>
+      <section aria-labelledby="titulo-ingredientes-idea">
+        <h3 id="titulo-ingredientes-idea">Ingredientes</h3>
+        <ul class="ingredientes">
+          {#each ingredientes as ing (ing.id)}
+            <li>
+              <span class="estado" class:falta={ing.estado === 'falta'}
+                >{ETIQUETA_ESTADO[ing.estado]}</span
+              >
+              <span><b>{ing.nombre}</b> <small>{ing.detalle}</small></span>
+            </li>
+          {/each}
         </ul>
       </section>
-      <section aria-labelledby="titulo-faltan">
-        <h3 id="titulo-faltan">Te falta ({idea.faltan.length})</h3>
-        {#if idea.faltan.length > 0}
-          <ul class="lista">
-            {#each idea.faltan as nombre (nombre)}<li>{nombre}</li>{/each}
-          </ul>
-        {:else}
-          <p class="nota">Tienes todo.</p>
-        {/if}
+      <section aria-labelledby="titulo-pasos-idea">
+        <h3 id="titulo-pasos-idea">Pasos</h3>
+        <ol class="pasos">
+          {#each receta.pasos as paso (paso.id)}<li>{paso.texto}</li>{/each}
+        </ol>
       </section>
-    </div>
+    {:else}
+      <div class="columnas">
+        <section aria-labelledby="titulo-tienes">
+          <h3 id="titulo-tienes">Lo tienes ({idea.tienes.length})</h3>
+          <ul class="lista">
+            {#each idea.tienes as nombre (nombre)}<li>{nombre}</li>{/each}
+          </ul>
+        </section>
+        <section aria-labelledby="titulo-faltan">
+          <h3 id="titulo-faltan">Te falta ({idea.faltan.length})</h3>
+          {#if idea.faltan.length > 0}
+            <ul class="lista">
+              {#each idea.faltan as nombre (nombre)}<li>{nombre}</li>{/each}
+            </ul>
+          {:else}
+            <p class="nota">Tienes todo.</p>
+          {/if}
+        </section>
+      </div>
+    {/if}
 
     <section class="origen" aria-labelledby="titulo-origen">
       <h3 id="titulo-origen">De dónde sale</h3>
@@ -82,8 +170,25 @@
   </div>
 
   <footer class="pie">
-    <p class="nota">La receta paso a paso de las ideas estará disponible pronto.</p>
-    <Boton disabled>Cocinar esta idea</Boton>
+    {#if app.recetaIdeaError || app.error}
+      <p class="error" role="alert">{app.recetaIdeaError ?? app.error}</p>
+    {/if}
+    {#if fuente === 'internet'}
+      <!-- Antes hay que resolver las condiciones de Google (plan-chef-recetas.md). -->
+      <p class="nota">Las recetas de ideas encontradas en internet aún no están disponibles.</p>
+      <Boton disabled>Ver receta completa</Boton>
+    {:else if generada}
+      <Boton disabled={app.ocupado} onclick={() => app.cocinar(generada.receta.id)}
+        >Cocinar esta receta</Boton
+      >
+    {:else}
+      <p class="nota" aria-live="polite">
+        {generando ? 'El chef está escribiendo la receta. Puede tardar un minuto.' : ''}
+      </p>
+      <Boton disabled={app.ideaGenerandoId !== null} onclick={() => app.generarRecetaDeIdea(idea)}>
+        {generando ? 'Escribiendo…' : 'Ver receta completa'}
+      </Boton>
+    {/if}
   </footer>
 </article>
 
@@ -179,6 +284,70 @@
     height: 72px;
     margin-top: var(--espacio-2);
     border: 0;
+  }
+  .aviso-ia {
+    margin: 0;
+    padding-left: var(--espacio-3);
+    border-left: 4px solid var(--color-acento);
+    font-size: var(--texto-s);
+  }
+  .etiquetas {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacio-2);
+  }
+  .etiquetas li {
+    padding: 6px 12px;
+    border: var(--borde) dashed var(--color-tinta);
+    border-radius: var(--radio-pildora);
+    font-size: var(--texto-xs);
+    font-weight: 600;
+  }
+  .ingredientes {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(240px, 1fr));
+    gap: var(--espacio-2) var(--espacio-4);
+  }
+  .ingredientes li {
+    display: flex;
+    align-items: flex-start;
+    gap: var(--espacio-3);
+    padding: var(--espacio-2) 0;
+    border-bottom: var(--borde) solid var(--color-separador);
+  }
+  .ingredientes small {
+    display: block;
+    color: var(--color-tinta-suave);
+    font-size: var(--texto-s);
+  }
+  .estado {
+    flex: none;
+    min-width: 76px;
+    padding: 3px 8px;
+    border: var(--borde) solid var(--color-borde-control);
+    border-radius: var(--radio-pildora);
+    font-size: var(--texto-xs);
+    font-weight: var(--peso-fuerte);
+    text-align: center;
+  }
+  .estado.falta {
+    background: var(--color-tinta);
+    border-color: var(--color-tinta);
+    color: var(--color-superficie);
+  }
+  .pasos {
+    margin: 0;
+    padding-left: var(--espacio-5);
+    line-height: 1.45;
+  }
+  .pasos li {
+    padding: var(--espacio-1) 0;
+  }
+  .error {
+    margin: 0 auto 0 0;
+    padding-left: var(--espacio-3);
+    border-left: 4px solid var(--color-acento);
+    font-size: var(--texto-s);
   }
   .pie {
     display: flex;

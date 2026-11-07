@@ -3,7 +3,7 @@
 import { escalarReceta } from '../recetas/escalado'
 import type { Catalogo } from '../recetas/etiquetas'
 import { aplicarSustitucion } from '../recetas/sustituciones'
-import type { Receta } from '../types/receta'
+import type { Receta, RecetaGenerada } from '../types/receta'
 import type { Preferencias, SesionCocina, SustitucionAplicada } from '../types/sesion'
 
 /** Máximo de eventos guardados en la sesión (historial corto). */
@@ -45,6 +45,8 @@ export interface DatosNuevaSesion {
   porciones: number
   catalogo: Catalogo
   ahora: number
+  /** Si la receta la escribió la IA: la sesión la conserva, porque no está en la base. */
+  recetaGenerada?: RecetaGenerada | null
 }
 
 /** Sesión en fase `cocinar`, en el paso 1 y con la receta ya escalada. */
@@ -58,6 +60,7 @@ export function crearSesionCocina(datos: DatosNuevaSesion): SesionCocina {
     preferencias: structuredClone(datos.preferencias),
     recetaId: datos.receta.id,
     recetaAdaptada: adaptarReceta(datos.receta, [], datos.porciones, datos.catalogo),
+    recetaGenerada: datos.recetaGenerada ?? null,
     porciones: datos.porciones,
     sustituciones: [],
     pasoActual: 1,

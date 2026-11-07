@@ -2,7 +2,7 @@
 
 import type { AplicacionHerramienta, LlamadaHerramienta } from '../ia/herramientas'
 import type { ResultadoBusqueda } from './busqueda'
-import type { ResultadoIdeas } from './ideas'
+import type { IdeaModelo, ResultadoIdeas, ResultadoRecetaGenerada } from './ideas'
 import type { Ingrediente, Receta } from './receta'
 import type { Preferencias, SesionCocina } from './sesion'
 import type { AudioNarracion, RespuestaTokenVoz, ResultadoVosk, ResultadoVozLocal } from './voz'
@@ -31,6 +31,7 @@ export const CANALES_IPC = {
   recetasObtener: 'recetas:obtener',
   recetasBuscar: 'recetas:buscar',
   recetasProponer: 'recetas:proponer',
+  recetasGenerar: 'recetas:generar',
   preferenciasLeer: 'preferencias:leer',
   preferenciasGuardar: 'preferencias:guardar',
   sesionRetomar: 'sesion:retomar',
@@ -106,6 +107,11 @@ export interface ApiChef {
     buscar(preferencias: Preferencias): Promise<ResultadoBusqueda>
     /** Ideas del chef con la IA, ya comprobadas en main contra catálogo, alergias y dieta. */
     proponer(datos: { preferencias: Preferencias; excluir: string[] }): Promise<ResultadoIdeas>
+    /** Receta completa de una idea, ya comprobada. Queda lista para `sesion.iniciar`. */
+    generar(datos: {
+      idea: IdeaModelo
+      preferencias: Preferencias
+    }): Promise<ResultadoRecetaGenerada>
   }
   /** Despensa, preferencias y alergias guardadas de la cuenta (decisión 0019). */
   preferencias: {
