@@ -5,6 +5,8 @@ import { PORCIONES_MAX, PORCIONES_MIN, esquemaPreferencias } from '@shared/esque
 import { esquemaLlamadaHerramienta } from '@shared/ia/herramientas'
 import { esquemaChatIpc } from '@shared/ia/chat'
 import { contextoCompacto } from '@shared/ia/contexto'
+import { esquemaProponerIpc } from '@shared/esquemas/ideas'
+import { evaluarIdeas } from '@shared/recetas/ideas'
 import { esquemaLeerPaso, esquemaPeticionTokenVoz } from '@shared/esquemas/voz'
 import {
   esquemaCodigo,
@@ -220,6 +222,41 @@ export function registrarIpc(
     CANALES_IPC.recetasBuscar,
     (_evento, preferencias: unknown): Resultado<ApiChef['recetas']['buscar']> =>
       buscarEnBase(db, esquemaPreferencias.parse(preferencias), opciones.verBorradores)
+  )
+
+  ipcMain.handle(
+    CANALES_IPC.recetasProponer,
+    async (_evento, datos: unknown): Promise<Resultado<ApiChef['recetas']['proponer']>> => {
+      const { preferencias, excluir } = esquemaProponerIpc.parse(datos)
+      const catalogo = listarIngredientes(db)
+      const ingredientes = [
+        ...catalogo
+          .filter((i) => !i.esBasicoDespensa && preferencias.ingredientes.includes(i.id))
+          .map((i) => i.nombre),
+        ...preferencias.ingredientesSinIdentificar
+      ]
+      if (ingredientes.length === 0)
+        return { ok: false, mensaje: 'Añade algún ingrediente a tu despensa para pedir ideas.' }
+      const respuesta = await backend.proponerRecetas({
+        ingredientes,
+        porciones: preferencias.porciones,
+        restricciones: preferencias.restricciones,
+        alergias: preferencias.alergias,
+        tiempoMaxMin: preferencias.tiempoMaxMin,
+        nivel: preferencias.nivel,
+        equipo: preferencias.equipo,
+        excluir
+      })
+      if (!respuesta.ok) return respuesta
+      // El código, no el modelo, decide qué tienes, qué falta y qué se descarta (0019).
+      return {
+        ok: true,
+        ideas: evaluarIdeas(respuesta.datos.ideas, { catalogo, preferencias, excluir }),
+        fuente: respuesta.datos.fuente,
+        fuentes: respuesta.datos.fuentes,
+        sugerenciasBusqueda: respuesta.datos.sugerenciasBusqueda
+      }
+    }
   )
 
   ipcMain.handle(CANALES_IPC.preferenciasLeer, (): Resultado<ApiChef['preferencias']['leer']> =>

@@ -140,6 +140,7 @@ Función serverless (Node + TypeScript). Guarda la clave de la API y limita el u
 |---|---|
 | `POST /voz/token` | token efímero para la sesión de voz en tiempo real |
 | `POST /recetas/generar` | genera una receta con el esquema y la valida antes de devolverla |
+| `POST /recetas/proponer` | ideas cortas: con búsqueda en Google y, si falla, de memoria |
 | `POST /sustituciones/sugerir` | opciones cuando la tabla no tiene ninguna |
 
 El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder cambiarlo sin tocar la app.
@@ -163,6 +164,7 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   | `/voz/narrar` | `{ texto }` (máx. 2000 caracteres) | `{ audio: { datos, mimeType: 'audio/wav' } \| null }` |
   | `/chat` | `{ pantalla, contexto, mensajes }` | `{ contenido: { role: 'model', parts }, simulado }` |
   | `/recetas/generar` | `{ preferencias, catalogo, tecnicas? }` | `{ receta }` |
+  | `/recetas/proponer` | `{ ingredientes, porciones, restricciones, alergias, tiempoMaxMin, nivel, equipo, excluir }` | `{ ideas, fuente, fuentes, sugerenciasBusqueda }` |
   | `/sustituciones/sugerir` | `{ ingredienteId, recetaId?, tituloReceta?, preferencias: { ingredientes?, restricciones?, alergias? }, catalogo }` | `{ sustituciones }` |
 
   El catálogo lo manda la app (es la fuente de verdad y puede crecer); el backend solo guarda los contadores de uso.

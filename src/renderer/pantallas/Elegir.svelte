@@ -5,6 +5,7 @@
   import type { Receta } from '@shared/types/receta'
   import Boton from '../componentes/Boton.svelte'
   import ChefBlob from '../componentes/ChefBlob.svelte'
+  import DetalleIdea from '../componentes/DetalleIdea.svelte'
   import Globo from '../componentes/Globo.svelte'
   import Icono from '../componentes/Icono.svelte'
   import { app } from '../estado/app.svelte'
@@ -25,6 +26,17 @@
     )
   )
   const actual = $derived(resultados[Math.min(indice, resultados.length - 1)])
+  const ideas = $derived(app.ideas?.lista ?? [])
+  const ideaActual = $derived(ideas.find((i) => i.id === app.ideaVisibleId) ?? null)
+  // La opción elegida queda a la vista, también cuando la elige la app.
+  let lista: HTMLUListElement | undefined = $state()
+  $effect(() => {
+    void [app.ideaVisibleId, app.recetaVisibleId]
+    lista?.querySelector('[aria-current="true"]')?.scrollIntoView({ block: 'nearest' })
+  })
+  const hayContenido = $derived(
+    resultados.length > 0 || ideas.length > 0 || app.ideasCargando || !!app.ideasError
+  )
   const porciones = $derived(app.preferencias.porciones)
 
   // Receta completa de la elegida, para mostrar todos sus ingredientes ya escalados.
@@ -93,17 +105,22 @@
     const paso = evento.key === 'ArrowDown' ? 1 : evento.key === 'ArrowUp' ? -1 : 0
     if (!paso) return
     evento.preventDefault()
+    app.ideaVisibleId = null
     app.recetaVisibleId =
       resultados[(indice + paso + resultados.length) % resultados.length]!.receta.id
   }
 </script>
 
 <main class="elegir">
-  {#if actual}
+  {#if hayContenido}
     <section class="comparar" aria-labelledby="titulo-elegir">
       <h1 id="titulo-elegir">
-        {resultados.length}
-        {resultados.length === 1 ? 'receta' : 'recetas'} para elegir
+        {#if resultados.length > 0}
+          {resultados.length}
+          {resultados.length === 1 ? 'receta' : 'recetas'} para elegir
+        {:else}
+          Ideas del chef
+        {/if}
       </h1>
       <p class="subtitulo">
         {resultados.length > 1 ? 'Ordenadas por lo poco que te falta.' : ''}
@@ -112,13 +129,16 @@
         {/if}
       </p>
       <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-      <ul class="opciones" aria-label="Recetas" onkeydown={teclas}>
+      <ul class="opciones" aria-label="Recetas" bind:this={lista} onkeydown={teclas}>
         {#each resultados as r (r.receta.id)}
           <li>
             <button
               type="button"
-              aria-current={r.receta.id === actual.receta.id ? 'true' : undefined}
-              onclick={() => (app.recetaVisibleId = r.receta.id)}
+              aria-current={!ideaActual && r.receta.id === actual?.receta.id ? 'true' : undefined}
+              onclick={() => {
+                app.ideaVisibleId = null
+                app.recetaVisibleId = r.receta.id
+              }}
             >
               <span class="nombre"
                 >{r.receta.titulo}{#if r.receta.estadoRevision === 'borrador'}
@@ -134,106 +154,173 @@
             </button>
           </li>
         {/each}
+        {#if ideas.length > 0}
+          <li class="separador">
+            Ideas del chef · {app.ideas?.fuente === 'internet'
+              ? 'de internet'
+              : 'sin buscar en internet'}
+          </li>
+        {/if}
+        {#each ideas as idea (idea.id)}
+          <li>
+            <button
+              type="button"
+              aria-current={idea.id === ideaActual?.id ? 'true' : undefined}
+              onclick={() => (app.ideaVisibleId = idea.id)}
+            >
+              <span class="nombre"
+                >{idea.titulo}<small class="sin-revisar">Generada por IA</small></span
+              >
+              <span class="datos">
+                <span><Icono nombre="reloj" tamano={16} />{idea.tiempoTotalMin} min</span>
+                <span>{NOMBRE_DIFICULTAD[idea.dificultad]}</span>
+              </span>
+              <span class="faltan" class:completa={idea.faltan.length === 0}
+                >{idea.faltan.length === 0 ? 'Tienes todo' : `Faltan ${idea.faltan.length}`}</span
+              >
+            </button>
+          </li>
+        {/each}
       </ul>
-      <Boton variante="secundario" onclick={() => app.irA('preparar')}>Cambiar ingredientes</Boton>
+      <div class="estado-ideas" aria-live="polite">
+        {#if app.ideasCargando}
+          <p>El chef está pensando ideas…</p>
+        {:else if app.ideasError}
+          <p role="alert">{app.ideasError}</p>
+        {/if}
+      </div>
+      <div class="acciones-lista">
+        <Boton
+          variante="secundario"
+          disabled={app.ideasCargando}
+          onclick={() => app.proponerIdeas()}
+        >
+          {ideas.length > 0 ? 'Dame otras' : 'Pedir ideas al chef'}
+        </Boton>
+        <Boton variante="secundario" onclick={() => app.irA('preparar')}>Cambiar ingredientes</Boton
+        >
+      </div>
     </section>
 
-    <article class="detalle" aria-labelledby="titulo-receta">
-      <div class="contenido">
-        <header class="cabeza">
-          <div class="plato" aria-hidden={actual.receta.imagen ? undefined : 'true'}>
-            {#if actual.receta.imagen}
-              <img src={actual.receta.imagen} alt="" />
-            {:else}
-              <div class="comida"></div>
-            {/if}
-          </div>
-          <div>
-            <h2 id="titulo-receta">{actual.receta.titulo}</h2>
-            <p class="descripcion">{actual.receta.descripcion}</p>
-            {#if !actual.receta.imagen}<p class="aviso-foto">Foto pendiente</p>{/if}
-          </div>
-        </header>
-
-        <ul class="datos-receta" aria-label="Datos de la receta">
-          <li><Icono nombre="reloj" tamano={18} />{actual.receta.tiempoTotalMin} min</li>
-          <li>
-            <Icono nombre="personas" tamano={18} />{porciones}
-            {porciones === 1 ? 'porción' : 'porciones'}
-          </li>
-          <li><Icono nombre="nivel" tamano={18} />{NOMBRE_DIFICULTAD[actual.receta.dificultad]}</li>
-          {#if actual.receta.equipo.length}
-            <li>
-              <Icono nombre="olla" tamano={18} />{actual.receta.equipo
-                .map((e) => NOMBRE_EQUIPO[e])
-                .join(', ')}
-            </li>
-          {/if}
-        </ul>
-        {#if actual.receta.dietas.length || actual.receta.alergenos.length}
-          <ul class="etiquetas">
-            {#each actual.receta.dietas as d (d)}<li>{NOMBRE_DIETA[d]}</li>{/each}
-            {#each actual.receta.alergenos as a (a)}<li class="alerta">
-                Contiene {NOMBRE_ALERGENO[a].toLocaleLowerCase('es')}
-              </li>{/each}
-          </ul>
-        {/if}
-
-        {#if actual.ingredientesSinVerificar.length > 0}
-          <p class="sin-verificar" role="status">
-            Alérgenos sin verificar: {actual.ingredientesSinVerificar.join(', ')}. Revisa sus
-            etiquetas{app.preferencias.alergias.length > 0 ? ', sobre todo por tus alergias' : ''}.
-          </p>
-        {/if}
-
-        {#if app.globo}
-          <div class="chef">
-            <ChefBlob pose="busto" tamano={56} />
-            <Globo cola="izquierda"><p>{app.globo}</p></Globo>
-          </div>
-        {/if}
-
-        <section class="ingredientes" aria-labelledby="titulo-ingredientes">
-          <div class="fila">
-            <h3 id="titulo-ingredientes">Ingredientes</h3>
-            <p class="cobertura">
-              {actual.ingredientesObligatorios - actual.faltantes.length} de {actual.ingredientesObligatorios}
-              disponibles
-              {#if disponibilidad}
-                {`(${disponibilidad.seleccionados} tuyos${disponibilidad.basicos.length ? ` + ${disponibilidad.basicos.length} básicos` : ''})`}
+    {#if ideaActual && app.ideas}
+      <DetalleIdea
+        idea={ideaActual}
+        fuente={app.ideas.fuente}
+        fuentes={app.ideas.fuentes}
+        sugerenciasBusqueda={app.ideas.sugerenciasBusqueda}
+        tieneAlergias={app.preferencias.alergias.length > 0}
+      />
+    {:else if !actual}
+      <section class="esperando">
+        <ChefBlob pose="busto" tamano={120} />
+        <p>
+          {app.ideasCargando
+            ? 'Estoy revisando tu despensa para proponerte recetas.'
+            : 'Elige una idea de la lista o pide otras.'}
+        </p>
+      </section>
+    {:else}
+      <article class="detalle" aria-labelledby="titulo-receta">
+        <div class="contenido">
+          <header class="cabeza">
+            <div class="plato" aria-hidden={actual.receta.imagen ? undefined : 'true'}>
+              {#if actual.receta.imagen}
+                <img src={actual.receta.imagen} alt="" />
+              {:else}
+                <div class="comida"></div>
               {/if}
-            </p>
-          </div>
-          {#if ingredientes.length}
-            <ul class="lista">
-              {#each ingredientes as ing (ing.id)}
-                <li class={ing.estado}>
-                  <span class="estado">{ETIQUETA_ESTADO[ing.estado]}</span>
-                  <span class="texto">
-                    <b>{ing.nombre}</b>
-                    <small>{ing.detalle}</small>
-                    {#each ing.sustituciones as s (s.sustitucionId)}
-                      <small class="sustitucion"
-                        >Puedes usar {s.nombreDestino.toLocaleLowerCase('es')}</small
-                      >
-                    {/each}
-                  </span>
-                </li>
-              {/each}
-            </ul>
-          {:else}
-            <p class="cargando">Cargando ingredientes…</p>
-          {/if}
-        </section>
-      </div>
+            </div>
+            <div>
+              <h2 id="titulo-receta">{actual.receta.titulo}</h2>
+              <p class="descripcion">{actual.receta.descripcion}</p>
+              {#if !actual.receta.imagen}<p class="aviso-foto">Foto pendiente</p>{/if}
+            </div>
+          </header>
 
-      <footer class="pie">
-        {#if app.error}<p class="error" role="alert">{app.error}</p>{/if}
-        <Boton disabled={app.ocupado} onclick={() => app.cocinar(actual.receta.id)}
-          >Cocinar esta receta</Boton
-        >
-      </footer>
-    </article>
+          <ul class="datos-receta" aria-label="Datos de la receta">
+            <li><Icono nombre="reloj" tamano={18} />{actual.receta.tiempoTotalMin} min</li>
+            <li>
+              <Icono nombre="personas" tamano={18} />{porciones}
+              {porciones === 1 ? 'porción' : 'porciones'}
+            </li>
+            <li>
+              <Icono nombre="nivel" tamano={18} />{NOMBRE_DIFICULTAD[actual.receta.dificultad]}
+            </li>
+            {#if actual.receta.equipo.length}
+              <li>
+                <Icono nombre="olla" tamano={18} />{actual.receta.equipo
+                  .map((e) => NOMBRE_EQUIPO[e])
+                  .join(', ')}
+              </li>
+            {/if}
+          </ul>
+          {#if actual.receta.dietas.length || actual.receta.alergenos.length}
+            <ul class="etiquetas">
+              {#each actual.receta.dietas as d (d)}<li>{NOMBRE_DIETA[d]}</li>{/each}
+              {#each actual.receta.alergenos as a (a)}<li class="alerta">
+                  Contiene {NOMBRE_ALERGENO[a].toLocaleLowerCase('es')}
+                </li>{/each}
+            </ul>
+          {/if}
+
+          {#if actual.ingredientesSinVerificar.length > 0}
+            <p class="sin-verificar" role="status">
+              Alérgenos sin verificar: {actual.ingredientesSinVerificar.join(', ')}. Revisa sus
+              etiquetas{app.preferencias.alergias.length > 0
+                ? ', sobre todo por tus alergias'
+                : ''}.
+            </p>
+          {/if}
+
+          {#if app.globo}
+            <div class="chef">
+              <ChefBlob pose="busto" tamano={56} />
+              <Globo cola="izquierda"><p>{app.globo}</p></Globo>
+            </div>
+          {/if}
+
+          <section class="ingredientes" aria-labelledby="titulo-ingredientes">
+            <div class="fila">
+              <h3 id="titulo-ingredientes">Ingredientes</h3>
+              <p class="cobertura">
+                {actual.ingredientesObligatorios - actual.faltantes.length} de {actual.ingredientesObligatorios}
+                disponibles
+                {#if disponibilidad}
+                  {`(${disponibilidad.seleccionados} tuyos${disponibilidad.basicos.length ? ` + ${disponibilidad.basicos.length} básicos` : ''})`}
+                {/if}
+              </p>
+            </div>
+            {#if ingredientes.length}
+              <ul class="lista">
+                {#each ingredientes as ing (ing.id)}
+                  <li class={ing.estado}>
+                    <span class="estado">{ETIQUETA_ESTADO[ing.estado]}</span>
+                    <span class="texto">
+                      <b>{ing.nombre}</b>
+                      <small>{ing.detalle}</small>
+                      {#each ing.sustituciones as s (s.sustitucionId)}
+                        <small class="sustitucion"
+                          >Puedes usar {s.nombreDestino.toLocaleLowerCase('es')}</small
+                        >
+                      {/each}
+                    </span>
+                  </li>
+                {/each}
+              </ul>
+            {:else}
+              <p class="cargando">Cargando ingredientes…</p>
+            {/if}
+          </section>
+        </div>
+
+        <footer class="pie">
+          {#if app.error}<p class="error" role="alert">{app.error}</p>{/if}
+          <Boton disabled={app.ocupado} onclick={() => app.cocinar(actual.receta.id)}
+            >Cocinar esta receta</Boton
+          >
+        </footer>
+      </article>
+    {/if}
   {:else}
     <section class="sin-recetas">
       <ChefBlob pose="busto" tamano={140} />
@@ -241,7 +328,8 @@
         <h1>Con lo que marcaste no encuentro recetas</h1>
         <p>{app.globo ?? 'Prueba a añadir más ingredientes o a ajustar tus preferencias.'}</p>
       </Globo>
-      <Boton onclick={() => app.irA('preparar')}>Cambiar ingredientes</Boton>
+      <Boton onclick={() => app.proponerIdeas()}>Pedir ideas al chef</Boton>
+      <Boton variante="secundario" onclick={() => app.irA('preparar')}>Cambiar ingredientes</Boton>
     </section>
   {/if}
 </main>
@@ -304,6 +392,32 @@
     font-family: var(--fuente-titulo);
     font-weight: var(--peso-fuerte);
     font-size: var(--texto-m);
+  }
+  .separador {
+    margin-top: var(--espacio-2);
+    font-size: var(--texto-s);
+    font-weight: var(--peso-fuerte);
+    color: var(--color-tinta-suave);
+  }
+  .estado-ideas p {
+    margin: 0;
+    font-size: var(--texto-s);
+    border-left: 4px solid var(--color-acento);
+    padding-left: var(--espacio-3);
+  }
+  .acciones-lista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-2);
+  }
+  .esperando {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: var(--espacio-4);
+    text-align: center;
+    color: var(--color-tinta-suave);
   }
   .sin-revisar {
     display: block;

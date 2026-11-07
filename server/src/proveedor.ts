@@ -21,9 +21,11 @@ export interface PeticionSustitucion {
   catalogo: Ingrediente[]
 }
 
+export type { PeticionIdeas } from '@shared/types/ideas'
 export type { TokenVoz } from '@shared/types/voz'
 import type { TokenVoz } from '@shared/types/voz'
 import type { AudioNarracion } from '@shared/types/voz'
+import type { PeticionIdeas } from '@shared/types/ideas'
 
 export interface ProveedorIA {
   readonly nombre: string
@@ -36,6 +38,8 @@ export interface ProveedorIA {
    * intento anterior, para que el modelo lo corrija en el reintento.
    */
   generarReceta(peticion: PeticionReceta, errorAnterior: string | null): Promise<unknown>
+  /** Ideas en bruto: `{ ideas, fuente, fuentes, sugerenciasBusqueda }`. app.ts las valida una a una. */
+  proponerRecetas(peticion: PeticionIdeas): Promise<unknown>
   /** Sugerencias en bruto: `{ ingredienteDestinoId, ratio, impacto, contexto? }[]`. */
   sugerirSustituciones(peticion: PeticionSustitucion): Promise<unknown>
 }

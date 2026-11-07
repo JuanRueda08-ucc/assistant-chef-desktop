@@ -3,6 +3,7 @@ import {
   MODELO_GEMINI_LIVE,
   MODELO_TEXTO,
   MODELO_TEXTO_RESPALDO,
+  PAUSA_BUSQUEDA_MS,
   PAUSA_MODELO_MS
 } from '@shared/ia/gemini'
 import { crearApp } from '../app'
@@ -183,6 +184,102 @@ describe('ProveedorGemini (transporte simulado, sin red)', () => {
     ahora += PAUSA_MODELO_MS + 1
     await proveedor.conversar(peticion)
     expect(modelos()[3]).toContain(`models/${MODELO_TEXTO}:`)
+  })
+  describe('proponer recetas', () => {
+    const peticion = {
+      ingredientes: ['Tomate'],
+      porciones: 2,
+      restricciones: [],
+      alergias: ['soja' as const],
+      tiempoMaxMin: null,
+      nivel: null,
+      equipo: [],
+      excluir: ['Sopa']
+    }
+    const conTexto = (texto: string, extra: object = {}): Response =>
+      json({ candidates: [{ content: { parts: [{ text: texto }] }, ...extra }] })
+    const ideas = '{"ideas":[{"titulo":"Guiso"}]}'
+
+    it('con búsqueda devuelve fuentes y sugerencias, aunque el JSON venga entre marcas', async () => {
+      const solicitar = vi.fn<typeof fetch>().mockResolvedValue(
+        conTexto('```json\n' + ideas + '\n```', {
+          groundingMetadata: {
+            groundingChunks: [{ web: { uri: 'https://receta.example/a', title: 'Receta' } }],
+            searchEntryPoint: { renderedContent: '<div>Google</div>' }
+          }
+        })
+      )
+      const r = await new ProveedorGemini('solo-test', { fetch: solicitar }).proponerRecetas(
+        peticion
+      )
+      expect(r).toEqual({
+        ideas: [{ titulo: 'Guiso' }],
+        fuente: 'internet',
+        fuentes: [{ titulo: 'Receta', url: 'https://receta.example/a' }],
+        sugerenciasBusqueda: '<div>Google</div>'
+      })
+      const cuerpo = JSON.parse(solicitar.mock.calls[0]![1]!.body as string)
+      expect(cuerpo.tools).toEqual([{ google_search: {} }])
+      expect(cuerpo.contents[0].parts[0].text).toContain('soja')
+      expect(cuerpo.contents[0].parts[0].text).toContain('No repitas estas recetas: Sopa')
+    })
+
+    it('sin cuota de búsqueda crea de memoria y no insiste hasta pasada la pausa', async () => {
+      let ahora = T0
+      const solicitar = vi
+        .fn<typeof fetch>()
+        .mockImplementation(async (_url, init) =>
+          (JSON.parse(init!.body as string) as { tools?: unknown }).tools
+            ? json({ error: { message: 'x' } }, 429)
+            : conTexto(ideas)
+        )
+      const proveedor = new ProveedorGemini('solo-test', { fetch: solicitar, ahora: () => ahora })
+      expect(await proveedor.proponerRecetas(peticion)).toMatchObject({
+        fuente: 'memoria',
+        fuentes: []
+      })
+      expect(solicitar).toHaveBeenCalledTimes(2)
+      await proveedor.proponerRecetas(peticion)
+      expect(solicitar).toHaveBeenCalledTimes(3)
+      ahora += PAUSA_BUSQUEDA_MS + 1
+      await proveedor.proponerRecetas(peticion)
+      expect(solicitar).toHaveBeenCalledTimes(5)
+    })
+
+    it('si la búsqueda no da JSON usa la memoria, y falla si tampoco hay ideas', async () => {
+      const solicitar = vi
+        .fn<typeof fetch>()
+        .mockResolvedValueOnce(conTexto('Aquí tienes unas recetas…'))
+        .mockResolvedValueOnce(conTexto(ideas))
+      expect(
+        await new ProveedorGemini('solo-test', { fetch: solicitar }).proponerRecetas(peticion)
+      ).toMatchObject({ fuente: 'memoria' })
+      const sinIdeas = vi.fn<typeof fetch>().mockImplementation(async () => conTexto('nada'))
+      await expect(
+        new ProveedorGemini('solo-test', { fetch: sinIdeas }).proponerRecetas(peticion)
+      ).rejects.toThrow('ideas')
+    })
+  })
+  it('si el respaldo también se satura, vuelve a probar el principal', async () => {
+    const ok = json({ candidates: [{ content: { role: 'model', parts: [{ text: 'Hola' }] } }] })
+    const solicitar = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(json({}, 503))
+      .mockResolvedValueOnce(
+        json({ candidates: [{ content: { role: 'model', parts: [{ text: 'a' }] } }] })
+      )
+      .mockResolvedValueOnce(json({}, 503))
+      .mockResolvedValueOnce(ok)
+    const proveedor = new ProveedorGemini('solo-test', { fetch: solicitar })
+    const peticion = {
+      pantalla: 'preparar' as const,
+      contexto: '{}',
+      mensajes: [{ role: 'user' as const, parts: [{ text: 'hola' }] }]
+    }
+    await proveedor.conversar(peticion)
+    await proveedor.conversar(peticion)
+    expect(String(solicitar.mock.calls[2]![0])).toContain(MODELO_TEXTO_RESPALDO)
+    expect(String(solicitar.mock.calls[3]![0])).toContain(`models/${MODELO_TEXTO}:`)
   })
   it('no repite con el respaldo si Google rechaza la petición o la cuota', async () => {
     for (const estado of [400, 429]) {

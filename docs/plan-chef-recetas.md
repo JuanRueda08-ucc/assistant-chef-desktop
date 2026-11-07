@@ -27,7 +27,7 @@ La app debe ser muy funcional e interactiva. Una persona entra, reúne sus ingre
 - [x] Modo de desarrollo sin cuenta y 18 recetas en borrador (0018).
 - [x] **Tarea 37. Despensa guardada** por cuenta, junto con preferencias y alergias.
 - [x] **Tarea 38. Ingredientes nuevos** con «alérgenos sin verificar». Falta crear el ingrediente real al guardar una receta generada (tareas 40 y 41).
-- [ ] **Tarea 39. El chef propone:** guardadas, internet o memoria en una sola lista, con «dame otras».
+- [ ] **Tarea 39. El chef propone:** guardadas, internet o memoria en una sola lista, con «dame otras». **Hecha y probada de memoria. Falta probar la búsqueda real cuando el autor active la facturación;** su pantalla se probó con un servidor simulado.
 - [ ] **Tarea 40. Receta completa:** generar, validar y cocinar la elegida; sustituye a la tarea 17.
 - [ ] **Tarea 41. Mis recetas:** guardar las generadas por cuenta.
 - [ ] **Tarea 42. Chat y voz** para pedir todo lo anterior.
@@ -39,6 +39,7 @@ Comprobado el 2026-11-06 con la clave del autor: Gemini responde sin búsqueda, 
 - **Activarla:** recarga mínima de **5 USD**, en prepago y **sin recarga automática**. Al llegar a 0 USD, las claves se detienen en vez de cobrar. El saldo no se devuelve y caduca a los 12 meses.
 - **Precios:** 5.000 búsquedas gratis al mes y 14 USD por cada 1.000 más; máximo 1.500 al día. Con facturación, el proyecto pasa a plan de pago y también se cobra el texto: `gemini-3.5-flash-lite` 0,30/2,50 USD y `gemini-3.8-flash` 0,75/3,75 USD por millón de tokens de entrada/salida (el segundo se duplica desde el 1 de enero de 2027).
 - **Cuándo:** el autor la activará **antes de la tarea 39**; avisarle al llegar. Antes no se usa, y hasta entonces la app usa el modo de memoria.
+- **Condiciones de Google (leídas el 2026-11-07, sin asesoría legal):** un resultado con búsqueda debe mostrarse **con sus sugerencias de búsqueda** (ya se hace, en un iframe sin scripts) y solo a quien lo pidió. No se puede **modificar ni mezclar con otro contenido**, ni copiar o almacenar sus enlaces. No se puede **guardar en caché, analizar ni usar para entrenar**, salvo guardar el texto hasta **2 años** para fines limitados, como mostrar a la persona su historial. Esto **afecta a las tareas 40 y 41**: convertir un resultado con búsqueda en una receta estructurada y guardarla en «Mis recetas» podría no estar permitido. **Decisión pendiente del autor** antes de la tarea 40; una salida es generar la receta completa sin búsqueda, de memoria, y usar internet solo para inspirar la idea, pero también hay que revisarla contra las condiciones.
 - **Alternativas revisadas:** OpenAI y Anthropic, 10 USD por 1.000 búsquedas; Grok, unos 5 USD (fuente de terceros); Kimi, 2 a 3 USD; DeepSeek, unos 5 yuanes (fuente de terceros). Se descartan por ahora porque habría que adaptar chat, narración y voz. Las bibliotecas TheMealDB, Spoonacular y Edamam se descartan por idioma, límites o instrucciones ausentes.
 
 ## Lo que enseñaron las pruebas con Gemini real (2026-11-06)

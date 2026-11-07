@@ -37,6 +37,8 @@ export const esquemaPeticionSustitucion = z.strictObject({
   catalogo
 })
 
+export { esquemaPeticionIdeas } from '@shared/esquemas/ideas'
+
 export const esquemaPeticionVoz = z.strictObject({})
 
 /** Respuesta del proveedor para el token de voz. */

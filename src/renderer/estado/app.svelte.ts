@@ -19,6 +19,7 @@ import {
 } from '@shared/recetas/disponibilidad'
 import type { ResultadoBusqueda } from '@shared/types/busqueda'
 import type { EstadoCuenta } from '@shared/types/cuenta'
+import type { FuenteIdea, FuenteWeb, IdeaReceta } from '@shared/types/ideas'
 import type { Ingrediente } from '@shared/types/receta'
 import type { EstadoAvatar, Preferencias, SesionCocina } from '@shared/types/sesion'
 
@@ -59,6 +60,19 @@ class EstadoApp {
   /** Hasta leer lo guardado no se guarda nada, para no pisar la despensa con la vacía. */
   preferenciasCargadas = $state(false)
   busqueda = $state<ResultadoBusqueda | null>(null)
+  /** Ideas del chef con la IA (tarea 39), junto a las recetas guardadas en Elegir. */
+  ideas = $state.raw<{
+    lista: IdeaReceta[]
+    fuente: FuenteIdea
+    fuentes: FuenteWeb[]
+    sugerenciasBusqueda: string | null
+  } | null>(null)
+  ideasCargando = $state(false)
+  ideasError = $state<string | null>(null)
+  ideaVisibleId = $state<string | null>(null)
+  /** Títulos ya mostrados, para que «dame otras» no los repita. */
+  private ideasVistas: string[] = []
+  private pedidoIdeas = 0
   recetaVisibleId = $state<string | null>(null)
   // raw: la sesión llega entera de main en cada cambio y se pasa a funciones de shared que copian.
   sesion = $state.raw<SesionCocina | null>(null)
@@ -174,10 +188,14 @@ class EstadoApp {
               busqueda
             )
             if (r.ok) {
+              const nuevaBusqueda = nombre === 'buscar_recetas' || r.estado.busqueda === null
+              if (nuevaBusqueda) this.limpiarIdeas()
               this.preferencias = r.estado.preferencias
               this.busqueda = r.estado.busqueda
               this.recetaVisibleId = r.estado.recetaVisibleId
               this.pantalla = r.estado.pantalla
+              if (nombre === 'buscar_recetas' && this.busqueda?.ofrecerGenerada)
+                void this.proponerIdeas()
               if (r.iniciarRecetaId) {
                 await this.cocinar(r.iniciarRecetaId)
                 if (this.error) throw new Error(this.error)
@@ -276,8 +294,72 @@ class EstadoApp {
     this.irA('preparar')
   }
 
+  private limpiarIdeas(): void {
+    this.pedidoIdeas++
+    this.ideas = null
+    this.ideasCargando = false
+    this.ideasError = null
+    this.ideaVisibleId = null
+    this.ideasVistas = []
+  }
+
+  /**
+   * Pide ideas a la IA. Si cambia la búsqueda mientras tanto, la respuesta se descarta. Con recetas
+   * guardadas que no encajan, la primera idea queda seleccionada.
+   */
+  async proponerIdeas(): Promise<void> {
+    if (this.ideasCargando) return
+    const pedido = ++this.pedidoIdeas
+    this.ideasCargando = true
+    this.ideasError = null
+    try {
+      const guardadas = (this.busqueda?.resultados ?? []).map((r) => r.receta.titulo)
+      const r = await window.api.recetas.proponer({
+        preferencias: $state.snapshot(this.preferencias),
+        excluir: [...guardadas, ...this.ideasVistas].slice(-100)
+      })
+      if (pedido !== this.pedidoIdeas) return
+      if (!r.ok) {
+        this.ideasError = r.mensaje
+      } else if (r.ideas.length === 0) {
+        this.ideasError =
+          'No encontré ideas que encajen con tu despensa, tus alergias y tu dieta. Prueba a añadir ingredientes o a pedir otras.'
+      } else {
+        this.ideasVistas.push(...r.ideas.map((i) => i.titulo))
+        this.ideas = {
+          lista: r.ideas,
+          fuente: r.fuente,
+          fuentes: r.fuentes,
+          sugerenciasBusqueda: r.sugerenciasBusqueda
+        }
+        if (this.ideaVisibleId || this.busqueda?.ofrecerGenerada)
+          this.ideaVisibleId = r.ideas[0]!.id
+      }
+    } catch (e) {
+      if (pedido === this.pedidoIdeas) {
+        this.ideasError = mensaje(e)
+        void this.comprobarCuenta()
+      }
+    } finally {
+      if (pedido === this.pedidoIdeas) this.ideasCargando = false
+    }
+  }
+
   /** Busca recetas con las preferencias actuales y pasa a Elegir. */
   async buscar(): Promise<void> {
+    this.limpiarIdeas()
+    // Solo con ingredientes fuera del catálogo no hay recetas guardadas, pero la IA sí puede ayudar.
+    if (
+      !hayIngredientesSeleccionados(this.preferencias.ingredientes, this.catalogo) &&
+      this.preferencias.ingredientesSinIdentificar.length > 0
+    ) {
+      this.busqueda = { resultados: [], descartadas: [], ofrecerGenerada: true }
+      this.recetaVisibleId = null
+      this.globo = null
+      this.pantalla = 'elegir'
+      void this.proponerIdeas()
+      return
+    }
     if (!hayIngredientesSeleccionados(this.preferencias.ingredientes, this.catalogo)) {
       this.busqueda = null
       this.recetaVisibleId = null
@@ -292,6 +374,7 @@ class EstadoApp {
       this.globo = null
       this.pantalla = 'elegir'
     })
+    if (this.pantalla === 'elegir' && this.busqueda?.ofrecerGenerada) void this.proponerIdeas()
   }
 
   /** Empieza a cocinar la receta elegida (descarta la sesión anterior, si la había). */
@@ -343,6 +426,7 @@ class EstadoApp {
 
   /** Tras terminar una receta, vuelve a Preparar conservando las preferencias. */
   cocinarOtra(): void {
+    this.limpiarIdeas()
     this.sesion = null
     this.busqueda = null
     this.recetaVisibleId = null

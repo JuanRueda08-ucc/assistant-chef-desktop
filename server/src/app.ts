@@ -5,7 +5,14 @@ import { z } from 'zod'
 import type { Cuentas } from './cuentas'
 import type { Limitador, Grupo } from './limite'
 import {
+  esquemaFuenteWeb,
+  esquemaIdeaModelo,
+  esquemaRespuestaIdeas,
+  MAX_IDEAS
+} from '@shared/esquemas/ideas'
+import {
   esquemaInstalacion,
+  esquemaPeticionIdeas,
   esquemaPeticionReceta,
   esquemaPeticionSustitucion,
   esquemaPeticionVoz,
@@ -147,6 +154,42 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
           'receta_invalida',
           `La receta generada no pasó la validación dos veces: ${error}`
         )
+      }
+    },
+
+    '/recetas/proponer': {
+      grupo: 'recetas',
+      esquema: esquemaPeticionIdeas,
+      manejar: async (cuerpo: z.output<typeof esquemaPeticionIdeas>) => {
+        const bruto = z
+          .object({
+            ideas: z.array(z.unknown()),
+            fuente: z.unknown(),
+            fuentes: z.array(z.unknown()).default([]),
+            sugerenciasBusqueda: z.unknown().default(null)
+          })
+          .safeParse(await delProveedor(() => dep.proveedor.proponerRecetas(cuerpo)))
+        if (!bruto.success) {
+          registrarError('Ideas con formato inesperado', bruto.error)
+          throw new ErrorApi(502, 'proveedor_fallo', 'El servicio de IA no devolvió ideas válidas.')
+        }
+        // Se conserva lo válido: una idea mal formada no estropea las demás.
+        const validas = <T>(lista: unknown[], esquema: z.ZodType<T>): T[] =>
+          lista.flatMap((x) => {
+            const r = esquema.safeParse(x)
+            return r.success ? [r.data] : []
+          })
+        const respuesta = esquemaRespuestaIdeas.safeParse({
+          ideas: validas(bruto.data.ideas, esquemaIdeaModelo).slice(0, MAX_IDEAS),
+          fuente: bruto.data.fuente,
+          fuentes: validas(bruto.data.fuentes, esquemaFuenteWeb).slice(0, 20),
+          sugerenciasBusqueda: bruto.data.sugerenciasBusqueda
+        })
+        if (!respuesta.success) {
+          registrarError('Ideas sin contenido válido', respuesta.error)
+          throw new ErrorApi(502, 'proveedor_fallo', 'El servicio de IA no devolvió ideas válidas.')
+        }
+        return respuesta.data
       }
     },
 

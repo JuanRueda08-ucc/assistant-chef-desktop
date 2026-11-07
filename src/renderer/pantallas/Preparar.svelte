@@ -94,7 +94,6 @@
     document.getElementById('buscar-ingrediente')?.focus()
   }
   const marcados = $derived(new Set(prefs.ingredientes))
-  const marcadosElegibles = $derived(elegibles.filter((i) => marcados.has(i.id)).length)
   const marcadosEn = (c: CategoriaIngrediente): number =>
     (grupos.get(c) ?? []).filter((i) => marcados.has(i.id)).length
 
@@ -331,8 +330,8 @@
           </ul>
           {#if prefs.ingredientesSinIdentificar.length > 0}
             <p class="ayuda">
-              Lo que tiene alérgenos sin verificar no cuenta para las recetas guardadas. Púlsalo
-              para buscarlo con otro nombre.
+              Lo que tiene alérgenos sin verificar solo cuenta para las ideas del chef. Púlsalo para
+              buscarlo con otro nombre.
             </p>
           {/if}
         {:else}
@@ -392,15 +391,13 @@
 
     <div class="pie">
       {#if app.error}<p class="error" role="alert">{app.error}</p>{/if}
-      {#if marcadosElegibles === 0}
-        <p class="ayuda" role="status">
-          Añade al menos un ingrediente del catálogo para buscar recetas.
-        </p>
+      {#if enDespensa === 0}
+        <p class="ayuda" role="status">Añade al menos un ingrediente para buscar recetas.</p>
       {/if}
-      <Boton ancho disabled={app.ocupado || marcadosElegibles === 0} onclick={() => app.buscar()}>
-        {marcadosElegibles === 0
+      <Boton ancho disabled={app.ocupado || enDespensa === 0} onclick={() => app.buscar()}>
+        {enDespensa === 0
           ? 'Buscar recetas'
-          : `Buscar recetas con ${marcadosElegibles} ${marcadosElegibles === 1 ? 'ingrediente' : 'ingredientes'}`}
+          : `Buscar recetas con ${enDespensa} ${enDespensa === 1 ? 'ingrediente' : 'ingredientes'}`}
       </Boton>
     </div>
 

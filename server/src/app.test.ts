@@ -234,6 +234,64 @@ describe('POST /sustituciones/sugerir', () => {
   })
 })
 
+describe('POST /recetas/proponer', () => {
+  const cuerpo = {
+    ingredientes: ['Tomate', 'Yuca'],
+    porciones: 2,
+    restricciones: [],
+    alergias: [],
+    tiempoMaxMin: null,
+    nivel: null,
+    equipo: [],
+    excluir: []
+  }
+  const buena = {
+    titulo: 'Guiso',
+    descripcion: 'Un guiso.',
+    ingredientes: ['tomate'],
+    tiempoTotalMin: 20,
+    dificultad: 'facil'
+  }
+
+  it('devuelve ideas del proveedor y respeta las ya vistas', async () => {
+    const { manejar } = banco()
+    const r = await leer(await manejar(post('/recetas/proponer', cuerpo)))
+    expect(r.estado).toBe(200)
+    expect(r.cuerpo.fuente).toBe('memoria')
+    expect(r.cuerpo.ideas.length).toBeGreaterThan(0)
+    const primera = r.cuerpo.ideas[0].titulo
+    const otra = await leer(
+      await manejar(post('/recetas/proponer', { ...cuerpo, excluir: [primera] }))
+    )
+    expect(otra.cuerpo.ideas.map((i: { titulo: string }) => i.titulo)).not.toContain(primera)
+  })
+
+  it('conserva lo válido, limita el número y descarta fuentes que no son https', async () => {
+    const { manejar } = banco({
+      ideas: {
+        ideas: [{ titulo: 'Rota' }, buena, buena, buena, buena, buena],
+        fuente: 'internet',
+        fuentes: [
+          { titulo: 'Mala', url: 'javascript:alert(1)' },
+          { titulo: 'Buena', url: 'https://a.example/x' }
+        ],
+        sugerenciasBusqueda: '<div></div>'
+      }
+    })
+    const r = await leer(await manejar(post('/recetas/proponer', cuerpo)))
+    expect(r.cuerpo.ideas).toHaveLength(4)
+    expect(r.cuerpo.fuentes).toEqual([{ titulo: 'Buena', url: 'https://a.example/x' }])
+  })
+
+  it('502 si no queda ninguna idea válida, y 400 si la petición no lo es', async () => {
+    const { manejar } = banco({ ideas: { ideas: [{ titulo: 'Rota' }], fuente: 'memoria' } })
+    expect((await manejar(post('/recetas/proponer', cuerpo))).status).toBe(502)
+    expect((await manejar(post('/recetas/proponer', { ...cuerpo, ingredientes: [] }))).status).toBe(
+      400
+    )
+  })
+})
+
 describe('límite de uso por instalación', () => {
   it('429 al pasar el límite del día, con Retry-After hasta medianoche UTC', async () => {
     const { manejar } = banco({}, { voz: 2 })

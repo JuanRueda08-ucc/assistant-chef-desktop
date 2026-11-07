@@ -57,6 +57,10 @@ Ninguna modifica la receta que recibe. Detalles que no están en las secciones d
 3. **Unidades canónicas métricas.** Se guarda en `g`, `ml` o `unidad` (más `pizca` y `al_gusto`, que no escalan). La interfaz convierte a unidades caseras (cucharada, taza) solo al mostrar.
 4. **El paso es la unidad de la cocina.** Todo lo que el chef dice o muestra en modo cocina sale del paso actual.
 
+## Ideas del chef
+
+`IdeaReceta` (`types/ideas.ts`) no es una receta: título, descripción, nombres de ingredientes, tiempo y dificultad. `evaluarIdeas()` calcula `tienes`, `faltan` y `sinVerificar`, y descarta las que chocan con alergias o dieta (también por palabras en el título o en ingredientes fuera del catálogo), superan el tiempo o el nivel, se repiten o no usan nada de la despensa. No se guardan en SQLite.
+
 ## Ingredientes sin verificar
 
 `alergenosVerificados` (`alergenos_verificados` en SQL) es `true` en el catálogo revisado. Con `false`, sus `alergenos` no son fiables: la receta no declara ninguna dieta, `ingredientesSinVerificar()` da los nombres para avisar y `destinoPermitido` lo rechaza como sustituto con alergias o restricciones (decisión 0019).

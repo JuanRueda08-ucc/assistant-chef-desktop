@@ -1,7 +1,13 @@
 // Proveedor falso: respuestas deterministas, sin red. Lo usan los tests y el desarrollo local
 // (`PROVEEDOR_IA=falso`) mientras no haya un proveedor real elegido.
 
-import type { PeticionReceta, PeticionSustitucion, ProveedorIA, TokenVoz } from '../proveedor'
+import type {
+  PeticionReceta,
+  PeticionSustitucion,
+  ProveedorIA,
+  TokenVoz,
+  PeticionIdeas
+} from '../proveedor'
 import type { ContenidoChat, PeticionChat } from '@shared/ia/chat'
 import { normalizarTexto } from '@shared/recetas/catalogo'
 import { z } from 'zod'
@@ -14,6 +20,8 @@ const contextoDemo = z.object({
 })
 
 export interface OpcionesProveedorFalso {
+  /** Respuesta de `proponerRecetas`, tal cual. */
+  ideas?: unknown
   /** Respuestas de `generarReceta`, en orden; al agotarse se genera una receta sencilla. */
   recetas?: unknown[]
   /** Respuesta fija de `sugerirSustituciones`; por defecto, ingredientes de la misma categoría. */
@@ -127,6 +135,28 @@ export class ProveedorFalso implements ProveedorIA {
     this.llamadasReceta.push({ peticion, errorAnterior })
     if (this.recetas.length > 0) return this.recetas.shift()
     return recetaSencilla(peticion)
+  }
+
+  async proponerRecetas(peticion: PeticionIdeas): Promise<unknown> {
+    this.fallarSiToca()
+    if (this.opciones.ideas !== undefined) return this.opciones.ideas
+    const [a, b] = peticion.ingredientes
+    const base = b ? `${a} y ${b}` : (a ?? 'despensa')
+    const titulos = ['Salteado', 'Sopa', 'Guiso', 'Ensalada', 'Tortilla', 'Revuelto']
+      .map((plato) => `${plato} de ${base}`.toLocaleLowerCase('es'))
+      .filter((t) => !peticion.excluir.some((e) => e.toLocaleLowerCase('es') === t))
+    return {
+      ideas: titulos.slice(0, 3).map((titulo) => ({
+        titulo: titulo.charAt(0).toLocaleUpperCase('es') + titulo.slice(1),
+        descripcion: 'Idea de demostración, sin IA real.',
+        ingredientes: [a ?? 'sal', ...(b ? [b] : []), 'sal', 'cilantro'],
+        tiempoTotalMin: 20,
+        dificultad: 'facil'
+      })),
+      fuente: 'memoria',
+      fuentes: [],
+      sugerenciasBusqueda: null
+    }
   }
 
   async sugerirSustituciones(peticion: PeticionSustitucion): Promise<unknown> {

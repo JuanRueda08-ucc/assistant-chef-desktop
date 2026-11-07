@@ -48,7 +48,7 @@ describe('voz:token IPC', () => {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
         db,
-        { pedirTokenVoz: vi.fn(), narrar: vi.fn(), conversar },
+        { pedirTokenVoz: vi.fn(), narrar: vi.fn(), conversar, proponerRecetas: vi.fn() },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
         cuentaFalsa()
@@ -90,7 +90,7 @@ describe('voz:token IPC', () => {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
         db,
-        { pedirTokenVoz: vi.fn(), narrar: vi.fn(), conversar: vi.fn() },
+        { pedirTokenVoz: vi.fn(), narrar: vi.fn(), conversar: vi.fn(), proponerRecetas: vi.fn() },
         voz,
         lector,
         cuentaFalsa()
@@ -140,7 +140,7 @@ describe('voz:token IPC', () => {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
         db,
-        { pedirTokenVoz, narrar: vi.fn(), conversar: vi.fn() },
+        { pedirTokenVoz, narrar: vi.fn(), conversar: vi.fn(), proponerRecetas: vi.fn() },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
         cuentaFalsa()
@@ -172,11 +172,12 @@ describe('cuenta IPC', () => {
     const db = abrirBase(':memory:')
     const cuenta = cuentaFalsa()
     const voz = { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() }
+    const proponerRecetas = vi.fn()
     try {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
         db,
-        { pedirTokenVoz: vi.fn(), narrar: vi.fn(), conversar: vi.fn() },
+        { pedirTokenVoz: vi.fn(), narrar: vi.fn(), conversar: vi.fn(), proponerRecetas },
         voz,
         { leer: vi.fn(), detener: vi.fn() },
         cuenta
@@ -206,6 +207,47 @@ describe('cuenta IPC', () => {
           canal(CANALES_IPC.preferenciasGuardar)(null, { ingredientes: 'no' })
         )
       ).rejects.toThrow()
+
+      // Las ideas se comprueban en main: se descarta la que choca con la alergia.
+      proponerRecetas.mockResolvedValue({
+        ok: true,
+        datos: {
+          ideas: [
+            {
+              titulo: 'Con huevo',
+              descripcion: 'x',
+              ingredientes: ['cebolla', 'huevos'],
+              tiempoTotalMin: 10,
+              dificultad: 'facil'
+            },
+            {
+              titulo: 'Guiso de yuca',
+              descripcion: 'x',
+              ingredientes: ['cebolla', 'yuca'],
+              tiempoTotalMin: 10,
+              dificultad: 'facil'
+            }
+          ],
+          fuente: 'memoria',
+          fuentes: [],
+          sugerenciasBusqueda: null
+        }
+      })
+      const ideas = await canal(CANALES_IPC.recetasProponer)(null, {
+        preferencias: preferencias({ ingredientes: ['cebolla', 'sal'], alergias: ['huevo'] }),
+        excluir: []
+      })
+      expect(ideas).toMatchObject({
+        ok: true,
+        ideas: [{ titulo: 'Guiso de yuca', tienes: ['Cebolla'], sinVerificar: ['yuca'] }]
+      })
+      expect(proponerRecetas.mock.calls[0]![0].ingredientes).toEqual(['Cebolla'])
+      expect(
+        await canal(CANALES_IPC.recetasProponer)(null, {
+          preferencias: preferencias({ ingredientes: ['sal'] }),
+          excluir: []
+        })
+      ).toMatchObject({ ok: false })
 
       // La receta de otra cuenta no se retoma.
       guardarSesion(db, sesionNueva(), 'otra')

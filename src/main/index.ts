@@ -83,7 +83,8 @@ function crearVentana(): void {
 
   // Los enlaces externos se abren en el navegador del sistema, nunca dentro de la app.
   ventana.webContents.setWindowOpenHandler((details) => {
-    shell.openExternal(details.url)
+    // Los enlaces de fuentes externas solo abren páginas web, nunca otros protocolos.
+    if (/^https?:\/\//i.test(details.url)) shell.openExternal(details.url)
     return { action: 'deny' }
   })
 

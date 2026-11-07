@@ -12,6 +12,9 @@ export const MODELO_TEXTO = 'gemini-3.8-flash'
 export const MODELO_TEXTO_RESPALDO = 'gemini-3.5-flash-lite'
 /** Tras un fallo del principal se usa directamente el de respaldo durante este tiempo. */
 export const PAUSA_MODELO_MS = 5 * 60 * 1000
+/** La búsqueda en Google tarda más. Si no está disponible no se reintenta en un buen rato. */
+export const ESPERA_BUSQUEDA_MS = 25_000
+export const PAUSA_BUSQUEDA_MS = 10 * 60 * 1000
 /** Tiempo máximo por intento: los dos juntos quedan por debajo de los 30 s que espera main. */
 export const ESPERA_MODELO_MS = 8_000
 export const ESPERA_RESPALDO_MS = 15_000
