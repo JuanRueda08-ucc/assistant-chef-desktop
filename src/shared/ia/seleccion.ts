@@ -76,6 +76,50 @@ export type AplicacionSeleccion = {
   decir: string
 }
 
+const PIDE_SUMAR =
+  /\b(tambien|ademas|agrega\w*|agregue\w*|anade\w*|anadir\w*|suma\w*|incluye\w*|incluir\w*)\b/
+const PIDE_REEMPLAZAR = /\b(solo|solamente|unicamente|reemplaza\w*|cambia\w*|sustituye\w*)\b/
+
+export type IngredientesDelChat =
+  | {
+      accion: 'anadir' | 'reemplazar' | 'preguntar'
+      /** Lo nuevo, con su nombre, para preguntar a la persona. */
+      nombres: string[]
+    }
+  /** Alguno encaja con varios del catálogo: no se aplica nada hasta saber cuál. */
+  | { accion: 'aclarar'; pregunta: string }
+
+/**
+ * Qué hacer con lo que la persona le dice al chef si ya tiene ingredientes seleccionados. Lo decide
+ * el código con sus palabras, no el modelo: sumarlos sin avisar mezcla la búsqueda con otros.
+ */
+export function decidirIngredientesDelChat(
+  texto: string,
+  preferencias: Pick<Preferencias, 'ingredientes' | 'ingredientesSinIdentificar'>,
+  ingredientes: readonly string[],
+  catalogo: readonly Ingrediente[]
+): IngredientesDelChat {
+  const resuelta = resolverIngredientes(catalogo, ingredientes.flatMap(separarIngredientes))
+  if (resuelta.ambiguos.length > 0)
+    return { accion: 'aclarar', pregunta: explicarPendientes(resuelta) }
+  const libres = preferencias.ingredientesSinIdentificar.map(normalizarTexto)
+  const nuevos = [
+    ...resuelta.ids
+      .filter((id) => !preferencias.ingredientes.includes(id))
+      .map((id) => catalogo.find((i) => i.id === id)!.nombre),
+    ...resuelta.desconocidos.filter((t) => !libres.includes(normalizarTexto(t)))
+  ]
+  const palabras = normalizarTexto(texto)
+  if (PIDE_REEMPLAZAR.test(palabras) && !PIDE_SUMAR.test(palabras))
+    return { accion: 'reemplazar', nombres: nuevos }
+  const seleccion = new Set(preferencias.ingredientes)
+  const tieneSeleccion =
+    catalogo.some((i) => !i.esBasicoDespensa && seleccion.has(i.id)) || libres.length > 0
+  if (!tieneSeleccion || nuevos.length === 0 || PIDE_SUMAR.test(palabras))
+    return { accion: 'anadir', nombres: nuevos }
+  return { accion: 'preguntar', nombres: nuevos }
+}
+
 /** Herramientas de ideas: las ejecuta la app, porque necesitan esperar a la IA. */
 export const HERRAMIENTAS_IDEAS = ['proponer_ideas', 'escribir_receta', 'cocinar_idea'] as const
 
@@ -159,6 +203,14 @@ export function aplicarSeleccion(
       resuelta.desconocidos
     )
     const pendientes = explicarPendientes(resuelta)
+    // Sin cambios, los resultados siguen valiendo.
+    if (
+      !reemplazar &&
+      ingredientes.length === prefs.ingredientes.length &&
+      ingredientesSinIdentificar.length === prefs.ingredientesSinIdentificar.length &&
+      (resuelta.ids.length > 0 || resuelta.desconocidos.length > 0)
+    )
+      return exito(estado, pendientes || 'Eso ya está en tu lista.')
     if (!resuelta.ids.length && !resuelta.desconocidos.length && !reemplazar)
       return fallo(pendientes || 'No he añadido nada nuevo.')
     const nombres = resuelta.ids.map((id) => catalogo.find((i) => i.id === id)!.nombre)

@@ -37,7 +37,8 @@ export const UMBRAL_COBERTURA = 0.6
  *
  * Puntuación: `cobertura − PENALIZACION_FALTANTE × faltantes + BONUS_SUSTITUCION × faltantes con
  * sustitución`. Los básicos de despensa cuentan como presentes y los opcionales no cuentan.
- * Empates: menos faltantes, menos tiempo total, título.
+ * Solo aparecen las que usan algo de lo elegido; primero las que usan más, y a igualdad, la
+ * puntuación. Empates: menos faltantes, menos tiempo total, título.
  *
  * Las recetas deben llevar `dietas` y `alergenos` ya derivados del catálogo. Con
  * `incluirBorradores` (solo en desarrollo, 0018) los borradores pasan el filtro de revisión; las
@@ -55,6 +56,11 @@ export function buscarRecetas(
   const tiene = (ingredienteId: string): boolean =>
     disponibles.has(ingredienteId) || porId.get(ingredienteId)?.esBasicoDespensa === true
 
+  // Lo que la persona eligió, sin básicos: es lo que hace relevante una receta.
+  const elegidos = new Set(
+    preferencias.ingredientes.filter((id) => !porId.get(id)?.esBasicoDespensa)
+  )
+  const usados = new Map<string, number>()
   const resultados: ResultadoReceta[] = []
   const descartadas: Descarte[] = []
 
@@ -64,11 +70,18 @@ export function buscarRecetas(
       descartadas.push({ recetaId: receta.id, motivos })
       continue
     }
+    const cuantos = new Set(
+      receta.ingredientes.map((ir) => ir.ingredienteId).filter((id) => elegidos.has(id))
+    ).size
+    // Una receta que no usa nada de lo elegido no es una respuesta, aunque casi no le falte nada.
+    if (elegidos.size > 0 && cuantos === 0) continue
+    usados.set(receta.id, cuantos)
     resultados.push(puntuar(receta, preferencias, porId, sustituciones, tiene))
   }
 
   resultados.sort(
     (a, b) =>
+      (usados.get(b.receta.id) ?? 0) - (usados.get(a.receta.id) ?? 0) ||
       b.puntuacion - a.puntuacion ||
       a.faltantes.length - b.faltantes.length ||
       a.receta.tiempoTotalMin - b.receta.tiempoTotalMin ||

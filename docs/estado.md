@@ -16,6 +16,12 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-07 · Fallos de flujo que encontró el autor al probar
+- **Ingredientes dichos al chef:** se sumaban a la selección sin avisar. Ahora, si hay selección previa y son distintos, la app pregunta con botones: «Reemplazar mi selección» o «Añadir a mi selección». La búsqueda pedida espera a esa respuesta. Si dice «solo» o «también», se hace sin preguntar (`decidirIngredientesDelChat`). Si un nombre encaja con varios, la app pide aclararlo y no busca. Reemplazar cambia la despensa guardada.
+- **Recetas perdidas al volver:** ir a Preparar borraba la búsqueda. Ahora se conservan resultados, ideas y recetas escritas mientras no cambien ingredientes ni filtros; si cambian, Elegir se desactiva hasta buscar otra vez.
+- **Orden:** con pollo y arroz salía primero «Arepas con queso». Ahora solo aparecen las recetas que usan algo de lo elegido, primero las que usan más. Consecuencia: la lista puede quedar más corta y el chef propone ideas con más frecuencia.
+- Verificado con Gemini real, sin sonido: el recorrido completo con 9 ingredientes previos, reemplazar, volver sin perder y «También tengo tomate» sin preguntar. Con pollo y arroz: 4 recetas, primero «Arroz con pollo», y las ideas siguen al volver. 515 tests, tipos y lint. Falta que el autor lo pruebe con su micrófono.
+
 ### 2026-11-07 · Pedir ideas y recetas por chat (42, a falta de la voz)
 - En Preparar y Elegir, el chat puede pedir ideas («algo rápido»), pedir otras, escribir la receta de una idea y empezar a cocinarla, y también cocinar una receta guardada. Ver `ia-chef.md`.
 - **Fallo encontrado al probar con Gemini:** dijo «la app indica que no contiene alérgenos» de una receta con yuca sin verificar. Ahora ese mensaje lo escribe el código y no el modelo.

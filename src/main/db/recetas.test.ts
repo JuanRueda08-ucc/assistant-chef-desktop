@@ -217,7 +217,10 @@ describe('catálogo y búsqueda en la base', () => {
         descartadas: [],
         ofrecerGenerada: false
       })
-    expect(buscarEnBase(db, preferencias).resultados).toHaveLength(leerSemilla().recetas.length)
+    // Con pollo y arroz: las que los usan, primero la que usa los dos.
+    const { resultados } = buscarEnBase(db, preferencias)
+    expect(resultados[0]?.receta.id).toBe('arroz_con_pollo')
+    expect(resultados.map((r) => r.receta.id)).not.toContain('arepas_con_queso')
   })
 
   it('la receta en borrador queda descartada y se ofrece una generada', () => {

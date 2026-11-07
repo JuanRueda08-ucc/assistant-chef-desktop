@@ -2,7 +2,12 @@ import { describe, expect, it } from 'vitest'
 import { preferencias } from '../cocina/fixtures.test-utils'
 import { catalogo, ingrediente, arrozConPollo } from '../recetas/fixtures.test-utils'
 import { resumirReceta } from '../recetas/resumen'
-import { aplicarSeleccion, encontrarIdea, type EstadoSeleccion } from './seleccion'
+import {
+  aplicarSeleccion,
+  decidirIngredientesDelChat,
+  encontrarIdea,
+  type EstadoSeleccion
+} from './seleccion'
 import type { ResultadoBusqueda } from '../types/busqueda'
 
 function estado(): EstadoSeleccion {
@@ -178,5 +183,70 @@ describe('herramientas de ideas', () => {
     const r = aplicarSeleccion(estado(), 'proponer_ideas', {}, catalogo)
     expect(r.ok).toBe(false)
     expect(r.estado).toEqual(estado())
+  })
+})
+
+describe('ingredientes dichos al chef con una selección previa', () => {
+  const previa = { ingredientes: ['cebolla', 'tomate'], ingredientesSinIdentificar: [] }
+  const decidir = (
+    texto: string,
+    ingredientes: string[],
+    prefs: Parameters<typeof decidirIngredientesDelChat>[1] = previa
+  ): ReturnType<typeof decidirIngredientesDelChat> =>
+    decidirIngredientesDelChat(texto, prefs, ingredientes, catalogo)
+
+  it('pregunta si son distintos de lo seleccionado', () => {
+    expect(decidir('Tengo pollo y arroz, somos 2', ['muslo de pollo', 'arroz blanco'])).toEqual({
+      accion: 'preguntar',
+      nombres: ['Muslo de pollo', 'Arroz blanco']
+    })
+  })
+
+  it('si alguno encaja con varios, pide aclararlo sin aplicar nada', () => {
+    const quesos = [
+      ingrediente({ id: 'queso_fresco', nombre: 'Queso fresco' }),
+      ingrediente({ id: 'queso_rallado', nombre: 'Queso rallado' })
+    ]
+    const r = decidirIngredientesDelChat('Tengo queso', previa, ['queso'], quesos)
+    expect(r.accion).toBe('aclarar')
+    expect(r.accion === 'aclarar' && r.pregunta).toMatch(/queso/i)
+  })
+
+  it('reemplaza si lo dice, y suma si lo dice', () => {
+    expect(decidir('Solo tengo yuca', ['yuca']).accion).toBe('reemplazar')
+    expect(decidir('Cambia todo por yuca', ['yuca']).accion).toBe('reemplazar')
+    expect(decidir('También tengo yuca', ['yuca']).accion).toBe('anadir')
+    expect(decidir('Añade yuca', ['yuca']).accion).toBe('anadir')
+  })
+
+  it('no pregunta sin selección previa ni si no hay nada nuevo', () => {
+    const vacia = { ingredientes: [], ingredientesSinIdentificar: [] }
+    expect(decidir('Tengo yuca', ['yuca'], vacia).accion).toBe('anadir')
+    expect(decidir('Tengo sal', ['sal']).accion).toBe('anadir')
+    expect(decidir('Tengo tomate', ['tomate']).accion).toBe('anadir')
+  })
+
+  it('cuenta lo escrito a mano como selección', () => {
+    const libres = { ingredientes: [], ingredientesSinIdentificar: ['Yuca'] }
+    expect(decidir('Tengo tomate', ['tomate'], libres).accion).toBe('preguntar')
+    expect(decidir('Tengo yuca', ['yuca'], libres).accion).toBe('anadir')
+  })
+})
+
+describe('marcar lo que ya está en la lista', () => {
+  it('no invalida los resultados', () => {
+    const antes: EstadoSeleccion = {
+      ...estado(),
+      preferencias: preferencias({ ingredientes: ['tomate'] }),
+      pantalla: 'elegir'
+    }
+    const r = aplicarSeleccion(
+      antes,
+      'marcar_ingredientes',
+      { ingredientes: ['tomate'], accion: 'anadir' },
+      catalogo
+    )
+    expect(r.ok).toBe(true)
+    expect(r.estado).toBe(antes)
   })
 })

@@ -106,6 +106,16 @@
         </p>
       {/each}
       {#if app.chatOcupado}<p class="estado">El chef está revisando tu petición…</p>{/if}
+      {#if app.confirmacionIngredientes}
+        <div class="confirmar" role="group" aria-label="Qué hacer con los ingredientes">
+          <Boton onclick={() => void app.resolverIngredientes('reemplazar')}
+            >Reemplazar mi selección</Boton
+          >
+          <Boton variante="secundario" onclick={() => void app.resolverIngredientes('anadir')}
+            >Añadir a mi selección</Boton
+          >
+        </div>
+      {/if}
       {#if voz === 'escuchando'}
         <p class="estado" role="status">Te escucho. El micrófono se apaga solo al terminar.</p>
       {:else if voz === 'entendiendo'}
@@ -225,6 +235,11 @@
   }
   .error {
     border-left: 4px solid var(--color-acento);
+  }
+  .confirmar {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacio-2);
   }
   form {
     display: flex;

@@ -11,6 +11,7 @@ import {
 import {
   aplicarSeleccion,
   ARGUMENTOS_SELECCION,
+  decidirIngredientesDelChat,
   encontrarIdea,
   HERRAMIENTAS_IDEAS,
   type NombreSeleccion
@@ -20,6 +21,7 @@ import type { ContenidoChat } from '@shared/ia/chat'
 import { ejecutarTurnoChat } from '../lib/chat'
 import { notaPreferencias } from '@shared/ia/nota-preferencias'
 import { interpretarOrden } from '@shared/ia/ordenes'
+import { unirLista } from '@shared/recetas/lista'
 import {
   hayIngredientesSeleccionados,
   MENSAJE_SIN_INGREDIENTES
@@ -94,6 +96,16 @@ class EstadoApp {
   private pedidoIdeas = 0
   private pedidoRecetaIdea = 0
   recetaVisibleId = $state<string | null>(null)
+  /** Ingredientes dichos al chef, a la espera de que la persona decida si reemplazan su selección. */
+  confirmacionIngredientes = $state.raw<{
+    nombres: string[]
+    ingredientes: string[]
+    luego: { ideas: boolean; pedido: string | null } | null
+  } | null>(null)
+  /** Duda sobre un ingrediente en este turno: la dice la app y no se busca hasta aclararla. */
+  private aclaracionTurno: string | null = null
+  /** Con qué ingredientes y filtros se hizo la búsqueda; si no cambian, se conserva al ir y volver. */
+  private criteriosBusqueda: string | null = null
   // raw: la sesión llega entera de main en cada cambio y se pasa a funciones de shared que copian.
   sesion = $state.raw<SesionCocina | null>(null)
   /** Lo que hace el chef ahora (lo devuelve cada herramienta). */
@@ -130,6 +142,8 @@ class EstadoApp {
     if (!texto || texto.length > 2000 || this.chatOcupado || this.ocupado) return
     this.chatOcupado = true
     this.chatError = null
+    this.confirmacionIngredientes = null
+    this.aclaracionTurno = null
     const pantallaTurno = this.pantalla
     if (this.pantallaConversacion !== pantallaTurno) this.turnos = []
     this.pantallaConversacion = pantallaTurno
@@ -195,6 +209,49 @@ class EstadoApp {
               !ARGUMENTOS_SELECCION[nombre].safeParse(llamada.args).success
             )
               return { ok: false, decir: 'Esa herramienta o sus argumentos no están permitidos.' }
+            if (
+              this.aclaracionTurno &&
+              (nombre === 'buscar_recetas' || nombre === 'proponer_ideas')
+            )
+              return { ok: false, decir: this.aclaracionTurno }
+            const pendiente = this.confirmacionIngredientes
+            if (pendiente && (nombre === 'buscar_recetas' || nombre === 'proponer_ideas')) {
+              // Primero decide la persona; al hacerlo, se busca con lo que elija.
+              this.confirmacionIngredientes = {
+                ...pendiente,
+                luego: {
+                  ideas: nombre === 'proponer_ideas',
+                  pedido:
+                    ARGUMENTOS_SELECCION.proponer_ideas.safeParse(llamada.args).data?.pedido ?? null
+                }
+              }
+              return { ok: false, decir: 'La persona debe elegir primero en los botones.' }
+            }
+            let argumentos: unknown = llamada.args
+            if (nombre === 'marcar_ingredientes') {
+              const a = ARGUMENTOS_SELECCION.marcar_ingredientes.parse(llamada.args)
+              if (a.accion !== 'quitar') {
+                const decision = decidirIngredientesDelChat(
+                  texto,
+                  this.preferencias,
+                  a.ingredientes,
+                  this.catalogo
+                )
+                if (decision.accion === 'aclarar') {
+                  this.aclaracionTurno = decision.pregunta
+                  return { ok: false, decir: decision.pregunta }
+                }
+                if (a.accion === 'anadir' && decision.accion === 'preguntar') {
+                  this.confirmacionIngredientes = {
+                    nombres: [...(pendiente?.nombres ?? []), ...decision.nombres],
+                    ingredientes: [...(pendiente?.ingredientes ?? []), ...a.ingredientes],
+                    luego: pendiente?.luego ?? null
+                  }
+                  return { ok: true, decir: 'La app le pregunta a la persona qué hacer con ellos.' }
+                }
+                if (a.accion === 'anadir') argumentos = { ...a, accion: decision.accion }
+              }
+            }
             if ((HERRAMIENTAS_IDEAS as readonly string[]).includes(nombre)) {
               const r = await this.herramientaIdea(nombre, llamada.args)
               huella = this.huella()
@@ -225,18 +282,21 @@ class EstadoApp {
                 recetaVisibleId: this.recetaVisibleId
               },
               nombre,
-              llamada.args,
+              argumentos,
               $state.snapshot(this.catalogo),
               busqueda
             )
             if (r.ok) {
+              const mismaBusqueda =
+                nombre === 'buscar_recetas' && this.criteriosBusqueda === this.criterios()
               const nuevaBusqueda = nombre === 'buscar_recetas' || r.estado.busqueda === null
-              if (nuevaBusqueda) this.limpiarIdeas()
+              if (nuevaBusqueda && !mismaBusqueda) this.limpiarIdeas()
+              if (nombre === 'buscar_recetas') this.criteriosBusqueda = this.criterios()
               this.preferencias = r.estado.preferencias
               this.busqueda = r.estado.busqueda
               this.recetaVisibleId = r.estado.recetaVisibleId
               this.pantalla = r.estado.pantalla
-              if (nombre === 'buscar_recetas' && this.busqueda?.ofrecerGenerada)
+              if (nombre === 'buscar_recetas' && !mismaBusqueda && this.busqueda?.ofrecerGenerada)
                 void this.proponerIdeas()
               if (r.iniciarRecetaId) {
                 await this.cocinar(r.iniciarRecetaId)
@@ -256,7 +316,11 @@ class EstadoApp {
       this.chatSimulado = turno.simulado
       // Lo guardado de verdad se añade desde el estado, no desde lo que diga el modelo (0019).
       const nota = notaPreferencias(texto, saludAntes, this.preferencias)
-      const respuesta = nota ? `${turno.texto} ${nota}`.trim() : turno.texto
+      // La pregunta la hace la app: el modelo podría decir que ya los añadió o que ya buscó.
+      const respuesta =
+        this.aclaracionTurno ??
+        this.preguntaIngredientes() ??
+        (nota ? `${turno.texto} ${nota}`.trim() : turno.texto)
       this.conversacion = [...this.conversacion, { pregunta: texto, respuesta }].slice(-12)
       this.decir(respuesta)
     } catch (e) {
@@ -267,6 +331,74 @@ class EstadoApp {
     } finally {
       this.chatOcupado = false
     }
+  }
+
+  private preguntaIngredientes(): string | null {
+    const pendiente = this.confirmacionIngredientes
+    if (!pendiente) return null
+    const nombres = unirLista(pendiente.nombres.map((n) => n.toLocaleLowerCase('es')))
+    return `Ya tienes ingredientes seleccionados. ¿Reemplazo tu selección por ${nombres}, o los añado a ella?`
+  }
+
+  /** Respuesta a «¿reemplazo o añado?». Después sigue con la búsqueda que se había pedido. */
+  async resolverIngredientes(accion: 'reemplazar' | 'anadir'): Promise<void> {
+    const pendiente = this.confirmacionIngredientes
+    if (!pendiente || this.chatOcupado) return
+    this.confirmacionIngredientes = null
+    const r = aplicarSeleccion(
+      {
+        pantalla: this.pantalla === 'elegir' ? 'elegir' : 'preparar',
+        preferencias: $state.snapshot(this.preferencias),
+        busqueda: $state.snapshot(this.busqueda),
+        recetaVisibleId: this.recetaVisibleId
+      },
+      'marcar_ingredientes',
+      { ingredientes: pendiente.ingredientes, accion },
+      $state.snapshot(this.catalogo)
+    )
+    const pregunta =
+      accion === 'reemplazar' ? 'Reemplazar mi selección' : 'Añadirlos a mi selección'
+    if (!r.ok) {
+      this.conversacion = [...this.conversacion, { pregunta, respuesta: r.decir }].slice(-12)
+      return
+    }
+    this.limpiarIdeas()
+    this.preferencias = r.estado.preferencias
+    this.busqueda = r.estado.busqueda
+    this.recetaVisibleId = r.estado.recetaVisibleId
+    this.pantalla = r.estado.pantalla
+    this.turnos = []
+    let respuesta = r.decir
+    if (pendiente.luego) {
+      this.chatOcupado = true
+      this.chatError = null
+      try {
+        if (pendiente.luego.ideas) {
+          const ideas = await this.herramientaIdea('proponer_ideas', {
+            ...(pendiente.luego.pedido ? { pedido: pendiente.luego.pedido } : {})
+          })
+          const lista = (ideas.ideas as { titulo: string }[] | undefined) ?? []
+          respuesta = lista.length
+            ? `Con esos ingredientes te propongo: ${unirLista(lista.map((i) => i.titulo))}.`
+            : String(ideas.decir)
+        } else {
+          await this.buscar()
+          const n = this.busqueda?.resultados.length ?? 0
+          respuesta = n
+            ? `Listo. Encontré ${n} ${n === 1 ? 'receta' : 'recetas'}; primero las que usan más de lo que tienes.`
+            : 'Listo. No encontré recetas guardadas con eso; voy a pedirle ideas al chef.'
+        }
+      } finally {
+        this.chatOcupado = false
+      }
+    }
+    this.conversacion = [...this.conversacion, { pregunta, respuesta }].slice(-12)
+    this.decir(respuesta)
+  }
+
+  /** Lo que determina los resultados. Las porciones no: la receta se escala sin buscar de nuevo. */
+  private criterios(): string {
+    return JSON.stringify({ ...$state.snapshot(this.preferencias), porciones: 0 })
   }
 
   /** Carga el catálogo y, si se cerró la app cocinando, vuelve a Cocinar. */
@@ -486,6 +618,12 @@ class EstadoApp {
 
   /** Busca recetas con las preferencias actuales y pasa a Elegir. */
   async buscar(conIdeas = true): Promise<void> {
+    // Sin cambios no se repite: se conservan los resultados, las ideas y las recetas ya escritas.
+    if (this.busqueda && this.criteriosBusqueda === this.criterios()) {
+      this.globo = null
+      this.pantalla = 'elegir'
+      return
+    }
     this.limpiarIdeas()
     // Solo con ingredientes fuera del catálogo no hay recetas guardadas, pero la IA sí puede ayudar.
     if (
@@ -493,6 +631,7 @@ class EstadoApp {
       this.preferencias.ingredientesSinIdentificar.length > 0
     ) {
       this.busqueda = { resultados: [], descartadas: [], ofrecerGenerada: true }
+      this.criteriosBusqueda = this.criterios()
       this.recetaVisibleId = null
       this.globo = null
       this.pantalla = 'elegir'
@@ -509,6 +648,7 @@ class EstadoApp {
     await this.tarea(async () => {
       // Los proxies de $state no se pueden enviar por IPC: se manda una copia plana.
       this.busqueda = await window.api.recetas.buscar($state.snapshot(this.preferencias))
+      this.criteriosBusqueda = this.criterios()
       this.recetaVisibleId = this.busqueda.resultados[0]?.receta.id ?? null
       this.globo = null
       this.pantalla = 'elegir'
@@ -557,6 +697,11 @@ class EstadoApp {
   async quitarDeMisRecetas(recetaId: string): Promise<void> {
     await this.tarea(async () => {
       this.misRecetas = await window.api.misRecetas.quitar({ recetaId })
+      if (this.busqueda)
+        this.busqueda = {
+          ...this.busqueda,
+          resultados: this.busqueda.resultados.filter((r) => r.receta.id !== recetaId)
+        }
     })
   }
 
@@ -593,6 +738,7 @@ class EstadoApp {
 
   /** Tras terminar una receta, vuelve a Preparar conservando las preferencias. */
   cocinarOtra(): void {
+    this.confirmacionIngredientes = null
     this.limpiarIdeas()
     this.sesion = null
     this.busqueda = null
@@ -622,10 +768,7 @@ class EstadoApp {
   /** Se puede ir a una pantalla si ya hay datos para ella. */
   puedeIrA(pantalla: Pantalla): boolean {
     if (pantalla === 'elegir')
-      return (
-        this.busqueda !== null &&
-        hayIngredientesSeleccionados(this.preferencias.ingredientes, this.catalogo)
-      )
+      return this.busqueda !== null && this.criteriosBusqueda === this.criterios()
     if (pantalla === 'cocinar') return this.sesion !== null && this.sesion.fase === 'cocinar'
     return true
   }
@@ -635,10 +778,6 @@ class EstadoApp {
       this.verMisRecetas = false
       this.retomando = false
       if (pantalla !== this.pantalla) this.resultadoChef = null
-      if (pantalla === 'preparar') {
-        this.busqueda = null
-        this.recetaVisibleId = null
-      }
       this.pantalla = pantalla
     }
   }

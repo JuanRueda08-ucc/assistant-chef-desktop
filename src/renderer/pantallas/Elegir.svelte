@@ -126,7 +126,7 @@
         {/if}
       </h1>
       <p class="subtitulo">
-        {resultados.length > 1 ? 'Ordenadas por lo poco que te falta.' : ''}
+        {resultados.length > 1 ? 'Primero las que usan más de lo que tienes.' : ''}
         {#if ocultas > 0}
           {ocultas} no aparecen por tus restricciones, tu tiempo o tu equipo.
         {/if}

@@ -390,3 +390,43 @@ describe('buscarRecetas: orden y receta generada', () => {
     expect(prefs.ingredientes).toEqual(['pollo_muslo', 'arroz_blanco'])
   })
 })
+
+describe('relevancia de lo elegido', () => {
+  const con = (id: string, ingredientes: string[]): Receta =>
+    conEtiquetas(
+      recetaCon(
+        ingredientes.map((ingredienteId, n) => ({
+          id: `ir_${n + 1}`,
+          ingredienteId,
+          cantidad: 100,
+          unidad: 'g',
+          redondeo: 5
+        })),
+        { id, slug: id, titulo: id }
+      ),
+      indexar(catalogo)
+    )
+  const ids = (ingredientes: string[], recetas: Receta[]): string[] =>
+    buscarRecetas(preferencias({ ingredientes }), recetas, catalogo, []).resultados.map(
+      (r) => r.receta.id
+    )
+
+  it('no muestra lo que no usa nada de lo elegido, aunque no le falte nada', () => {
+    expect(
+      ids(['tomate'], [con('solo_basicos', ['sal']), con('con_tomate', ['tomate', 'ajo'])])
+    ).toEqual(['con_tomate'])
+  })
+
+  it('pone primero la que usa más de lo elegido, aunque le falte más', () => {
+    expect(
+      ids(
+        ['tomate', 'cebolla'],
+        [con('una', ['tomate']), con('dos', ['tomate', 'cebolla', 'ajo', 'papa'])]
+      )
+    ).toEqual(['dos', 'una'])
+  })
+
+  it('sin nada elegido no filtra por esto', () => {
+    expect(ids(['sal'], [con('solo_basicos', ['sal'])])).toEqual(['solo_basicos'])
+  })
+})
