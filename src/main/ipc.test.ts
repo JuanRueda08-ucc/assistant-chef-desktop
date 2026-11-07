@@ -4,6 +4,7 @@ import { CANALES_IPC } from '@shared/types/ipc'
 import type { ResultadoCuenta, Usuario } from '@shared/types/cuenta'
 import { preferencias, sesionNueva } from '@shared/cocina/fixtures.test-utils'
 import { abrirBase } from './db/conexion'
+import { listarMisRecetas } from './db/mis-recetas'
 import { descartarSesionCocinando, guardarSesion } from './db/sesiones'
 import { cargarSemilla, leerSemilla } from './db/semillas'
 
@@ -351,6 +352,36 @@ describe('cuenta IPC', () => {
           confirmado: true
         })
       ).toMatchObject({ resultado: { ok: true }, sesion: { porciones: 6 } })
+
+      // Al guardarla pasa a Mis recetas de esa cuenta: se busca, se abre y se vuelve a cocinar.
+      expect(await canal(CANALES_IPC.misRecetasListar)(null)).toEqual([])
+      await expect(
+        Promise.resolve().then(() =>
+          canal(CANALES_IPC.misRecetasGuardar)(null, { sesionId: 'de-nadie' })
+        )
+      ).rejects.toThrow(/no se puede guardar/)
+      const sesionId = (sesion as { id: string }).id
+      await canal(CANALES_IPC.misRecetasGuardar)(null, { sesionId })
+      const mias = (await canal(CANALES_IPC.misRecetasGuardar)(null, { sesionId })) as unknown[]
+      expect(mias).toHaveLength(1)
+      expect(mias[0]).toMatchObject({ receta: { id: 'gen_prueba', alergenos: ['huevo'] } })
+      expect(await canal(CANALES_IPC.recetasObtener)(null, 'gen_prueba')).toMatchObject({
+        titulo: 'Guiso de yuca'
+      })
+      const busqueda = (await canal(CANALES_IPC.recetasBuscar)(
+        null,
+        preferencias({ ingredientes: ['cebolla'], ingredientesSinIdentificar: ['yuca'] })
+      )) as { resultados: { receta: { id: string }; faltantes: unknown[] }[] }
+      expect(busqueda.resultados.find((r) => r.receta.id === 'gen_prueba')?.faltantes).toEqual([])
+      const conAlergia = (await canal(CANALES_IPC.recetasBuscar)(
+        null,
+        preferencias({ ingredientes: ['cebolla'], alergias: ['huevo'] })
+      )) as { resultados: { receta: { id: string } }[] }
+      expect(conAlergia.resultados.map((r) => r.receta.id)).not.toContain('gen_prueba')
+      expect(listarMisRecetas(db, 'otra')).toEqual([])
+      expect(await canal(CANALES_IPC.misRecetasQuitar)(null, { recetaId: 'gen_prueba' })).toEqual(
+        []
+      )
       descartarSesionCocinando(db, 'u1')
 
       // La receta de otra cuenta no se retoma.

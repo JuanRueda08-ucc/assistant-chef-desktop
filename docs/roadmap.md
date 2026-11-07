@@ -14,7 +14,7 @@ El autor solicita conservar Mostaza y organizar mejor las pantallas existentes, 
 - [x] 31. Registrar la primera prueba personal de voz/chat del autor (2026-10-21: irregular, con incidencias; no aceptada, repetir en 34)
 - [x] 32. Comparar herramientas de autenticación real para Electron y el backend, con fuentes oficiales y sin elegir proveedor todavía
 - [x] 33. Corregir conflicto entre consultas/órdenes, respuestas de otro paso y mensajes de error del chat; comprobar con PCM simulado, Vosk nativo y chat real sin micrófono del autor (0013)
-- [ ] 34. Repetir prueba personal tras 33: explicar sin navegar, confirmar por voz, avanzar con narración y usar chat; registrar voz, latencia y fallos restantes en un lugar adecuado
+- [x] 34. Repetir prueba personal tras 33: el 2026-11-07 el autor probó el flujo con recetas generadas y dijo que la voz funciona bien y que el chef explica lo que le pide; latencia y ruido se miden en la tarea 20
 - [x] 35. Investigar Vosk general frente a comandos y documentar LangChain/LangGraph para TypeScript, con evaluación del encaje sin adoptar dependencias
 - [x] 36. Arrancar app y backend Gemini y comprobar los flujos existentes sin micrófono ni sonido; registrar el acceso de prueba a Cocinar, token/narración disponibles y timeout del chat, sin completar aceptación personal
 
@@ -26,8 +26,9 @@ La repetición de la prueba personal (34) queda aplazada por decisión del autor
 - [x] 38. Ingredientes nuevos con «alérgenos sin verificar»
 - [ ] 39. El chef propone: guardadas, internet o memoria en una sola lista, con «dame otras» (la búsqueda real requiere que el autor active la facturación)
 - [x] 40. Receta completa: generar, validar y cocinar la elegida (de memoria; las ideas de internet, pendientes de las condiciones de Google)
-- [ ] 41. Mis recetas: guardar las generadas por cuenta
+- [x] 41. Mis recetas: guardar las generadas por cuenta
 - [ ] 42. Chat y voz para pedir todo lo anterior
+- [ ] 43. Simplificar la interfaz: solo lo principal en cada pantalla, botones más notorios y flujos más claros (pedido del autor, 2026-11-07, para después de las tareas de función)
 
 ## Base
 - [x] 1. Proyecto electron-vite con Svelte + TypeScript, Vitest, ESLint, Prettier; comandos en `AGENTS.md`

@@ -74,6 +74,14 @@ class EstadoApp {
   recetasDeIdeas = $state.raw<Record<string, RecetaGenerada>>({})
   ideaGenerandoId = $state<string | null>(null)
   recetaIdeaError = $state<string | null>(null)
+  /** Recetas de la IA que guardó la cuenta (tarea 41). */
+  misRecetas = $state.raw<RecetaGenerada[]>([])
+  verMisRecetas = $state(false)
+  /** El catálogo más los ingredientes propios de las recetas guardadas, para mostrar sus nombres. */
+  catalogoCompleto = $derived([
+    ...this.catalogo,
+    ...this.misRecetas.flatMap((g) => g.ingredientesNuevos)
+  ])
   /** Títulos ya mostrados, para que «dame otras» no los repita. */
   private ideasVistas: string[] = []
   private pedidoIdeas = 0
@@ -252,6 +260,8 @@ class EstadoApp {
       ? { usuario: null, sinConexion: false }
       : await window.api.cuenta.estado()
     this.preferencias = structuredClone(PREFERENCIAS_INICIALES)
+    this.misRecetas = []
+    this.verMisRecetas = false
     this.cocinarOtra()
     this.retomando = false
     this.chatAbierto = false
@@ -278,6 +288,7 @@ class EstadoApp {
         }
       }
       this.preferenciasCargadas = true
+      this.misRecetas = await window.api.misRecetas.listar()
       const sesion = await window.api.sesion.retomar()
       if (sesion) {
         this.sesion = sesion
@@ -428,9 +439,36 @@ class EstadoApp {
         preferencias
       })
       this.pantalla = 'cocinar'
+      this.verMisRecetas = false
       this.retomando = false
       this.globo = null
       this.resultadoChef = null
+    })
+  }
+
+  abrirMisRecetas(): void {
+    this.error = null
+    this.chatAbierto = false
+    this.verMisRecetas = true
+  }
+
+  cerrarMisRecetas(): void {
+    this.error = null
+    this.verMisRecetas = false
+  }
+
+  /** Guarda la receta de la IA que se acaba de cocinar. */
+  async guardarEnMisRecetas(): Promise<void> {
+    const sesionId = this.sesion?.id
+    if (!sesionId) return
+    await this.tarea(async () => {
+      this.misRecetas = await window.api.misRecetas.guardar({ sesionId })
+    })
+  }
+
+  async quitarDeMisRecetas(recetaId: string): Promise<void> {
+    await this.tarea(async () => {
+      this.misRecetas = await window.api.misRecetas.quitar({ recetaId })
     })
   }
 
@@ -506,6 +544,7 @@ class EstadoApp {
 
   irA(pantalla: Pantalla): void {
     if (this.puedeIrA(pantalla)) {
+      this.verMisRecetas = false
       this.retomando = false
       if (pantalla !== this.pantalla) this.resultadoChef = null
       if (pantalla === 'preparar') {

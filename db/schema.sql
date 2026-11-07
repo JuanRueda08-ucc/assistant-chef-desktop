@@ -142,6 +142,15 @@ CREATE TABLE IF NOT EXISTS sesiones (
 CREATE UNIQUE INDEX IF NOT EXISTS sesiones_una_cocinando_por_usuario
   ON sesiones (usuario_id) WHERE fase = 'cocinar';
 
+-- Recetas de la IA que cada cuenta guardó (tarea 41, decisión 0019): un objeto `RecetaGenerada`.
+CREATE TABLE IF NOT EXISTS recetas_usuario (
+  usuario_id  TEXT NOT NULL,
+  id          TEXT NOT NULL,
+  datos       TEXT NOT NULL CHECK (json_valid(datos)),
+  guardada_en TEXT NOT NULL,
+  PRIMARY KEY (usuario_id, id)
+);
+
 -- Despensa, preferencias y alergias de cada cuenta (decisión 0019): un objeto `Preferencias`.
 CREATE TABLE IF NOT EXISTS preferencias_usuario (
   usuario_id     TEXT PRIMARY KEY,

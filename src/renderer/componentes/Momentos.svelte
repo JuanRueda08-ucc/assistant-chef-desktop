@@ -15,7 +15,9 @@
       <li>
         <button
           type="button"
-          aria-current={app.pantalla === momento.pantalla ? 'step' : undefined}
+          aria-current={!app.verMisRecetas && app.pantalla === momento.pantalla
+            ? 'step'
+            : undefined}
           disabled={app.pantalla !== momento.pantalla && !app.puedeIrA(momento.pantalla)}
           onclick={() => app.irA(momento.pantalla)}
         >

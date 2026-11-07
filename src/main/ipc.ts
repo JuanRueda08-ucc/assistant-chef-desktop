@@ -24,9 +24,15 @@ import { aplicarEnCocina, iniciarCocina, retomarCocina } from './cocina'
 import { buscarEnBase } from './db/busqueda'
 import { listarIngredientes, listarTecnicas } from './db/catalogo'
 import type { BaseDatos } from './db/conexion'
+import {
+  guardarMiReceta,
+  listarMisRecetas,
+  obtenerMiReceta,
+  quitarMiReceta
+} from './db/mis-recetas'
 import { listarRecetas, obtenerReceta } from './db/recetas'
 import { guardarPreferencias, leerPreferencias } from './db/preferencias'
-import { obtenerSesionCocinando } from './db/sesiones'
+import { obtenerSesion, obtenerSesionCocinando } from './db/sesiones'
 import type { crearClienteBackend } from './backend'
 import { fallo, type Cuenta } from './cuenta'
 import type { VozLocal } from './voz/local'
@@ -115,7 +121,12 @@ export function registrarIpc(
       contexto = contextoCompacto(sesion, Date.now())
     } else {
       const catalogo = listarIngredientes(db)
-      const busqueda = buscarEnBase(db, peticion.preferencias, opciones.verBorradores)
+      const busqueda = buscarEnBase(
+        db,
+        peticion.preferencias,
+        opciones.verBorradores,
+        cuenta.estado().usuario?.id ?? null
+      )
       contexto = JSON.stringify({
         preferencias: peticion.preferencias,
         catalogo: catalogo
@@ -220,14 +231,25 @@ export function registrarIpc(
 
   ipcMain.handle(
     CANALES_IPC.recetasObtener,
-    (_evento, id: unknown): Resultado<ApiChef['recetas']['obtener']> =>
-      obtenerReceta(db, esquemaId.parse(id))
+    (_evento, id: unknown): Resultado<ApiChef['recetas']['obtener']> => {
+      const recetaId = esquemaId.parse(id)
+      const usuario = cuenta.estado().usuario
+      return (
+        obtenerReceta(db, recetaId) ??
+        (usuario ? (obtenerMiReceta(db, usuario.id, recetaId)?.receta ?? null) : null)
+      )
+    }
   )
 
   ipcMain.handle(
     CANALES_IPC.recetasBuscar,
     (_evento, preferencias: unknown): Resultado<ApiChef['recetas']['buscar']> =>
-      buscarEnBase(db, esquemaPreferencias.parse(preferencias), opciones.verBorradores)
+      buscarEnBase(
+        db,
+        esquemaPreferencias.parse(preferencias),
+        opciones.verBorradores,
+        cuenta.estado().usuario?.id ?? null
+      )
   )
 
   ipcMain.handle(
@@ -303,6 +325,33 @@ export function registrarIpc(
     }
   )
 
+  ipcMain.handle(CANALES_IPC.misRecetasListar, (): Resultado<ApiChef['misRecetas']['listar']> =>
+    listarMisRecetas(db, usuarioId())
+  )
+
+  ipcMain.handle(
+    CANALES_IPC.misRecetasGuardar,
+    (_evento, datos: unknown): Resultado<ApiChef['misRecetas']['guardar']> => {
+      const { sesionId } = z.strictObject({ sesionId: z.string().min(1) }).parse(datos)
+      const usuario = usuarioId()
+      // La receta sale de la sesión de la cuenta: el renderer nunca la envía.
+      const generada = obtenerSesion(db, sesionId, usuario)?.recetaGenerada
+      if (!generada) throw new Error('Esta receta no se puede guardar.')
+      guardarMiReceta(db, usuario, generada, Date.now())
+      return listarMisRecetas(db, usuario)
+    }
+  )
+
+  ipcMain.handle(
+    CANALES_IPC.misRecetasQuitar,
+    (_evento, datos: unknown): Resultado<ApiChef['misRecetas']['quitar']> => {
+      const { recetaId } = z.strictObject({ recetaId: esquemaId }).parse(datos)
+      const usuario = usuarioId()
+      quitarMiReceta(db, usuario, recetaId)
+      return listarMisRecetas(db, usuario)
+    }
+  )
+
   ipcMain.handle(CANALES_IPC.preferenciasLeer, (): Resultado<ApiChef['preferencias']['leer']> =>
     leerPreferencias(db, usuarioId())
   )
@@ -321,7 +370,10 @@ export function registrarIpc(
       const peticion = esquemaIniciarCocina.parse(datos)
       const usuario = usuarioId()
       const guardada = generadas.get(peticion.recetaId)
-      const generada = guardada?.usuarioId === usuario ? guardada.generada : null
+      const generada =
+        guardada?.usuarioId === usuario
+          ? guardada.generada
+          : obtenerMiReceta(db, usuario, peticion.recetaId)
       // Las alergias o la dieta pueden haber cambiado desde que se escribió.
       if (
         generada &&

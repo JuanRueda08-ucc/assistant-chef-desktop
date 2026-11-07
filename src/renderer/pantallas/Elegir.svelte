@@ -1,6 +1,11 @@
 <script lang="ts">
   import { escalarReceta } from '@shared/recetas/escalado'
   import { recuentoDisponibilidad } from '@shared/recetas/disponibilidad'
+  import {
+    estadoIngredienteGenerado,
+    ingredientesConLibres,
+    type EstadoIngredienteGenerado
+  } from '@shared/recetas/receta-generada'
   import { NOMBRE_ALERGENO, NOMBRE_DIETA, NOMBRE_DIFICULTAD, NOMBRE_EQUIPO } from '@shared/textos'
   import type { Receta } from '@shared/types/receta'
   import Boton from '../componentes/Boton.svelte'
@@ -60,25 +65,23 @@
   const escalada = $derived(recetaActual ? escalarReceta(recetaActual, porciones).receta : null)
   const disponibilidad = $derived(
     recetaActual
-      ? recuentoDisponibilidad(recetaActual, app.preferencias.ingredientes, app.catalogo)
+      ? recuentoDisponibilidad(
+          recetaActual,
+          ingredientesConLibres(app.preferencias),
+          app.catalogoCompleto
+        )
       : null
   )
 
-  type Estado = 'tienes' | 'basico' | 'falta' | 'opcional'
   const ingredientes = $derived.by(() => {
     if (!escalada || !actual) return []
     const faltan = new Map(actual.faltantes.map((f) => [f.ingredienteId, f]))
-    const marcados = new Set(app.preferencias.ingredientes)
     return escalada.ingredientes.map((ir) => {
-      const catalogo = app.catalogo.find((i) => i.id === ir.ingredienteId)
+      const catalogo = app.catalogoCompleto.find((i) => i.id === ir.ingredienteId)
       const faltante = faltan.get(ir.ingredienteId)
-      const estado: Estado = faltante
+      const estado: EstadoIngredienteGenerado = faltante
         ? 'falta'
-        : marcados.has(ir.ingredienteId)
-          ? 'tienes'
-          : catalogo?.esBasicoDespensa
-            ? 'basico'
-            : 'opcional'
+        : estadoIngredienteGenerado(ir, catalogo, app.preferencias)
       return {
         id: ir.id,
         estado,
@@ -93,7 +96,7 @@
       }
     })
   })
-  const ETIQUETA_ESTADO: Record<Estado, string> = {
+  const ETIQUETA_ESTADO: Record<EstadoIngredienteGenerado, string> = {
     tienes: 'Lo tienes',
     basico: 'Básico',
     falta: 'Falta',
@@ -141,7 +144,9 @@
               }}
             >
               <span class="nombre"
-                >{r.receta.titulo}{#if r.receta.estadoRevision === 'borrador'}
+                >{r.receta.titulo}{#if r.receta.origen === 'generada'}
+                  <small class="sin-revisar">Mis recetas · generada por IA</small>
+                {:else if r.receta.estadoRevision === 'borrador'}
                   <small class="sin-revisar">Sin revisar</small>{/if}</span
               >
               <span class="datos">
@@ -231,9 +236,16 @@
               {/if}
             </div>
             <div>
+              {#if actual.receta.origen === 'generada'}
+                <p class="aviso-foto">Receta generada · guardada por ti</p>
+              {/if}
               <h2 id="titulo-receta">{actual.receta.titulo}</h2>
               <p class="descripcion">{actual.receta.descripcion}</p>
-              {#if !actual.receta.imagen}<p class="aviso-foto">Foto pendiente</p>{/if}
+              {#if !actual.receta.imagen && actual.receta.origen !== 'generada'}<p
+                  class="aviso-foto"
+                >
+                  Foto pendiente
+                </p>{/if}
             </div>
           </header>
 
@@ -261,6 +273,13 @@
                   Contiene {NOMBRE_ALERGENO[a].toLocaleLowerCase('es')}
                 </li>{/each}
             </ul>
+          {/if}
+
+          {#if actual.receta.origen === 'generada'}
+            <p class="sin-verificar">
+              La escribió una IA y nadie la ha revisado. Vigila los tiempos y el punto de cocción, y
+              cocina bien la carne, el pescado y el huevo.
+            </p>
           {/if}
 
           {#if actual.ingredientesSinVerificar.length > 0}

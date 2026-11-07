@@ -40,6 +40,7 @@ describe('base de datos', () => {
       'preferencias_usuario',
       'receta_ingredientes',
       'recetas',
+      'recetas_usuario',
       'sesiones',
       'sustituciones',
       'tecnicas'

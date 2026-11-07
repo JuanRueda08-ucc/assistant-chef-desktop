@@ -3,7 +3,7 @@
 import type { AplicacionHerramienta, LlamadaHerramienta } from '../ia/herramientas'
 import type { ResultadoBusqueda } from './busqueda'
 import type { IdeaModelo, ResultadoIdeas, ResultadoRecetaGenerada } from './ideas'
-import type { Ingrediente, Receta } from './receta'
+import type { Ingrediente, Receta, RecetaGenerada } from './receta'
 import type { Preferencias, SesionCocina } from './sesion'
 import type { AudioNarracion, RespuestaTokenVoz, ResultadoVosk, ResultadoVozLocal } from './voz'
 import type { PeticionChatIpc, RespuestaChat } from '../ia/chat'
@@ -32,6 +32,9 @@ export const CANALES_IPC = {
   recetasBuscar: 'recetas:buscar',
   recetasProponer: 'recetas:proponer',
   recetasGenerar: 'recetas:generar',
+  misRecetasListar: 'mis-recetas:listar',
+  misRecetasGuardar: 'mis-recetas:guardar',
+  misRecetasQuitar: 'mis-recetas:quitar',
   preferenciasLeer: 'preferencias:leer',
   preferenciasGuardar: 'preferencias:guardar',
   sesionRetomar: 'sesion:retomar',
@@ -112,6 +115,13 @@ export interface ApiChef {
       idea: IdeaModelo
       preferencias: Preferencias
     }): Promise<ResultadoRecetaGenerada>
+  }
+  /** Recetas de la IA que guardó la cuenta. Guardar y quitar devuelven la lista al día. */
+  misRecetas: {
+    listar(): Promise<RecetaGenerada[]>
+    /** Guarda la receta de esa sesión de cocina de la cuenta. */
+    guardar(datos: { sesionId: string }): Promise<RecetaGenerada[]>
+    quitar(datos: { recetaId: string }): Promise<RecetaGenerada[]>
   }
   /** Despensa, preferencias y alergias guardadas de la cuenta (decisión 0019). */
   preferencias: {

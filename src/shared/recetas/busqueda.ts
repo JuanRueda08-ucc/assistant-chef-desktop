@@ -90,7 +90,9 @@ export function motivosDescarte(
   const motivos: MotivoDescarte[] = []
   const visible =
     receta.estadoRevision === 'revisada' ||
-    (incluirBorradores && receta.estadoRevision === 'borrador')
+    (incluirBorradores && receta.estadoRevision === 'borrador') ||
+    // Solo llega aquí una generada si la propia cuenta la guardó (Mis recetas).
+    (receta.origen === 'generada' && receta.estadoRevision === 'borrador')
   if (!visible) motivos.push('no_revisada')
   if (!preferencias.restricciones.every((d) => receta.dietas.includes(d))) {
     motivos.push('restriccion')

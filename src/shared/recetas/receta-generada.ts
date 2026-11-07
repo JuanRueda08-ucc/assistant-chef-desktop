@@ -75,6 +75,19 @@ export function problemasRecetaGenerada(
   return problemas
 }
 
+/**
+ * Los ingredientes de la cuenta más los que escribió a mano, con el id que tendrían en una receta
+ * guardada. Permite reconocer su «yuca» en Mis recetas sin que cuente para buscar en el catálogo.
+ */
+export function ingredientesConLibres(
+  preferencias: Pick<Preferencias, 'ingredientes' | 'ingredientesSinIdentificar'>
+): string[] {
+  return [
+    ...preferencias.ingredientes,
+    ...preferencias.ingredientesSinIdentificar.map(idIngredienteNuevo)
+  ]
+}
+
 export type EstadoIngredienteGenerado = 'tienes' | 'basico' | 'falta' | 'opcional'
 
 /** Si la persona tiene el ingrediente, calculado en código como en las recetas guardadas. */

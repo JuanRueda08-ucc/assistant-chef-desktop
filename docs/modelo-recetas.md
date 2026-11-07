@@ -67,6 +67,10 @@ Al pedir «Ver receta completa» se escribe la receta (`RecetaGenerada`: `receta
 
 `alergenosVerificados` (`alergenos_verificados` en SQL) es `true` en el catálogo revisado. Con `false`, sus `alergenos` no son fiables: la receta no declara ninguna dieta, `ingredientesSinVerificar()` da los nombres para avisar y `destinoPermitido` lo rechaza como sustituto con alergias o restricciones (decisión 0019).
 
+## Mis recetas
+
+La tabla `recetas_usuario` guarda por cuenta un objeto `RecetaGenerada` en JSON (`db/mis-recetas.ts`). Al leerlas se recalculan las etiquetas con el catálogo actual. `buscarEnBase` las añade a las de esa cuenta y omite las que no pasan `problemasRecetaGenerada`. `ingredientesConLibres()` reconoce como suyo un ingrediente escrito a mano («yuca» → `nuevo_yuca`).
+
 ## Despensa y preferencias
 
 La tabla `preferencias_usuario` guarda por cuenta un objeto `Preferencias` en JSON: ingredientes, ingredientes sin identificar, porciones, restricciones, alergias, tiempo, nivel y equipo (decisión 0019). Se valida con `esquemaPreferencias`.

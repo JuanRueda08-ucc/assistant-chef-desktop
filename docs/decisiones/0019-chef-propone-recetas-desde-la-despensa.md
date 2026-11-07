@@ -15,4 +15,6 @@
 
 **Actualización (2026-11-07, tarea 40):** la receta completa se escribe sin búsqueda, solo al pedirla, y no entra en las tablas de recetas ni el catálogo compartido: `SesionCocina.recetaGenerada` la conserva con sus ingredientes nuevos, para retomarla y reescalarla. Hasta cocinarla vive en memoria en main, a nombre de la cuenta. Un ingrediente nuevo nunca declara alérgenos desde el modelo; si se parece a uno del catálogo, hereda los de ese, siempre sin verificar. Guardarla en base llega con «Mis recetas» (tarea 41).
 
+**Actualización (2026-11-07, tarea 41):** las recetas guardadas van en la tabla `recetas_usuario`, por cuenta y en JSON, con sus ingredientes nuevos. Tampoco entran en el catálogo compartido. Se muestran en la búsqueda solo a esa cuenta, y las que choquen con sus alergias o dieta se omiten. Se guardan al terminar de cocinar y sin las sustituciones de esa sesión.
+
 **Consecuencias:** las recetas generadas dejan de ser el último recurso oculto y pasan a ser parte central del flujo. La tarea 17 se sustituye por las tareas 38 a 42. Sube la dependencia de Gemini: hay que contemplar saturación, tiempos de espera y costos. La búsqueda queda sin probar hasta activar la facturación.

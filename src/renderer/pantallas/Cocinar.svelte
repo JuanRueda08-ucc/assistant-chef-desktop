@@ -248,6 +248,18 @@
           {sesion.porciones === 1 ? 'porción' : 'porciones'}: los {total} pasos.
         </p>
       </Globo>
+      {#if sesion.recetaGenerada}
+        {#if app.misRecetas.some((g) => g.receta.id === sesion.recetaId)}
+          <p role="status">Está en Mis recetas.</p>
+        {:else}
+          <Boton
+            variante="secundario"
+            disabled={app.ocupado}
+            onclick={() => app.guardarEnMisRecetas()}>Guardar en Mis recetas</Boton
+          >
+        {/if}
+        {#if app.error}<p role="alert">{app.error}</p>{/if}
+      {/if}
       <Boton onclick={() => app.cocinarOtra()}>Cocinar otra receta</Boton>
     </div>
   </main>

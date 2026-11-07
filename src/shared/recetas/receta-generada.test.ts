@@ -6,6 +6,7 @@ import { arrozConPollo, catalogo } from './fixtures.test-utils'
 import {
   estadoIngredienteGenerado,
   idIngredienteNuevo,
+  ingredientesConLibres,
   problemasRecetaGenerada
 } from './receta-generada'
 import type { Preferencias } from '../types/sesion'
@@ -87,6 +88,12 @@ describe('ingredientes de la receta generada', () => {
   it('crea ids válidos para los nuevos', () => {
     expect(idIngredienteNuevo('Leche de coco')).toBe('nuevo_leche_de_coco')
     expect(idIngredienteNuevo('!!!')).toBe('nuevo_ingrediente')
+  })
+
+  it('reconoce lo escrito a mano como el id de una receta guardada', () => {
+    expect(
+      ingredientesConLibres({ ingredientes: ['cebolla'], ingredientesSinIdentificar: ['Yuca'] })
+    ).toEqual(['cebolla', 'nuevo_yuca'])
   })
 
   it('calcula si lo tienes, también con ingredientes libres de la despensa', () => {

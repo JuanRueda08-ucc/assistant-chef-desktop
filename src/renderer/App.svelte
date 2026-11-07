@@ -8,6 +8,7 @@
   import Acceso from './pantallas/Acceso.svelte'
   import Cocinar from './pantallas/Cocinar.svelte'
   import Elegir from './pantallas/Elegir.svelte'
+  import MisRecetas from './pantallas/MisRecetas.svelte'
   import Preparar from './pantallas/Preparar.svelte'
   import Retomar from './pantallas/Retomar.svelte'
 
@@ -30,7 +31,10 @@
   const usuario = $derived(app.cuenta?.usuario ?? null)
   // En Retomar y en la pantalla final no hay nada sobre lo que el chef pueda actuar.
   const chatDisponible = $derived(
-    !!usuario && !app.retomando && !(app.pantalla === 'cocinar' && app.sesion?.fase === 'terminado')
+    !!usuario &&
+      !app.verMisRecetas &&
+      !app.retomando &&
+      !(app.pantalla === 'cocinar' && app.sesion?.fase === 'terminado')
   )
 </script>
 
@@ -39,6 +43,11 @@
     <div class="marca"><img src={busto} alt="" />Chef digital</div>
     {#if usuario}<Momentos />{:else}<span></span>{/if}
     <div class="derecha">
+      {#if usuario && app.pantalla !== 'cocinar' && !app.verMisRecetas}
+        <button type="button" class="mis-recetas" onclick={() => app.abrirMisRecetas()}
+          >Mis recetas</button
+        >
+      {/if}
       {#if chatDisponible}
         <button
           type="button"
@@ -61,6 +70,8 @@
     <main></main>
   {:else if !usuario}
     <Acceso />
+  {:else if app.verMisRecetas}
+    <MisRecetas />
   {:else if app.pantalla === 'preparar'}
     <Preparar />
   {:else if app.pantalla === 'elegir'}
@@ -127,6 +138,18 @@
     text-decoration: underline;
     text-underline-offset: 3px;
     padding: var(--espacio-2) 0;
+    cursor: pointer;
+  }
+  .mis-recetas {
+    font: inherit;
+    font-weight: var(--peso-fuerte);
+    font-size: var(--texto-s);
+    min-height: var(--alto-control);
+    padding: 0 var(--espacio-2);
+    border: 0;
+    background: transparent;
+    color: var(--color-tinta);
+    text-decoration: underline;
     cursor: pointer;
   }
   .abrir-chat {

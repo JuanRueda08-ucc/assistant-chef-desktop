@@ -29,7 +29,7 @@ La app debe ser muy funcional e interactiva. Una persona entra, reúne sus ingre
 - [x] **Tarea 38. Ingredientes nuevos** con «alérgenos sin verificar». Falta crear el ingrediente real al guardar una receta generada (tareas 40 y 41).
 - [ ] **Tarea 39. El chef propone:** guardadas, internet o memoria en una sola lista, con «dame otras». **Hecha y probada de memoria. Falta probar la búsqueda real cuando el autor active la facturación;** su pantalla se probó con un servidor simulado.
 - [x] **Tarea 40. Receta completa:** generar, validar y cocinar la elegida; sustituye a la tarea 17. **Hecha de memoria.** Las ideas que vengan de internet tienen el botón desactivado hasta resolver las condiciones de Google.
-- [ ] **Tarea 41. Mis recetas:** guardar las generadas por cuenta.
+- [x] **Tarea 41. Mis recetas:** guardar las generadas por cuenta, al terminar de cocinar; aparecen al buscar y en su propia pantalla.
 - [ ] **Tarea 42. Chat y voz** para pedir todo lo anterior.
 
 ## Búsqueda en internet y costos
@@ -57,6 +57,7 @@ Comprobado el 2026-11-06 con la clave del autor: Gemini responde sin búsqueda, 
 
 ## Pendiente con el autor
 
+- **Interfaz (dicho el 2026-11-07, para después; ver `estado.md`):** la materia es Diseño de Interfaces y la interfaz no le convence: desorganizada y con demasiada información. Hay que hacer un repaso propio.
 - Revisar las 18 recetas en la app y aprobarlas; faltan también sus fotos (tarea 18).
 - Activar la facturación cuando pueda y poner la clave en `.env` si cambia. La clave nunca se pide ni se escribe en el repositorio.
 - **Tiene una idea sobre la voz del chef** que contará más adelante: preguntarle cuando se retome la voz.
