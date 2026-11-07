@@ -32,6 +32,8 @@ export interface PeticionIdeas {
   equipo: Equipo[]
   /** Títulos que ya se mostraron, para «dame otras». */
   excluir: string[]
+  /** Lo que pide la persona ahora, como «algo rápido». Es un dato, no cambia las reglas. */
+  pedido: string | null
 }
 
 export interface RespuestaIdeas {

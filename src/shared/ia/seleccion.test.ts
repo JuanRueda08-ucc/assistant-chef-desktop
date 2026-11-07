@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { preferencias } from '../cocina/fixtures.test-utils'
 import { catalogo, ingrediente, arrozConPollo } from '../recetas/fixtures.test-utils'
 import { resumirReceta } from '../recetas/resumen'
-import { aplicarSeleccion, type EstadoSeleccion } from './seleccion'
+import { aplicarSeleccion, encontrarIdea, type EstadoSeleccion } from './seleccion'
 import type { ResultadoBusqueda } from '../types/busqueda'
 
 function estado(): EstadoSeleccion {
@@ -156,5 +156,27 @@ describe('herramientas puras de selección', () => {
       aplicarSeleccion(buscada.estado, 'elegir_receta', { recetaId: 'inventada' }, catalogo).ok
     ).toBe(false)
     expect(aplicarSeleccion(antes, 'avanzar_paso', {}, catalogo).ok).toBe(false)
+  })
+})
+
+describe('encontrarIdea', () => {
+  const ideas = [{ titulo: 'Sopa de yuca' }, { titulo: 'Yuca frita' }, { titulo: 'Arroz con coco' }]
+
+  it('acepta el título exacto o el único que lo contiene, sin tildes ni mayúsculas', () => {
+    expect(encontrarIdea(ideas, 'yuca frita')).toBe(ideas[1])
+    expect(encontrarIdea(ideas, 'ARRÓZ')).toBe(ideas[2])
+  })
+
+  it('no elige si hay varias o ninguna', () => {
+    expect(encontrarIdea(ideas, 'yuca')).toBeNull()
+    expect(encontrarIdea(ideas, 'pizza')).toBeNull()
+  })
+})
+
+describe('herramientas de ideas', () => {
+  it('no las aplica el reductor: las ejecuta la app', () => {
+    const r = aplicarSeleccion(estado(), 'proponer_ideas', {}, catalogo)
+    expect(r.ok).toBe(false)
+    expect(r.estado).toEqual(estado())
   })
 })

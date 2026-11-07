@@ -9,7 +9,8 @@ import {
 } from '../types/receta'
 import type { Preferencias } from '../types/sesion'
 import { normalizarTexto } from './catalogo'
-import { indexar } from './etiquetas'
+import { NOMBRE_ALERGENO } from '../textos'
+import { indexar, ingredientesSinVerificar } from './etiquetas'
 import { choca, esProteinaAnimal } from './ideas'
 
 /** Id para un ingrediente fuera del catálogo: «Leche de coco» → `nuevo_leche_de_coco`. */
@@ -86,6 +87,39 @@ export function ingredientesConLibres(
     ...preferencias.ingredientes,
     ...preferencias.ingredientesSinIdentificar.map(idIngredienteNuevo)
   ]
+}
+
+/**
+ * Lo que dice el chef al mostrar la receta. Lo escribe el código: en una prueba con Gemini, el modelo
+ * convirtió una lista vacía de alérgenos en «no contiene alérgenos» con un ingrediente sin verificar.
+ * Nunca afirma que la receta no tenga un alérgeno.
+ */
+export function resumenRecetaGenerada(
+  { receta, ingredientesNuevos }: RecetaGenerada,
+  preferencias: Pick<Preferencias, 'ingredientes' | 'ingredientesSinIdentificar'>,
+  catalogo: readonly Ingrediente[]
+): string {
+  const todos = [...catalogo, ...ingredientesNuevos]
+  const porId = indexar(todos)
+  const faltan = receta.ingredientes.flatMap((ir) => {
+    const ingrediente = porId.get(ir.ingredienteId)
+    return estadoIngredienteGenerado(ir, ingrediente, preferencias) === 'falta'
+      ? [(ingrediente?.nombre ?? ir.ingredienteId).toLocaleLowerCase('es')]
+      : []
+  })
+  const sinVerificar = ingredientesSinVerificar(receta, todos)
+  return [
+    'Ya tienes la receta en pantalla. La escribió una IA y nadie la ha revisado.',
+    receta.alergenos.length
+      ? `Contiene ${receta.alergenos.map((a) => NOMBRE_ALERGENO[a].toLocaleLowerCase('es')).join(', ')}.`
+      : '',
+    sinVerificar.length ? `No puedo verificar los alérgenos de ${sinVerificar.join(', ')}.` : '',
+    'Revisa las etiquetas si tienes alergias.',
+    faltan.length ? `Te falta: ${faltan.join(', ')}.` : 'Tienes todos los ingredientes.',
+    '¿Empezamos a cocinarla?'
+  ]
+    .filter(Boolean)
+    .join(' ')
 }
 
 export type EstadoIngredienteGenerado = 'tienes' | 'basico' | 'falta' | 'opcional'

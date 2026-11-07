@@ -37,7 +37,8 @@ export const esquemaPeticionIdeas = z.strictObject({
   tiempoMaxMin: z.number().int().positive().nullable(),
   nivel: esquemaDificultad.nullable(),
   equipo: z.array(esquemaEquipo),
-  excluir: z.array(z.string().trim().min(1).max(120)).max(100)
+  excluir: z.array(z.string().trim().min(1).max(120)).max(100),
+  pedido: z.string().trim().min(1).max(200).nullable().default(null)
 })
 
 export const esquemaRespuestaIdeas = z.strictObject({
@@ -50,7 +51,8 @@ export const esquemaRespuestaIdeas = z.strictObject({
 /** Lo que el renderer pide a main. Main convierte la despensa en nombres. */
 export const esquemaProponerIpc = z.strictObject({
   preferencias: esquemaPreferencias,
-  excluir: z.array(z.string().max(120)).max(100)
+  excluir: z.array(z.string().max(120)).max(100),
+  pedido: z.string().trim().min(1).max(200).nullable().default(null)
 })
 
 /** Lo que el renderer pide a main para escribir la receta de una idea. */

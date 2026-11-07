@@ -121,11 +121,12 @@ export function registrarIpc(
       contexto = contextoCompacto(sesion, Date.now())
     } else {
       const catalogo = listarIngredientes(db)
+      const usuario = cuenta.estado().usuario
       const busqueda = buscarEnBase(
         db,
         peticion.preferencias,
         opciones.verBorradores,
-        cuenta.estado().usuario?.id ?? null
+        usuario?.id ?? null
       )
       contexto = JSON.stringify({
         preferencias: peticion.preferencias,
@@ -136,8 +137,15 @@ export function registrarIpc(
         recetas: busqueda.resultados
           .slice(0, 10)
           .map((r) => ({ ...r.receta, faltantes: r.faltantes })),
+        ideasDelChef: peticion.ideas,
+        misRecetas: usuario
+          ? listarMisRecetas(db, usuario.id).map(({ receta }) => ({
+              id: receta.id,
+              titulo: receta.titulo
+            }))
+          : [],
         aviso:
-          'Las recetas son candidatas calculadas. Usa buscar_recetas para abrir los resultados antes de ver o elegir. Una lista vacía no autoriza a inventar recetas.'
+          'Las recetas son candidatas calculadas. Usa buscar_recetas para abrir los resultados antes de ver o elegir. Una lista vacía no autoriza a inventar recetas: pide ideas con proponer_ideas.'
       })
     }
     return backend.conversar({ pantalla: peticion.pantalla, contexto, mensajes: peticion.mensajes })
@@ -255,7 +263,7 @@ export function registrarIpc(
   ipcMain.handle(
     CANALES_IPC.recetasProponer,
     async (_evento, datos: unknown): Promise<Resultado<ApiChef['recetas']['proponer']>> => {
-      const { preferencias, excluir } = esquemaProponerIpc.parse(datos)
+      const { preferencias, excluir, pedido } = esquemaProponerIpc.parse(datos)
       const catalogo = listarIngredientes(db)
       const ingredientes = [
         ...catalogo
@@ -273,7 +281,8 @@ export function registrarIpc(
         tiempoMaxMin: preferencias.tiempoMaxMin,
         nivel: preferencias.nivel,
         equipo: preferencias.equipo,
-        excluir
+        excluir,
+        pedido
       })
       if (!respuesta.ok) return respuesta
       // El código, no el modelo, decide qué tienes, qué falta y qué se descarta (0019).

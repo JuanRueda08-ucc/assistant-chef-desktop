@@ -109,7 +109,11 @@ export interface ApiChef {
     obtener(id: string): Promise<Receta | null>
     buscar(preferencias: Preferencias): Promise<ResultadoBusqueda>
     /** Ideas del chef con la IA, ya comprobadas en main contra catálogo, alergias y dieta. */
-    proponer(datos: { preferencias: Preferencias; excluir: string[] }): Promise<ResultadoIdeas>
+    proponer(datos: {
+      preferencias: Preferencias
+      excluir: string[]
+      pedido: string | null
+    }): Promise<ResultadoIdeas>
     /** Receta completa de una idea, ya comprobada. Queda lista para `sesion.iniciar`. */
     generar(datos: {
       idea: IdeaModelo

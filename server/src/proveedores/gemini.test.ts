@@ -194,7 +194,8 @@ describe('ProveedorGemini (transporte simulado, sin red)', () => {
       tiempoMaxMin: null,
       nivel: null,
       equipo: [],
-      excluir: ['Sopa']
+      excluir: ['Sopa'],
+      pedido: null
     }
     const conTexto = (texto: string, extra: object = {}): Response =>
       json({ candidates: [{ content: { parts: [{ text: texto }] }, ...extra }] })

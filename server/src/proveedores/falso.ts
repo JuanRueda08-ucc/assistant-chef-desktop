@@ -93,6 +93,8 @@ export class ProveedorFalso implements ProveedorIA {
           }
         })
     }
+    if (/\bideas\b/.test(texto))
+      return { role: 'model', parts: [{ functionCall: { name: 'proponer_ideas', args: {} } }] }
     const porciones = texto.match(/(?:somos|para)\s+(\d+)/)?.[1]
     if (porciones)
       parts.push({

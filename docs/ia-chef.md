@@ -168,6 +168,7 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   | `/sustituciones/sugerir` | `{ ingredienteId, recetaId?, tituloReceta?, preferencias: { ingredientes?, restricciones?, alergias? }, catalogo }` | `{ sustituciones }` |
 
   El catálogo lo manda la app (es la fuente de verdad y puede crecer); el backend solo guarda los contadores de uso.
+- **Ideas y recetas por chat (tarea 42):** Preparar y Elegir añaden `proponer_ideas` (con `pedido` opcional, como «algo rápido»), `escribir_receta` y `cocinar_idea`. Las ejecuta la app (`herramientaIdea`), porque esperan a la IA; `encontrarIdea` resuelve el título y, si hay duda, no elige. El contexto del chat lleva `ideasDelChef` y `misRecetas`. `elegir_receta` acepta también una receta guardada. El texto tras `escribir_receta` lo escribe el código (`resumenRecetaGenerada`) y termina el turno: en una prueba, Gemini convirtió una lista vacía en «no contiene alérgenos» con yuca sin verificar.
 - **Generar receta** (`validar-receta.ts`):
   - El servidor pone `id` (`gen_…`), `slug`, `origen: generada`, `estadoRevision: borrador`, `imagen: null` y, si hay idea, su título. Ignora `dietas` y `alergenos` del modelo y los deriva del catálogo.
   - Se genera sin búsqueda en Google, con más tiempo de espera que el chat (25 s y 40 s de respaldo).

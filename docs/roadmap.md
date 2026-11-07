@@ -27,7 +27,7 @@ La repetición de la prueba personal (34) queda aplazada por decisión del autor
 - [ ] 39. El chef propone: guardadas, internet o memoria en una sola lista, con «dame otras» (la búsqueda real requiere que el autor active la facturación)
 - [x] 40. Receta completa: generar, validar y cocinar la elegida (de memoria; las ideas de internet, pendientes de las condiciones de Google)
 - [x] 41. Mis recetas: guardar las generadas por cuenta
-- [ ] 42. Chat y voz para pedir todo lo anterior
+- [ ] 42. Chat y voz para pedir todo lo anterior (**chat hecho**; la voz en Preparar y Elegir choca con «solo Cocinar abre el micrófono» y espera la decisión del autor)
 - [ ] 43. Simplificar la interfaz: solo lo principal en cada pantalla, botones más notorios y flujos más claros (pedido del autor, 2026-11-07, para después de las tareas de función)
 
 ## Base

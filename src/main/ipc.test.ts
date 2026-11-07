@@ -262,8 +262,10 @@ describe('cuenta IPC', () => {
       })
       const ideas = await canal(CANALES_IPC.recetasProponer)(null, {
         preferencias: preferencias({ ingredientes: ['cebolla', 'sal'], alergias: ['huevo'] }),
-        excluir: []
+        excluir: [],
+        pedido: 'algo rápido'
       })
+      expect(proponerRecetas.mock.calls[0]![0].pedido).toBe('algo rápido')
       expect(ideas).toMatchObject({
         ok: true,
         ideas: [{ titulo: 'Guiso de yuca', tienes: ['Cebolla'], sinVerificar: ['yuca'] }]

@@ -8,7 +8,14 @@ import {
   type NombreHerramienta,
   type ResultadoHerramienta
 } from '@shared/ia/herramientas'
-import { aplicarSeleccion, ARGUMENTOS_SELECCION, type NombreSeleccion } from '@shared/ia/seleccion'
+import {
+  aplicarSeleccion,
+  ARGUMENTOS_SELECCION,
+  encontrarIdea,
+  HERRAMIENTAS_IDEAS,
+  type NombreSeleccion
+} from '@shared/ia/seleccion'
+import { resumenRecetaGenerada } from '@shared/recetas/receta-generada'
 import type { ContenidoChat } from '@shared/ia/chat'
 import { ejecutarTurnoChat } from '../lib/chat'
 import { notaPreferencias } from '@shared/ia/nota-preferencias'
@@ -157,7 +164,12 @@ class EstadoApp {
           const respuesta = await window.api.chef.conversar({
             pantalla: this.pantalla,
             preferencias: $state.snapshot(this.preferencias),
-            mensajes
+            mensajes,
+            ideas: (this.ideas?.lista ?? []).map((i) => ({
+              titulo: i.titulo,
+              faltan: i.faltan,
+              recetaEscrita: !!this.recetasDeIdeas[i.id]
+            }))
           })
           vigente()
           return respuesta
@@ -183,6 +195,23 @@ class EstadoApp {
               !ARGUMENTOS_SELECCION[nombre].safeParse(llamada.args).success
             )
               return { ok: false, decir: 'Esa herramienta o sus argumentos no están permitidos.' }
+            if ((HERRAMIENTAS_IDEAS as readonly string[]).includes(nombre)) {
+              const r = await this.herramientaIdea(nombre, llamada.args)
+              huella = this.huella()
+              return r
+            }
+            // Una receta guardada no siempre sale en los resultados de hoy.
+            const guardadaId = ARGUMENTOS_SELECCION.elegir_receta.safeParse(llamada.args).data
+              ?.recetaId
+            if (
+              nombre === 'elegir_receta' &&
+              this.misRecetas.some((g) => g.receta.id === guardadaId)
+            ) {
+              await this.cocinar(guardadaId!)
+              if (this.error) throw new Error(this.error)
+              huella = this.huella()
+              return { ok: true, decir: 'Vamos a cocinar.', finalizar: true }
+            }
             const busqueda =
               nombre === 'buscar_recetas'
                 ? await window.api.recetas.buscar($state.snapshot(this.preferencias))
@@ -355,11 +384,68 @@ class EstadoApp {
     }
   }
 
+  /** Lo que el chef pide por chat sobre las ideas. Lo que afirme sale de lo calculado aquí. */
+  private async herramientaIdea(
+    nombre: NombreSeleccion,
+    argumentos: unknown
+  ): Promise<Record<string, unknown>> {
+    const fallo = (decir: string): Record<string, unknown> => ({ ok: false, decir })
+    if (nombre === 'proponer_ideas') {
+      const { pedido } = ARGUMENTOS_SELECCION.proponer_ideas.parse(argumentos)
+      const prefs = this.preferencias
+      if (
+        !hayIngredientesSeleccionados(prefs.ingredientes, this.catalogo) &&
+        prefs.ingredientesSinIdentificar.length === 0
+      )
+        return fallo(MENSAJE_SIN_INGREDIENTES)
+      if (this.pantalla !== 'elegir' || !this.busqueda) await this.buscar(false)
+      await this.proponerIdeas(pedido ?? null)
+      if (this.ideasError) return fallo(this.ideasError)
+      const lista = this.ideas?.lista ?? []
+      this.ideaVisibleId = lista[0]?.id ?? null
+      return {
+        ok: true,
+        decir: `Propuse ${lista.length} ${lista.length === 1 ? 'idea' : 'ideas'}.`,
+        origen: this.ideas?.fuente === 'internet' ? 'buscó en internet' : 'sin buscar en internet',
+        ideas: lista.map((i) => ({
+          titulo: i.titulo,
+          tiempoMin: i.tiempoTotalMin,
+          faltan: i.faltan,
+          alergenosSinVerificar: i.sinVerificar
+        }))
+      }
+    }
+    const { titulo } = ARGUMENTOS_SELECCION.escribir_receta.parse(argumentos)
+    const idea = encontrarIdea(this.ideas?.lista ?? [], titulo)
+    if (!idea) return fallo('No tengo clara cuál de las ideas es. Pregunta cuál quiere.')
+    this.ideaVisibleId = idea.id
+    this.recetaVisibleId = null
+    this.pantalla = 'elegir'
+    if (nombre === 'cocinar_idea') {
+      const generada = this.recetasDeIdeas[idea.id]
+      if (!generada) return fallo('Primero hay que escribir la receta con escribir_receta.')
+      await this.cocinar(generada.receta.id)
+      if (this.error) throw new Error(this.error)
+      return { ok: true, decir: 'Vamos a cocinar.', finalizar: true }
+    }
+    if (this.ideas?.fuente === 'internet')
+      return fallo('Las recetas de ideas encontradas en internet aún no están disponibles.')
+    await this.generarRecetaDeIdea(idea)
+    const generada = this.recetasDeIdeas[idea.id]
+    if (!generada) return fallo(this.recetaIdeaError ?? 'No pude escribir la receta.')
+    // `finalizar`: el turno termina con este texto del código, no con lo que resuma el modelo.
+    return {
+      ok: true,
+      finalizar: true,
+      decir: resumenRecetaGenerada(generada, this.preferencias, this.catalogo)
+    }
+  }
+
   /**
    * Pide ideas a la IA. Si cambia la búsqueda mientras tanto, la respuesta se descarta. Con recetas
    * guardadas que no encajan, la primera idea queda seleccionada.
    */
-  async proponerIdeas(): Promise<void> {
+  async proponerIdeas(pedidoPersona: string | null = null): Promise<void> {
     if (this.ideasCargando) return
     const pedido = ++this.pedidoIdeas
     this.ideasCargando = true
@@ -368,7 +454,8 @@ class EstadoApp {
       const guardadas = (this.busqueda?.resultados ?? []).map((r) => r.receta.titulo)
       const r = await window.api.recetas.proponer({
         preferencias: $state.snapshot(this.preferencias),
-        excluir: [...guardadas, ...this.ideasVistas].slice(-100)
+        excluir: [...guardadas, ...this.ideasVistas].slice(-100),
+        pedido: pedidoPersona
       })
       if (pedido !== this.pedidoIdeas) return
       if (!r.ok) {
@@ -398,7 +485,7 @@ class EstadoApp {
   }
 
   /** Busca recetas con las preferencias actuales y pasa a Elegir. */
-  async buscar(): Promise<void> {
+  async buscar(conIdeas = true): Promise<void> {
     this.limpiarIdeas()
     // Solo con ingredientes fuera del catálogo no hay recetas guardadas, pero la IA sí puede ayudar.
     if (
@@ -409,7 +496,7 @@ class EstadoApp {
       this.recetaVisibleId = null
       this.globo = null
       this.pantalla = 'elegir'
-      void this.proponerIdeas()
+      if (conIdeas) void this.proponerIdeas()
       return
     }
     if (!hayIngredientesSeleccionados(this.preferencias.ingredientes, this.catalogo)) {
@@ -426,7 +513,8 @@ class EstadoApp {
       this.globo = null
       this.pantalla = 'elegir'
     })
-    if (this.pantalla === 'elegir' && this.busqueda?.ofrecerGenerada) void this.proponerIdeas()
+    if (conIdeas && this.pantalla === 'elegir' && this.busqueda?.ofrecerGenerada)
+      void this.proponerIdeas()
   }
 
   /** Empieza a cocinar la receta elegida (descarta la sesión anterior, si la había). */

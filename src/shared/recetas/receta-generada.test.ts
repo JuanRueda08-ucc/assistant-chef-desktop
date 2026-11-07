@@ -6,6 +6,7 @@ import { arrozConPollo, catalogo } from './fixtures.test-utils'
 import {
   estadoIngredienteGenerado,
   idIngredienteNuevo,
+  resumenRecetaGenerada,
   ingredientesConLibres,
   problemasRecetaGenerada
 } from './receta-generada'
@@ -81,6 +82,32 @@ describe('comprobación de la receta generada', () => {
     const g = generada()
     g.receta.ingredientes[0]!.ingredienteId = 'unicornio'
     expect(problemas({}, g).join()).toMatch(/unicornio/)
+  })
+})
+
+describe('resumen de la receta generada', () => {
+  const despensa = { ingredientes: [], ingredientesSinIdentificar: [] }
+
+  it('no afirma que no tenga alérgenos, ni con la lista vacía', () => {
+    const g = generada()
+    g.receta.alergenos = []
+    const texto = resumenRecetaGenerada(g, despensa, catalogo)
+    expect(texto).toMatch(/Revisa las etiquetas/)
+    expect(texto).not.toMatch(/no contiene|sin alérgenos/i)
+  })
+
+  it('dice lo que contiene, lo que no se puede verificar y lo que falta', () => {
+    const g = generada()
+    g.receta.alergenos = ['huevo']
+    g.receta.ingredientes = [{ ...g.receta.ingredientes[0]!, ingredienteId: 'nuevo_yuca' }]
+    g.ingredientesNuevos = [yuca]
+    const texto = resumenRecetaGenerada(g, despensa, catalogo)
+    expect(texto).toMatch(/Contiene huevo/)
+    expect(texto).toMatch(/verificar los alérgenos de Yuca/)
+    expect(texto).toMatch(/Te falta: yuca/)
+    expect(
+      resumenRecetaGenerada(g, { ...despensa, ingredientesSinIdentificar: ['yuca'] }, catalogo)
+    ).toMatch(/Tienes todos/)
   })
 })
 

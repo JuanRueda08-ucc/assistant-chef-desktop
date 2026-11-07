@@ -1,6 +1,7 @@
 import { z } from 'zod'
 import { esquemaId } from '../esquemas/receta'
 import { esquemaPreferencias } from '../esquemas/sesion'
+import { normalizarTexto } from '../recetas/catalogo'
 import { hayIngredientesSeleccionados, MENSAJE_SIN_INGREDIENTES } from '../recetas/disponibilidad'
 import {
   anadirSinIdentificar,
@@ -30,7 +31,12 @@ export const ARGUMENTOS_SELECCION = {
     .refine((v) => Object.keys(v).length > 0, 'Indica alguna preferencia.'),
   buscar_recetas: z.strictObject({}),
   ver_receta: z.strictObject({ recetaId: esquemaId }),
-  elegir_receta: z.strictObject({ recetaId: esquemaId })
+  elegir_receta: z.strictObject({ recetaId: esquemaId }),
+  proponer_ideas: z.strictObject({
+    pedido: z.string().trim().min(1).max(200).optional()
+  }),
+  escribir_receta: z.strictObject({ titulo: z.string().trim().min(1).max(120) }),
+  cocinar_idea: z.strictObject({ titulo: z.string().trim().min(1).max(120) })
 } as const
 export type NombreSeleccion = keyof typeof ARGUMENTOS_SELECCION
 const descripciones: Record<NombreSeleccion, string> = {
@@ -42,7 +48,13 @@ const descripciones: Record<NombreSeleccion, string> = {
     'Busca recetas con las preferencias actuales y abre Elegir. Requiere al menos un ingrediente seleccionado, además de los básicos de despensa. Los filtros y cantidades los calcula la app. Hazlo después de actualizar ingredientes/preferencias.',
   ver_receta: 'Muestra una de las recetas devueltas por buscar_recetas.',
   elegir_receta:
-    'Empieza a cocinar una receta de los resultados actuales, solo cuando el usuario la elige.'
+    'Empieza a cocinar una receta de los resultados actuales o de misRecetas, solo cuando el usuario la elige.',
+  proponer_ideas:
+    'Pide al chef ideas de recetas nuevas con la despensa y abre Elegir. Volver a llamarla da otras distintas. En pedido va lo que quiere ahora, como «algo rápido»; las alergias y dietas guardadas se comprueban en la app.',
+  escribir_receta:
+    'Escribe la receta completa de una idea de las que hay en pantalla y la muestra. Puede tardar. La app le dice a la persona los alérgenos y lo que falta.',
+  cocinar_idea:
+    'Empieza a cocinar una idea cuya receta ya está escrita, solo cuando el usuario pide empezar.'
 }
 export const DEFINICIONES_SELECCION = (Object.keys(ARGUMENTOS_SELECCION) as NombreSeleccion[]).map(
   (nombre) => {
@@ -62,6 +74,24 @@ export type AplicacionSeleccion = {
   estado: EstadoSeleccion
   iniciarRecetaId: string | null
   decir: string
+}
+
+/** Herramientas de ideas: las ejecuta la app, porque necesitan esperar a la IA. */
+export const HERRAMIENTAS_IDEAS = ['proponer_ideas', 'escribir_receta', 'cocinar_idea'] as const
+
+/**
+ * La idea a la que se refiere el modelo: el título exacto o el único que lo contiene. Si hay varias o
+ * ninguna, `null`: es mejor preguntar que cocinar otra cosa.
+ */
+export function encontrarIdea<T extends { titulo: string }>(
+  ideas: readonly T[],
+  titulo: string
+): T | null {
+  const q = normalizarTexto(titulo)
+  const exacta = ideas.find((i) => normalizarTexto(i.titulo) === q)
+  if (exacta) return exacta
+  const parecidas = ideas.filter((i) => normalizarTexto(i.titulo).includes(q))
+  return parecidas.length === 1 ? parecidas[0]! : null
 }
 
 /** Puro: valida todo antes de devolver un estado nuevo. Nunca cambia una SesionCocina. */
@@ -170,6 +200,8 @@ export function aplicarSeleccion(
         : 'No hay recetas revisadas que cumplan estos filtros. Puedes ajustar tus preferencias.'
     )
   }
+  if (nombre !== 'ver_receta' && nombre !== 'elegir_receta')
+    return fallo('Esa herramienta no está disponible en esta pantalla.')
   const a = ARGUMENTOS_SELECCION.ver_receta.safeParse(argumentos)
   if (!a.success || !estado.busqueda?.resultados.some((r) => r.receta.id === a.data.recetaId))
     return fallo('Busca primero y elige una receta de los resultados actuales.')

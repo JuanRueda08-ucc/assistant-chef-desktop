@@ -43,7 +43,18 @@ const pantalla = z.enum(['preparar', 'elegir', 'cocinar'])
 export const esquemaChatIpc = z.strictObject({
   pantalla,
   preferencias: esquemaPreferencias,
-  mensajes
+  mensajes,
+  /** Ideas del chef que hay en pantalla, para entender «la segunda». */
+  ideas: z
+    .array(
+      z.strictObject({
+        titulo: z.string().max(120),
+        faltan: z.array(z.string().max(80)).max(30),
+        recetaEscrita: z.boolean()
+      })
+    )
+    .max(20)
+    .default([])
 })
 export type PeticionChatIpc = z.output<typeof esquemaChatIpc>
 export const esquemaPeticionChat = z.strictObject({
