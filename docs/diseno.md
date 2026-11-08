@@ -23,6 +23,7 @@ El autor rechazó el primer repaso y aprobó una propuesta de tres pantallas. Se
 - **Elegir:** «Cambiar ingredientes», el título «¿Qué cocinamos?», con qué se buscó, una franja amarilla con «Pedir ideas al chef» o «Dame otras», y tarjetas de recetas e ideas. La tarjeta abre el detalle, con «Todas las recetas» para volver. Sin foto, se muestra un plato ilustrado (tres variantes).
 - **Cocinar:** barra de pasos fina y «Ingredientes» arriba. En la columna del chef, primero el temporizador (tarjeta oscura con la cuenta atrás de cada uno o «Iniciar» del paso), después el globo, el chef y tres botones redondos: Micrófono, Voz y Escribir.
 - **Chat:** cabecera con la cara del chef y «El chef»; micrófono y enviar como botones de ícono junto al campo.
+- **Preparar (2026-11-08, propuesta `plan/diseno/rediseno-preparar.html` aprobada):** sin el saludo con el chef. A la izquierda, «¿Qué tienes hoy?», un buscador grande, categorías como botones con el número de marcados e ingredientes en fichas con «+» o el check (marcadas en amarillo). A la derecha, «Tu despensa» con sus etiquetas, una línea con los básicos asumidos, «Cocinas para» con el contador de personas, las preferencias como etiquetas en una línea (las alergias con borde de puntos) y «Buscar recetas» siempre abajo.
 
 ### Primer repaso de la tarea 43 (2026-11-07, sustituido por el rediseño)
 

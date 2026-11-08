@@ -23,9 +23,7 @@
   } from '@shared/types/receta'
   import { PORCIONES_MAX, PORCIONES_MIN } from '@shared/esquemas/sesion'
   import Boton from '../componentes/Boton.svelte'
-  import ChefBlob from '../componentes/ChefBlob.svelte'
   import Chip from '../componentes/Chip.svelte'
-  import Globo from '../componentes/Globo.svelte'
   import Icono from '../componentes/Icono.svelte'
   import Panel from '../componentes/Panel.svelte'
   import { app } from '../estado/app.svelte'
@@ -144,24 +142,24 @@
   )
 
   // Resumen de las preferencias, visible aunque el panel esté cerrado (replanteamiento-v1).
-  const resumen = $derived([
+  const etiquetas = $derived([
     {
-      nombre: 'Tiempo',
-      valor: TIEMPOS.find((t) => t.valor === prefs.tiempoMaxMin)?.texto ?? 'Sin prisa'
-    },
-    { nombre: 'Recetas', valor: NIVELES.find((n) => n.valor === prefs.nivel)?.texto ?? 'Todas' },
-    {
-      nombre: 'Comemos',
-      valor: prefs.restricciones.map((d) => NOMBRE_DIETA[d]).join(', ') || 'De todo'
+      texto: TIEMPOS.find((t) => t.valor === prefs.tiempoMaxMin)?.texto ?? 'Sin prisa',
+      alerta: false
     },
     {
-      nombre: 'Alergias',
-      valor: prefs.alergias.map((a) => NOMBRE_ALERGENO[a]).join(', ') || 'Ninguna'
+      texto:
+        prefs.nivel === null
+          ? 'Cualquier nivel'
+          : (NIVELES.find((n) => n.valor === prefs.nivel)?.texto ?? 'Cualquier nivel'),
+      alerta: false
     },
-    {
-      nombre: 'Tengo',
-      valor: prefs.equipo.map((e) => NOMBRE_EQUIPO[e]).join(', ') || 'Cualquier equipo'
-    }
+    ...prefs.restricciones.map((d) => ({ texto: NOMBRE_DIETA[d], alerta: false })),
+    ...prefs.alergias.map((a) => ({
+      texto: `Sin ${NOMBRE_ALERGENO[a].toLocaleLowerCase('es')}`,
+      alerta: true
+    })),
+    ...prefs.equipo.map((e) => ({ texto: NOMBRE_EQUIPO[e], alerta: false }))
   ])
   let panelPreferencias = $state(false)
 
@@ -179,13 +177,10 @@
 <main class="preparar">
   <section class="ingredientes" aria-labelledby="titulo-preparar">
     <div class="saludo">
-      <ChefBlob pose="busto" tamano={76} />
-      <Globo cola="izquierda">
-        <h1 id="titulo-preparar">¿Qué tienes hoy en la cocina?</h1>
-        <p>
-          {app.globo ?? 'Busca y añade lo que tengas; con eso te propongo recetas.'}
-        </p>
-      </Globo>
+      <h1 id="titulo-preparar">¿Qué tienes hoy?</h1>
+      <p aria-live="polite">
+        {app.globo ?? 'Busca o escribe varios a la vez: pollo, arroz, cebolla.'}
+      </p>
     </div>
 
     <form
@@ -196,12 +191,12 @@
         anadirEscritos()
       }}
     >
-      <Icono nombre="buscar" />
+      <Icono nombre="buscar" tamano={24} />
       <label for="buscar-ingrediente" class="oculto">Buscar o escribir ingredientes</label>
       <input
         id="buscar-ingrediente"
         type="search"
-        placeholder="Busca o escribe varios: pollo, arroz, cebolla…"
+        placeholder="Buscar ingredientes"
         autocomplete="off"
         bind:value={consulta}
       />
@@ -236,11 +231,8 @@
             aria-pressed={categoria === c}
             onclick={() => (categoria = c)}
           >
-            <span class="circulo">
-              <Icono nombre={c} />
-              {#if marcadosEn(c) > 0}<span class="cuenta">{marcadosEn(c)}</span>{/if}
-            </span>
             {NOMBRE_CATEGORIA[c]}
+            {#if marcadosEn(c) > 0}<span class="cuenta">{marcadosEn(c)}</span>{/if}
           </button>
         {/each}
       </div>
@@ -255,11 +247,10 @@
             aria-pressed={marcados.has(ingrediente.id)}
             onclick={() => alternar(prefs.ingredientes, ingrediente.id)}
           >
-            <Icono nombre={ingrediente.categoria} />
             {ingrediente.nombre}
-            {#if marcados.has(ingrediente.id)}
-              <span class="marca"><Icono nombre="check" tamano={14} /></span>
-            {/if}
+            <span class="marca"
+              ><Icono nombre={marcados.has(ingrediente.id) ? 'check' : 'mas'} tamano={16} /></span
+            >
           </button>
         {/each}
       </div>
@@ -283,7 +274,7 @@
     <div class="cuerpo">
       <section class="bloque">
         <div class="fila">
-          <h2 id="titulo-lista">Mi despensa <span class="cuantos">{enDespensa}</span></h2>
+          <h2 id="titulo-lista">Tu despensa <span class="cuantos">{enDespensa}</span></h2>
           {#if enDespensa > 0 && !confirmarVaciar}
             <button type="button" class="mas" onclick={() => (confirmarVaciar = true)}
               >Vaciar</button
@@ -343,13 +334,13 @@
         {/if}
         {#if basicos.length > 0}
           <p class="basicos">
-            Damos por hecho que tienes {unirLista(basicos).toLocaleLowerCase('es')}.
+            {unirLista(basicos)} los damos por hecho.
           </p>
         {/if}
       </section>
 
       <div class="porciones">
-        <span id="etiqueta-porciones" class="nombre">Somos</span>
+        <span id="etiqueta-porciones" class="nombre">Cocinas para</span>
         <div class="contador" role="group" aria-labelledby="etiqueta-porciones">
           <button
             type="button"
@@ -357,7 +348,10 @@
             disabled={prefs.porciones <= PORCIONES_MIN}
             onclick={() => (prefs.porciones -= 1)}><Icono nombre="menos" /></button
           >
-          <output aria-live="polite">{prefs.porciones}</output>
+          <output aria-live="polite"
+            >{prefs.porciones}<small>{prefs.porciones === 1 ? 'persona' : 'personas'}</small
+            ></output
+          >
           <button
             type="button"
             aria-label="Una porción más"
@@ -371,15 +365,12 @@
         <div class="fila">
           <h2 id="titulo-preferencias">Preferencias</h2>
           <button type="button" class="mas" onclick={() => (panelPreferencias = true)}
-            >Cambiar preferencias</button
+            >Cambiar</button
           >
         </div>
-        <dl class="resumen">
-          {#each resumen as r (r.nombre)}
-            <dt>{r.nombre}</dt>
-            <dd>{r.valor}</dd>
-          {/each}
-        </dl>
+        <ul class="etiquetas" aria-label="Preferencias activas">
+          {#each etiquetas as e (e.texto)}<li class:alerta={e.alerta}>{e.texto}</li>{/each}
+        </ul>
       </section>
     </div>
 
@@ -389,9 +380,7 @@
         <p class="ayuda" role="status">Añade al menos un ingrediente para buscar recetas.</p>
       {/if}
       <Boton ancho disabled={app.ocupado || enDespensa === 0} onclick={() => app.buscar()}>
-        {enDespensa === 0
-          ? 'Buscar recetas'
-          : `Buscar recetas con ${enDespensa} ${enDespensa === 1 ? 'ingrediente' : 'ingredientes'}`}
+        Buscar recetas
       </Boton>
     </div>
 
@@ -491,17 +480,12 @@
     overflow-y: auto;
     padding: 4px;
   }
-  .saludo {
-    display: flex;
-    align-items: center;
-    gap: 18px;
-  }
   h1 {
-    font-size: 28px;
+    font-size: 32px;
     line-height: 1.1;
   }
   .saludo p {
-    margin: 6px 0 0;
+    margin: 4px 0 0;
     color: var(--color-tinta-suave);
   }
   .buscar {
@@ -509,10 +493,9 @@
     align-items: center;
     gap: var(--espacio-3);
     background: var(--color-superficie);
-    border: var(--borde) solid var(--color-borde-control);
-    border-radius: var(--radio-pildora);
-    padding: 0 6px 0 var(--espacio-5);
-    color: var(--color-tinta-suave);
+    border-radius: var(--radio-l);
+    padding: 0 8px 0 var(--espacio-5);
+    color: var(--color-tinta);
   }
   .buscar:focus-within {
     outline: var(--foco);
@@ -523,8 +506,9 @@
     font: inherit;
     border: 0;
     background: transparent;
+    font-size: 18px;
     color: var(--color-tinta);
-    min-height: 52px;
+    min-height: 64px;
     outline: none;
   }
   .oculto {
@@ -537,52 +521,39 @@
   }
   .categorias {
     display: flex;
-    gap: var(--espacio-3);
+    gap: var(--espacio-2);
     flex-wrap: wrap;
   }
   .categoria {
     font: inherit;
-    font-size: var(--texto-xs);
-    font-weight: 600;
-    display: flex;
-    flex-direction: column;
+    font-size: var(--texto-s);
+    font-weight: var(--peso-fuerte);
+    display: inline-flex;
     align-items: center;
-    gap: 6px;
-    background: none;
+    gap: var(--espacio-2);
+    min-height: var(--alto-control);
+    padding: 0 var(--espacio-4);
     border: 0;
-    padding: 0;
-    color: var(--color-tinta-suave);
-    cursor: pointer;
-    min-width: 64px;
-  }
-  .circulo {
-    position: relative;
-    width: 56px;
-    height: 56px;
-    border-radius: 50%;
-    display: grid;
-    place-items: center;
-    background: var(--color-superficie);
+    border-radius: var(--radio-boton);
+    background: var(--color-relleno);
     color: var(--color-tinta);
-    border: var(--borde) solid var(--color-borde-control);
+    cursor: pointer;
+    transition: transform var(--transicion);
+  }
+  .categoria:hover {
+    transform: translateY(-1px);
   }
   .categoria[aria-pressed='true'] {
-    color: var(--color-tinta);
-  }
-  .categoria[aria-pressed='true'] .circulo {
-    background: var(--color-acento);
-    border: var(--trazo) solid var(--color-tinta);
+    background: var(--color-tinta);
+    color: var(--color-superficie);
   }
   .cuenta {
-    position: absolute;
-    top: -4px;
-    right: -4px;
     min-width: 22px;
     height: 22px;
     padding: 0 6px;
     border-radius: var(--radio-pildora);
-    background: var(--color-tinta);
-    color: var(--color-superficie);
+    background: var(--color-acento);
+    color: var(--color-tinta);
     font-size: 12px;
     display: grid;
     place-items: center;
@@ -594,43 +565,46 @@
   }
   .ficha {
     font: inherit;
-    font-weight: 600;
-    font-size: var(--texto-s);
-    position: relative;
+    font-weight: var(--peso-fuerte);
+    font-size: var(--texto-m);
     display: flex;
     align-items: center;
+    justify-content: space-between;
     gap: var(--espacio-3);
-    min-height: 56px;
-    padding: var(--espacio-3) 36px var(--espacio-3) var(--espacio-4);
+    min-height: 64px;
+    padding: 0 var(--espacio-3) 0 var(--espacio-4);
+    border: 0;
     border-radius: var(--radio-m);
     background: var(--color-superficie);
     color: var(--color-tinta);
-    border: var(--borde) solid var(--color-borde-control);
     text-align: left;
     cursor: pointer;
+    transition: transform var(--transicion);
   }
-  .ficha :global(.icono) {
-    color: var(--color-tinta-suave);
+  .ficha:hover {
+    transform: translateY(-2px);
+  }
+  .ficha:active {
+    transform: translateY(1px);
   }
   .ficha[aria-pressed='true'] {
-    background: var(--color-acento-suave);
-    border: var(--trazo) solid var(--color-tinta);
+    background: var(--color-acento);
+    box-shadow: var(--sombra-boton);
   }
   .marca {
-    position: absolute;
-    right: 10px;
-    top: 50%;
-    transform: translateY(-50%);
-    width: 22px;
-    height: 22px;
+    flex: none;
+    width: 30px;
+    height: 30px;
     border-radius: 50%;
-    background: var(--color-tinta);
-    color: var(--color-superficie);
+    background: var(--color-relleno);
     display: grid;
     place-items: center;
   }
-  .marca :global(.icono) {
+  .ficha[aria-pressed='true'] .marca {
+    background: var(--color-tinta);
     color: var(--color-superficie);
+  }
+  .ficha[aria-pressed='true'] .marca :global(.icono) {
     stroke-width: 3;
   }
   .vacio,
@@ -644,7 +618,6 @@
     position: relative;
     overflow: hidden;
     background: var(--color-superficie);
-    border: var(--borde) solid var(--color-separador);
     border-radius: var(--radio-xl);
     display: flex;
     flex-direction: column;
@@ -675,8 +648,8 @@
     padding: 0 8px;
     margin-left: 6px;
     border-radius: var(--radio-pildora);
-    background: var(--color-tinta);
-    color: var(--color-superficie);
+    background: var(--color-relleno);
+    color: var(--color-tinta);
     font-size: var(--texto-s);
     vertical-align: middle;
   }
@@ -692,11 +665,10 @@
     display: inline-flex;
     align-items: center;
     gap: 6px;
-    padding: 4px 4px 4px var(--espacio-4);
-    border-radius: var(--radio-pildora);
+    padding: 4px 4px 4px var(--espacio-3);
+    border-radius: var(--radio-m);
     background: var(--color-acento-suave);
-    border: var(--borde) solid var(--color-tinta);
-    font-weight: 600;
+    font-weight: var(--peso-fuerte);
     font-size: var(--texto-s);
   }
   .lista button {
@@ -715,7 +687,8 @@
   }
   .lista .sin-identificar {
     background: var(--color-superficie);
-    border-style: dashed;
+    outline: 2px dashed var(--color-borde-control);
+    outline-offset: -2px;
   }
   .lista .texto {
     width: auto;
@@ -734,10 +707,12 @@
     font: inherit;
     font-weight: var(--peso-fuerte);
     font-size: var(--texto-s);
-    padding: 8px var(--espacio-4);
-    border-radius: var(--radio-pildora);
-    border: var(--trazo) solid var(--color-tinta);
+    min-height: var(--alto-control);
+    padding: 0 var(--espacio-4);
+    border: 0;
+    border-radius: var(--radio-boton);
     background: var(--color-acento);
+    box-shadow: var(--sombra-boton);
     color: var(--color-tinta);
     cursor: pointer;
     white-space: nowrap;
@@ -769,24 +744,29 @@
     justify-content: space-between;
     gap: var(--espacio-2);
   }
-  .resumen {
-    display: grid;
-    grid-template-columns: auto 1fr;
-    gap: 6px var(--espacio-4);
+  .etiquetas {
+    list-style: none;
     margin: 0;
+    padding: 0;
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacio-2);
+  }
+  .etiquetas li {
+    padding: 6px var(--espacio-3);
+    border-radius: var(--radio-m);
+    background: var(--color-relleno);
     font-size: var(--texto-s);
+    font-weight: var(--peso-fuerte);
   }
-  .resumen dt {
-    color: var(--color-tinta-suave);
-  }
-  .resumen dd {
-    margin: 0;
-    font-weight: 600;
+  .etiquetas .alerta {
+    background: transparent;
+    outline: 2px dashed var(--color-borde-control);
+    outline-offset: -2px;
   }
   /* Fuera del desplazamiento: con la despensa llena, buscar recetas sigue a la vista. */
   .pie {
-    padding: var(--espacio-3) var(--espacio-5) var(--espacio-4);
-    border-top: var(--borde) solid var(--color-separador);
+    padding: var(--espacio-3) var(--espacio-5) var(--espacio-5);
     display: flex;
     flex-direction: column;
     gap: var(--espacio-2);
@@ -800,8 +780,15 @@
     display: flex;
     align-items: center;
     justify-content: space-between;
+    padding: var(--espacio-4) 0;
+    border-top: var(--borde) solid var(--color-separador);
+    border-bottom: var(--borde) solid var(--color-separador);
   }
-  .nombre,
+  .nombre {
+    font-family: var(--fuente-titulo);
+    font-weight: var(--peso-titulo);
+    font-size: var(--texto-m);
+  }
   legend {
     font-weight: var(--peso-fuerte);
     font-size: var(--texto-s);
@@ -825,16 +812,24 @@
     font-family: var(--fuente-titulo);
     font-size: 28px;
     font-weight: var(--peso-fuerte);
-    min-width: 2ch;
+    min-width: 70px;
     text-align: center;
     font-variant-numeric: tabular-nums;
+    line-height: 1;
+  }
+  .contador small {
+    display: block;
+    font-family: var(--fuente-texto);
+    font-size: var(--texto-xs);
+    font-weight: 600;
+    color: var(--color-tinta-suave);
   }
   .contador button {
     width: var(--alto-control);
     height: var(--alto-control);
-    border-radius: 50%;
-    border: var(--borde) solid var(--color-borde-control);
-    background: var(--color-superficie);
+    border-radius: var(--radio-boton);
+    border: 0;
+    background: var(--color-relleno);
     color: var(--color-tinta);
     display: grid;
     place-items: center;
