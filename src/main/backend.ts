@@ -196,7 +196,18 @@ export function crearClienteBackend(
         }
       )
       if (respuesta.status === 401) sesion.caducada()
-      if (!respuesta.ok) throw new Error('La voz natural no está disponible.')
+      if (!respuesta.ok) {
+        const error = z
+          .object({ error: z.object({ codigo: z.string() }) })
+          .safeParse(await respuesta.json().catch(() => null))
+        throw new Error(
+          error.success && error.data.error.codigo === 'proveedor_sin_cuota'
+            ? 'La voz natural de Google llegó a su límite de uso gratuito. Sigo con la voz del sistema.'
+            : respuesta.status === 429
+              ? 'Llegaste al límite de voz natural de hoy. Sigo con la voz del sistema.'
+              : 'La voz natural no respondió. Sigo con la voz del sistema.'
+        )
+      }
       const { audio } = esquemaRespuestaNarracion.parse(await respuesta.json())
       if (audio) {
         if (cache.size >= 12) cache.delete(cache.keys().next().value!)

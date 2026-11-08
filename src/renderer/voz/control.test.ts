@@ -111,6 +111,23 @@ describe('control de voz (sin micro ni red reales)', () => {
     expect(api.voz.repetir).not.toHaveBeenCalled()
     control.detener()
   })
+  it('si falla la voz natural avisa del motivo, usa la del sistema y no la reintenta en cada paso', async () => {
+    const { control, api, eventos } = banco()
+    vi.mocked(api.voz.narrar).mockRejectedValue(
+      new Error(
+        "Error invoking remote method 'voz:narrar': Error: La voz natural de Google llegó a su límite de uso gratuito. Sigo con la voz del sistema."
+      )
+    )
+    await control.repetir()
+    expect(eventos.error).toHaveBeenCalledWith(
+      'La voz natural de Google llegó a su límite de uso gratuito. Sigo con la voz del sistema.'
+    )
+    expect(api.voz.repetir).toHaveBeenCalledTimes(1)
+    await control.repetir()
+    expect(api.voz.narrar).toHaveBeenCalledTimes(1)
+    expect(api.voz.repetir).toHaveBeenCalledTimes(2)
+    control.detener()
+  })
   it('solo inicia en cocinar y cierra captura al detener', async () => {
     const { control, api, sesion } = banco()
     sesion.fase = 'preparar'

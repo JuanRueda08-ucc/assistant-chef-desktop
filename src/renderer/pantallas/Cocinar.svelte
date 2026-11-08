@@ -626,6 +626,15 @@
     place-items: center;
     background: var(--color-relleno);
     border: var(--trazo) solid transparent;
+    transition:
+      transform var(--transicion),
+      background-color var(--transicion);
+  }
+  .control:hover .circulo {
+    transform: translateY(-2px);
+  }
+  .control:active .circulo {
+    transform: scale(0.94);
   }
   .control[aria-pressed='true'] .circulo {
     background: var(--color-acento);
@@ -915,6 +924,16 @@
     color: var(--color-tinta);
     border: 0;
     cursor: pointer;
+    transition:
+      transform var(--transicion),
+      box-shadow var(--transicion);
+  }
+  .accion:not(:disabled):hover {
+    transform: translateY(-2px);
+  }
+  .accion:not(:disabled):active {
+    transform: translateY(2px);
+    box-shadow: none;
   }
   .accion.principal {
     background: var(--color-acento);

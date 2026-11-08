@@ -168,6 +168,13 @@
     color: var(--color-superficie);
     box-shadow: var(--sombra-boton);
     cursor: pointer;
+    transition: transform var(--transicion);
+  }
+  .abrir-chat:hover {
+    transform: translateY(-2px);
+  }
+  .abrir-chat:active {
+    transform: translateY(1px);
   }
   .abrir-chat img {
     width: 42px;

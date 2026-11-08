@@ -55,6 +55,9 @@
   --alto-boton-cocina: 76px;
 
   --foco: 3px solid var(--color-tinta);
+
+  /* Movimiento (43): respuesta breve al pasar y al pulsar. */
+  --transicion: 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
 * {
@@ -91,5 +94,15 @@ h3 {
   *::after {
     animation-duration: 0.01ms !important;
     transition-duration: 0.01ms !important;
+  }
+}
+
+/* Quien pide menos movimiento ve los cambios sin animación. */
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    transition-duration: 0ms !important;
+    animation-duration: 0ms !important;
   }
 }

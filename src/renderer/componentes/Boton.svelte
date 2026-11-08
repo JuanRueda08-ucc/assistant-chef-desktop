@@ -42,6 +42,14 @@
     gap: var(--espacio-2);
     line-height: 1.2;
     cursor: pointer;
+    transition:
+      transform var(--transicion),
+      box-shadow var(--transicion),
+      filter var(--transicion);
+  }
+  .boton:not(:disabled):hover {
+    transform: translateY(-2px);
+    filter: brightness(1.04);
   }
   .principal {
     background: var(--color-acento);

@@ -29,6 +29,15 @@
     align-items: center;
     gap: 6px;
     cursor: pointer;
+    transition:
+      transform var(--transicion),
+      background-color var(--transicion);
+  }
+  .chip:hover {
+    transform: translateY(-1px);
+  }
+  .chip:active {
+    transform: translateY(1px);
   }
   .chip[aria-pressed='true'] {
     background: var(--color-acento);

@@ -181,6 +181,13 @@
     background: var(--color-superficie);
     border-radius: var(--radio-xl);
     box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
+    animation: entrar 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+  }
+  @keyframes entrar {
+    from {
+      opacity: 0;
+      transform: translateX(24px);
+    }
   }
   header {
     display: flex;
@@ -275,6 +282,21 @@
     background: var(--color-relleno);
     color: var(--color-tinta);
     cursor: pointer;
+    transition: transform var(--transicion);
+  }
+  .icono:not(:disabled):hover {
+    transform: translateY(-2px);
+  }
+  .icono:not(:disabled):active {
+    transform: translateY(1px);
+  }
+  .icono.escuchando {
+    animation: latido 1.2s ease-in-out infinite;
+  }
+  @keyframes latido {
+    50% {
+      transform: scale(1.08);
+    }
   }
   .icono.escuchando {
     background: var(--color-acento);

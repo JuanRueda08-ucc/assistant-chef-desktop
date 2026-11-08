@@ -7,6 +7,9 @@ import { capturarAudio, crearReproductor } from './audio'
 import { GeminiLive } from './gemini-live'
 import { TurnoConsulta } from './turno'
 
+/** Tiempo sin pedir voz natural tras un fallo (cuota, red o saturación). */
+export const PAUSA_VOZ_NATURAL_MS = 10 * 60 * 1000
+
 export type EstadoVoz = 'apagado' | 'iniciando' | 'local' | 'escuchando' | 'pensando' | 'hablando'
 interface EventosVoz {
   sesion: () => SesionCocina | null
@@ -28,6 +31,8 @@ export class ControlVoz {
   private estado: EstadoVoz = 'apagado'
   private procesando = false
   private silencioHasta = 0
+  /** Tras un fallo de la voz natural no se reintenta en cada paso: cada intento retrasa la lectura. */
+  private naturalPausadaHasta = 0
   private consulta: TurnoConsulta | null = null
   private versionConsulta: string | null = null
   private reloj: ReturnType<typeof setTimeout> | undefined
@@ -150,7 +155,7 @@ export class ControlVoz {
     if (!paso) return
     const lectura = ++this.lectura
     this.cancelarConsulta()
-    this.eventos.error(null)
+    if (Date.now() >= this.naturalPausadaHasta) this.eventos.error(null)
     const vigente = (): boolean =>
       lectura === this.lectura &&
       this.eventos.sesion()?.fase === 'cocinar' &&
@@ -163,17 +168,24 @@ export class ControlVoz {
     this.eventos.narrando()
     try {
       let natural = false
-      try {
-        const audio = await this.api.voz.narrar({ sesionId: sesion!.id, pasoId: paso.id })
-        if (!vigente()) return
-        if (audio) {
-          this.reproductor ??= crearReproductor()
-          await this.reproductor.reproducirArchivo(audio.datos)
-          natural = true
+      if (Date.now() >= this.naturalPausadaHasta)
+        try {
+          const audio = await this.api.voz.narrar({ sesionId: sesion!.id, pasoId: paso.id })
+          if (!vigente()) return
+          if (audio) {
+            this.reproductor ??= crearReproductor()
+            await this.reproductor.reproducirArchivo(audio.datos)
+            natural = true
+          }
+        } catch (error) {
+          // Respaldo local. Se dice por qué cambia la voz, una sola vez (lo pidió el autor).
+          this.naturalPausadaHasta = Date.now() + PAUSA_VOZ_NATURAL_MS
+          this.eventos.error(
+            (error instanceof Error ? error.message : '')
+              .replace(/^Error invoking remote method '[^']*': (?:\w*Error: )?/, '')
+              .trim() || 'La voz natural no respondió. Sigo con la voz del sistema.'
+          )
         }
-      } catch {
-        /* Respaldo local cuando Gemini no está disponible. */
-      }
       if (!vigente()) return
       if (!natural) {
         const r = await this.api.voz.repetir({})

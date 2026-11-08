@@ -407,8 +407,12 @@
     border-radius: var(--radio-l);
     overflow: hidden;
     cursor: pointer;
+    transition:
+      transform var(--transicion),
+      box-shadow var(--transicion);
   }
   .tarjeta:hover {
+    transform: translateY(-3px);
     box-shadow: 0 0 0 var(--trazo) var(--color-tinta);
   }
   .foto {

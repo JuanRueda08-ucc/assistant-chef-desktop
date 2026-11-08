@@ -16,6 +16,12 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-08 · Voz que cambiaba sola y animaciones (43)
+- **El autor notó que la voz cambiaba a mitad de la receta** a una muy robótica. Causa, en los registros del backend: Gemini TTS respondió 429 (`proveedor_sin_cuota`, límite del plan gratuito de Google) y la app pasó en silencio a la voz de Windows. Ahora lo dice («La voz natural de Google llegó a su límite de uso gratuito. Sigo con la voz del sistema.») y no vuelve a pedir la voz natural durante 10 minutos, para no retrasar cada paso. No hay otra voz natural sin pagar: con la facturación sube el límite; también se puede apagar «Voz».
+- Animaciones breves al pasar y pulsar en botones, chips, tarjetas, controles del chef y el botón del chat; el chat entra deslizándose y el micrófono late mientras escucha. Con «reducir movimiento» del sistema no hay animación (`tokens.css`).
+- Propuesta de Preparar en `plan/diseno/rediseno-preparar.html`, a la espera del autor.
+- **Login:** el autor recuerda que falta y lo deja para el final (Supabase Auth, 0017; pasos en `despliegue.md`).
+
 ### 2026-11-08 · Rediseño de la interfaz (43, 0021)
 - El autor rechazó el primer repaso: botones feos, demasiada información, y no se notaban «Pedir ideas», «Escribir al chef» ni el temporizador. También vio que «Sí, vaciar» y «No» no parecían botones. Se le mostró una propuesta en `plan/diseno/rediseno-43.html` (sin versionar) y la aprobó.
 - Aplicado según `diseno.md`, «Rediseño aprobado»: botones sin contorno, cabecera con pestañas y «Pregúntale al chef», Elegir en tarjetas con la franja de ideas, Cocinar con el temporizador arriba y tres controles redondos, y el chat con botones de ícono. «Vaciar» ya pide confirmar con botones.
