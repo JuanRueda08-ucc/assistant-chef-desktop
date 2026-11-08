@@ -23,6 +23,13 @@ Sobre los mismos componentes y tokens; sin nuevas maquetas.
   - **Fondo 2 «Más presencia»** (elegido por el autor el 2026-11-08 entre tres; maqueta en `plan/diseno/conversacion-chef.html`): dibujos de línea de ingredientes a los lados, de 76 a 110 px, con el trazo al 34 % y cada uno sobre una mancha redonda `--color-acento-suave`. Nunca detrás del texto ni de los botones.
   - **Menú:** Inicio, Hablar con el chef, Tu despensa y Mis recetas.
 
+### Desplegable de «Para inspirarte hoy» (tarea 45, 2026-11-08)
+
+- **Variante 1, elegida por el autor** (`componentes/DesplegableReceta.svelte`; maqueta en `plan/diseno/conversacion-chef.html`). Al pulsar una foto, una tarjeta blanca sube sobre el saludo, con un velo suave detrás. Una flecha señala la foto pulsada. Esa foto lleva el trazo de tinta y las otras se apagan, pero se pueden pulsar para cambiar de receta. La misma foto, la X, Esc o pulsar fuera lo cierran, y el foco vuelve a la foto.
+- **Tres columnas:** la foto; el título, tiempo, dificultad, porciones, «Te faltan N de M» o «Tienes todo» (en verde), y «Lo que tienes»; y «Te falta», con «Puedes usar…» si hay sustitución, los opcionales, los básicos que se asumen y las acciones. Las cantidades salen escaladas a tus porciones.
+- **«Elegir y cocinar»** abre el detalle en Elegir, donde se confirma con «Cocinar esta receta». **«Preguntar al chef por lo que falta»** abre la conversación con esa pregunta.
+- Lo calcula main con las reglas de la búsqueda (`recetas:evaluar`). Si la receta no encaja con tus alergias o tu dieta, se explica por qué y «Elegir y cocinar» queda desactivado.
+
 ### Conversación con el chef (tarea 44, 2026-11-08)
 
 - **Pantalla aparte** (`pantallas/Conversacion.svelte`, opción A «Chat centrado» elegida por el autor; decisión 0023). Se abre desde «Hablar con el chef» en Inicio y en el menú. El panel lateral sigue en Preparar, Elegir y Cocinar.

@@ -70,9 +70,9 @@ Propuesta aprobada, a llevar primero a maqueta:
 - **El panel lateral se queda** en Preparar, Elegir y Cocinar, para dudas rápidas.
 - **Resuelto en la construcción (0023):** «Añadido a tu despensa · Deshacer» marca los cambios, y la conversación se conserva al ir a Elegir y volver, hasta «Nueva conversación».
 
-**Hecho el 2026-11-08:** el autor eligió la opción A «Chat centrado» y el fondo 2 «Más presencia». Falta que elija la variante del desplegable de la tarea 45.
+**Hecho el 2026-11-08:** el autor eligió la opción A «Chat centrado» y el fondo 2 «Más presencia». Después eligió la variante 1 del desplegable de la tarea 45, también hecha.
 
-Tarea 45, «Para inspirarte hoy» en Inicio: al pulsar una foto, un desplegable (no otra pantalla) con los ingredientes, lo que tienes y lo que falta. Desde ahí se confirma y se va a cocinar, pasando por la confirmación de Elegir.
+Tarea 45, «Para inspirarte hoy» en Inicio: al pulsar una foto, un desplegable (no otra pantalla) con los ingredientes, lo que tienes y lo que falta. Desde ahí se confirma y se va a cocinar, pasando por la confirmación de Elegir. **Hecha el 2026-11-08 con la variante 1** (sube sobre el saludo), elegida por el autor.
 
 Fondo del inicio: el autor preguntó si cambiarlo. Llevar a la maqueta los dibujos actuales y una variante con más presencia.
 

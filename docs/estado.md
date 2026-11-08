@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-**Siguiente: tarea 45, el desplegable de «Para inspirarte hoy». Falta que el autor elija la variante.** La maqueta está en `plan/diseno/conversacion-chef.html`, con capturas en `plan/diseno/capturas-conversacion/`, sin versionar como todo `plan/`. Variante 1: sube sobre el saludo. Variante 2: la foto crece en su sitio. La conversación con el chef (44, opción A) y el fondo 2 ya están hechos; falta que el autor los pruebe. **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
+**Siguiente: que el autor pruebe la conversación con el chef (44), el fondo 2 y el desplegable de «Para inspirarte hoy» (45, variante 1), todo hecho el 2026-11-08, sobre todo con Gemini real.** Después, lo que pida. Quedan pendientes los «Próximos pasos propuestos» de más abajo y el login (0017). **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
 
 Todo está subido a origin/main hasta este punto. Pendientes del autor: activar la facturación de Gemini (búsqueda en internet, imágenes con IA y más cuota de voz natural), revisar las 18 recetas en borrador (18) y el login con Supabase al final (0017, `despliegue.md`).
 
@@ -20,6 +20,11 @@ Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-11-08 · Desplegable de «Para inspirarte hoy» (45, variante 1)
+- El autor eligió la variante 1. Hecho: `componentes/DesplegableReceta.svelte`; en Inicio, las fotos pasan a ser botones. `evaluarReceta` (shared, con test) y el canal `recetas:evaluar` evalúan una sola receta con las reglas de la búsqueda: alergias, dieta, borradores y sustituciones. `app.elegirDesdeInicio` la añade a la búsqueda vigente, o crea una solo con ella, y abre su detalle en Elegir. Elegir y el desplegable comparten `lib/disponibilidad-receta.ts` (con test).
+- Verificado: 530 tests, tipos y lint. En la app compilada, sin sonido, sin micrófono y con `PROVEEDOR_IA=falso`: con la despensa vacía, «Lo que tienes 0», «Te faltan 6 de 9» y los básicos; tras «Tengo pollo y arroz», arroz con pollo muestra pollo y arroz como tuyos, «Te faltan 7 de 12» y los opcionales. Se cambia de foto, la misma foto, Esc y el velo cierran, el foco vuelve a la foto y la flecha queda centrada sobre ella. «Elegir y cocinar» abre el detalle en Elegir con «Cocinar esta receta». **No probado en la app:** el caso de una receta descartada por alergia (cubierto por tests) ni «Preguntar al chef por lo que falta» con Gemini real.
+- Nota para verificar: con la ventana tapada, Chromium deja de pintarla y `Page.captureScreenshot` no responde. Hay que capturar justo después de abrir la app, cuando queda delante.
 
 ### 2026-11-08 · Conversación con el chef (44) y fondo 2 del inicio
 - El autor eligió la **opción A «Chat centrado»** y el **fondo 2 «Más presencia»**. Hechos según 0023 y `diseno.md`: `Conversacion.svelte`, `lib/conversacion.ts` con su test, `voz/hablar-chat.svelte.ts`, que comparte «Hablar» con el panel, y el estado en `app.svelte.ts`. Inicio y el menú abren la conversación.

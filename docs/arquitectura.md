@@ -18,7 +18,7 @@
 ## Responsabilidades
 - **Main:** abre la ventana, posee la base SQLite (`chef.sqlite` en la carpeta de datos del usuario; esquema y semillas se aplican en cada arranque) y guarda `SesionCocina` en cada cambio. Expone canales IPC tipados (`recetas:buscar`, `sesion:aplicar`, etc.). Implementados (contrato en `src/shared/types/ipc.ts`):
   - `catalogo:ingredientes`: el catálogo completo, para Preparar.
-  - `recetas:listar`, `recetas:obtener` y `recetas:buscar`. La búsqueda carga recetas, catálogo y sustituciones de la base y llama a `buscarRecetas` de shared.
+  - `recetas:listar`, `recetas:obtener`, `recetas:buscar` y `recetas:evaluar`. La búsqueda carga recetas, catálogo y sustituciones de la base y llama a `buscarRecetas` de shared. `recetas:evaluar` hace lo mismo con una sola receta de la base mediante `evaluarReceta`; lo usa el desplegable de «Para inspirarte hoy» (tarea 45).
   - `sesion:retomar`, `sesion:iniciar` y `sesion:aplicar`, en `src/main/cocina.ts`. Cargan el contexto de la base, llaman al reductor y guardan.
 - **Preload:** `contextBridge` con una API mínima y tipada; el renderer no ve Node.
 - **Renderer:** interfaz, avatar y audio. La sesión de voz en tiempo real se abre desde aquí con un token efímero del backend.

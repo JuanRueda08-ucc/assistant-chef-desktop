@@ -27,6 +27,7 @@ Fuente de verdad de los datos: `db/schema.sql` (tablas) y `src/shared/types/rece
 | `redondear(valor, paso)` | `redondeo.ts` | múltiplo más cercano de `paso`, nunca menos que `paso` |
 | `resolverIngredientes(catalogo, textos)` y `separarIngredientes(texto)` | `lista.ts` | lista libre (0015): reconocidos, básicos, ambiguos y desconocidos; los desconocidos van a `Preferencias.ingredientesSinIdentificar`, que no cuenta para buscar |
 | `buscarRecetas(preferencias, recetas, catalogo, sustituciones)` | `busqueda.ts` | resultados ordenados con panel "qué falta", descartadas con motivos y `ofrecerGenerada` (tipos en `src/shared/types/busqueda.ts`) |
+| `evaluarReceta(preferencias, receta, catalogo, sustituciones)` | `busqueda.ts` | `EvaluacionReceta`: el panel "qué falta" de una sola receta, o sus motivos de descarte. Mismos filtros duros que la búsqueda, sin exigir que use algo de lo elegido (tarea 45) |
 | `resumirReceta(receta)` | `resumen.ts` | `ResumenReceta` (cabecera, etiquetas y equipo, sin ingredientes ni pasos) |
 
 Ninguna modifica la receta que recibe. Detalles que no están en las secciones de abajo:
