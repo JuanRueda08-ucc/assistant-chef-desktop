@@ -1,4 +1,4 @@
-import { ipcMain, nativeImage } from 'electron'
+import { BrowserWindow, Notification, ipcMain, nativeImage } from 'electron'
 import { z } from 'zod'
 import { esquemaId } from '@shared/esquemas/receta'
 import { PORCIONES_MAX, PORCIONES_MIN, esquemaPreferencias } from '@shared/esquemas/sesion'
@@ -404,6 +404,15 @@ export function registrarIpc(
       return imagen
     }
   )
+
+  ipcMain.handle(CANALES_IPC.avisoTemporizador, (evento, datos: unknown) => {
+    const { etiqueta } = z.strictObject({ etiqueta: z.string().trim().min(1).max(80) }).parse(datos)
+    const ventana = BrowserWindow.fromWebContents(evento.sender)
+    // Dentro de la app ya se ve el aviso; la notificación es para cuando está minimizada o detrás.
+    if (ventana?.isFocused() || !Notification.isSupported()) return
+    new Notification({ title: '¡Ya! Terminó un temporizador', body: etiqueta }).show()
+    ventana?.flashFrame(true)
+  })
 
   ipcMain.handle(CANALES_IPC.misRecetasListar, (): Resultado<ApiChef['misRecetas']['listar']> =>
     listarMisRecetas(db, usuarioId())

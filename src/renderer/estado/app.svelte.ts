@@ -22,6 +22,8 @@ import { ejecutarTurnoChat } from '../lib/chat'
 import { notaPreferencias } from '@shared/ia/nota-preferencias'
 import { interpretarOrden } from '@shared/ia/ordenes'
 import { unirLista } from '@shared/recetas/lista'
+import { restanteSeg } from '@shared/cocina/temporizadores'
+import { sonarAviso } from '../lib/sonido'
 import {
   hayIngredientesSeleccionados,
   MENSAJE_SIN_INGREDIENTES
@@ -62,6 +64,13 @@ class EstadoApp {
   pantalla = $state<Pantalla>('preparar')
   /** Al abrir la app con una receta en curso: se muestra Retomar antes de entrar a Cocinar. */
   retomando = $state(false)
+  /** Pantalla de inicio: la primera al abrir la app y la casita del menú. */
+  enInicio = $state(true)
+  /** Temporizadores terminados que aún no se han visto. */
+  avisos = $state.raw<{ id: string; etiqueta: string }[]>([])
+  private avisados = new Set<string>()
+  /** Receta elegida al abrir Mis recetas (por ejemplo, la que se acaba de guardar). */
+  miRecetaElegidaId = $state<string | null>(null)
   /** Menú lateral con Mi cuenta y Mis recetas (0022). */
   menuAbierto = $state(false)
   /** Panel lateral del chat, abierto desde la cabecera. */
@@ -432,6 +441,8 @@ class EstadoApp {
     this.misRecetas = []
     this.verMisRecetas = false
     this.cocinarOtra()
+    this.enInicio = true
+    this.avisos = []
     this.retomando = false
     this.chatAbierto = false
     this.error = null
@@ -463,6 +474,7 @@ class EstadoApp {
         this.sesion = sesion
         this.pantalla = 'cocinar'
         this.retomando = true
+        this.enInicio = false
       }
     })
   }
@@ -476,7 +488,60 @@ class EstadoApp {
   /** Desde Retomar: va a Preparar sin descartar la receta en curso (se descarta al empezar otra). */
   prepararOtra(): void {
     this.retomando = false
-    this.irA('preparar')
+    this.irAlInicio()
+  }
+
+  /** La casita: Inicio, sin descartar nada de lo que estaba en marcha. */
+  irAlInicio(): void {
+    this.retomando = false
+    this.verMisRecetas = false
+    this.chatAbierto = false
+    this.menuAbierto = false
+    this.error = null
+    this.enInicio = true
+  }
+
+  /** «Pedir ideas al chef» desde Inicio: con despensa, busca y pide ideas; si no, a Preparar. */
+  async ideasDesdeInicio(): Promise<void> {
+    const prefs = this.preferencias
+    if (
+      !hayIngredientesSeleccionados(prefs.ingredientes, this.catalogo) &&
+      prefs.ingredientesSinIdentificar.length === 0
+    ) {
+      this.irA('preparar')
+      this.decir('Primero dime qué tienes: añade algunos ingredientes y te propongo ideas.')
+      return
+    }
+    this.enInicio = false
+    await this.buscar(false)
+    if (this.pantalla === 'elegir') await this.proponerIdeas()
+  }
+
+  /**
+   * Avisa una vez de cada temporizador que termina, aunque se esté en otra pantalla. Sin voz de
+   * Gemini: sonido corto, aviso en pantalla, el globo del chef y una notificación del sistema.
+   */
+  revisarTemporizadores(ahora: number): void {
+    const sesion = this.sesion
+    if (!sesion || sesion.fase !== 'cocinar') return
+    for (const t of sesion.temporizadores) {
+      const termino =
+        t.estado === 'terminado' || (t.estado === 'corriendo' && restanteSeg(t, ahora) === 0)
+      if (!termino || this.avisados.has(t.id)) continue
+      this.avisados.add(t.id)
+      this.avisos = [...this.avisos, { id: t.id, etiqueta: t.etiqueta }]
+      sonarAviso()
+      void window.api.avisos.temporizador({ etiqueta: t.etiqueta }).catch(() => {})
+      if (this.pantalla === 'cocinar') this.decir(`¡Ya! Terminó el temporizador «${t.etiqueta}».`)
+    }
+  }
+
+  /** «Entendido»: se quita el aviso y el temporizador terminado. */
+  cerrarAviso(id: string): void {
+    this.avisos = this.avisos.filter((a) => a.id !== id)
+    const t = this.sesion?.temporizadores.find((x) => x.id === id)
+    if (this.sesion?.fase === 'cocinar' && t && t.estado !== 'cancelado')
+      void this.aplicar('controlar_temporizador', { id, accion: 'cancelar' })
   }
 
   private limpiarIdeas(): void {
@@ -690,6 +755,7 @@ class EstadoApp {
         preferencias
       })
       this.pantalla = 'cocinar'
+      this.enInicio = false
       this.verMisRecetas = false
       this.retomando = false
       this.globo = null
@@ -697,15 +763,21 @@ class EstadoApp {
     })
   }
 
-  abrirMisRecetas(): void {
+  abrirMisRecetas(recetaId: string | null = null): void {
     this.error = null
     this.chatAbierto = false
+    this.miRecetaElegidaId = recetaId
     this.verMisRecetas = true
   }
 
+  /** Volver: a la pantalla anterior, o a Inicio si la receta ya terminó. */
   cerrarMisRecetas(): void {
     this.error = null
     this.verMisRecetas = false
+    if (this.sesion?.fase === 'terminado') {
+      this.cocinarOtra()
+      this.enInicio = true
+    }
   }
 
   /** Guarda la receta de la IA que se acaba de cocinar. */
@@ -715,6 +787,8 @@ class EstadoApp {
     await this.tarea(async () => {
       this.misRecetas = await window.api.misRecetas.guardar({ sesionId })
     })
+    // Al guardar se abre directamente, para verla (pedido del autor).
+    if (!this.error && this.sesion?.recetaId) this.abrirMisRecetas(this.sesion.recetaId)
   }
 
   async quitarDeMisRecetas(recetaId: string): Promise<void> {
@@ -798,6 +872,8 @@ class EstadoApp {
 
   irA(pantalla: Pantalla): void {
     if (this.puedeIrA(pantalla)) {
+      this.enInicio = false
+      this.menuAbierto = false
       this.verMisRecetas = false
       this.retomando = false
       if (pantalla !== this.pantalla) this.resultadoChef = null

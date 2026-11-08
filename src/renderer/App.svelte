@@ -7,6 +7,8 @@
   import Acceso from './pantallas/Acceso.svelte'
   import Cocinar from './pantallas/Cocinar.svelte'
   import Elegir from './pantallas/Elegir.svelte'
+  import Inicio from './pantallas/Inicio.svelte'
+  import AvisoTemporizador from './componentes/AvisoTemporizador.svelte'
   import MisRecetas from './pantallas/MisRecetas.svelte'
   import Preparar from './pantallas/Preparar.svelte'
   import Retomar from './pantallas/Retomar.svelte'
@@ -27,10 +29,17 @@
     return () => clearTimeout(espera)
   })
 
+  // Los temporizadores avisan aunque se esté en otra pantalla.
+  $effect(() => {
+    const reloj = setInterval(() => app.revisarTemporizadores(Date.now()), 1000)
+    return () => clearInterval(reloj)
+  })
+
   const usuario = $derived(app.cuenta?.usuario ?? null)
   // En Retomar y en la pantalla final no hay nada sobre lo que el chef pueda actuar.
   const chatDisponible = $derived(
     !!usuario &&
+      !app.enInicio &&
       !app.verMisRecetas &&
       !app.retomando &&
       !(app.pantalla === 'cocinar' && app.sesion?.fase === 'terminado')
@@ -49,7 +58,9 @@
           onclick={() => (app.menuAbierto = true)}><span></span><span></span><span></span></button
         >
       {/if}
-      <img src={busto} alt="" />Chef digital
+      <button type="button" class="ir-inicio" onclick={() => app.irAlInicio()}
+        ><img src={busto} alt="" />Chef digital</button
+      >
     </div>
     <span></span>
     <div class="derecha">
@@ -73,17 +84,19 @@
     <Acceso />
   {:else if app.verMisRecetas}
     <MisRecetas />
+  {:else if app.retomando}
+    <Retomar />
+  {:else if app.enInicio}
+    <Inicio />
   {:else if app.pantalla === 'preparar'}
     <Preparar />
   {:else if app.pantalla === 'elegir'}
     <Elegir />
-  {:else if app.retomando}
-    <Retomar />
   {:else}
     <Cocinar />
   {/if}
   {#if chatDisponible}<ChatChef />{/if}
-  {#if usuario}<MenuLateral />{/if}
+  {#if usuario}<MenuLateral /><AvisoTemporizador />{/if}
 </div>
 
 <style>
@@ -110,6 +123,17 @@
     font-weight: var(--peso-titulo);
     font-size: 20px;
   }
+  .ir-inicio {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    font: inherit;
+    color: inherit;
+    background: none;
+    border: 0;
+    padding: 0;
+    cursor: pointer;
+  }
   .abrir-menu {
     width: var(--alto-control);
     height: var(--alto-control);
@@ -134,7 +158,7 @@
     border-radius: 2px;
     background: var(--color-tinta);
   }
-  .marca img {
+  .ir-inicio img {
     width: 36px;
     height: 36px;
     object-fit: contain;

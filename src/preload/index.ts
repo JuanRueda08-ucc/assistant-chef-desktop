@@ -39,6 +39,9 @@ const api: ApiChef = {
     generar: (datos) => ipcRenderer.invoke(CANALES_IPC.recetasGenerar, datos),
     imagen: (datos) => ipcRenderer.invoke(CANALES_IPC.recetasImagen, datos)
   },
+  avisos: {
+    temporizador: (datos) => ipcRenderer.invoke(CANALES_IPC.avisoTemporizador, datos)
+  },
   misRecetas: {
     listar: () => ipcRenderer.invoke(CANALES_IPC.misRecetasListar),
     guardar: (datos) => ipcRenderer.invoke(CANALES_IPC.misRecetasGuardar, datos),

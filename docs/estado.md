@@ -16,6 +16,24 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-08 · Fallos de flujo de la prueba del autor e Inicio
+- **No se podían poner temporizadores a mano:** el botón «Poner temporizador» no enviaba el formulario (`Boton` es `type="button"` por defecto). Corregido con `tipo="submit"`.
+- **El temporizador del paso anterior seguía propuesto:** el formulario guardaba el nombre y los minutos del paso en que se abrió. Ahora se actualiza al cambiar de paso; la tarjeta ya usaba el paso actual.
+- **Aviso al terminar un temporizador**, sin gastar voz de Gemini (pedido del autor), y **Mis recetas al guardar**. Ver `diseno.md`.
+- **Inicio:** nueva pantalla (el autor la vio esencial), con «Inicio» en el menú, el logo como acceso y «Ir al inicio» al terminar.
+- Verificado en la app sin sonido: Inicio al abrir, temporizador manual creado, formulario con el temporizador del paso nuevo, aviso a los 10 s estando en Inicio, «Ir a la receta» lo quita y vuelve a Cocinar, y «Inicio» en el menú. **No probado en la app:** guardar una receta de la IA y abrir Mis recetas (el código es corto), ni la notificación del sistema con la ventana minimizada.
+- Recomendaciones de flujo para el autor: ver «Próximos pasos propuestos» más abajo en este registro.
+
+### Próximos pasos propuestos al autor (2026-11-08)
+1. **Lista de compras** con lo que falta de una receta, para copiarla o enviarla.
+2. **Pantalla encendida mientras cocinas** (`powerSaveBlocker`), para que no se apague con las manos ocupadas.
+3. **Preguntar alergias y dieta la primera vez**, antes de proponer nada.
+4. **Porciones y filtros rápidos en Elegir** (tiempo, nivel), sin volver a Preparar.
+5. **Favoritas e historial:** guardar también recetas de la base y ver lo cocinado hace poco en Inicio.
+6. **Valorar la receta al terminar**, base del recomendador del que habló el autor.
+7. **Quitar Retomar al abrir**, ya que Inicio muestra la receta a medias.
+8. **El login** (Supabase, 0017), que el autor quiere al final.
+
 ### 2026-11-08 · Pantallas separadas y menú lateral (0022)
 - El autor revisó todos los flujos y le gustan. Pidió quitar los pasos numerados de arriba, porque hacían parecer una sola pantalla, y usar un menú lateral con Mi cuenta y Mis recetas. Hecho según 0022: `MenuLateral.svelte`, «Salir» en Cocinar y «Seguir cocinando» en el menú. Se borró `Momentos.svelte`.
 - Verificado en la app sin sonido: sin pasos arriba, el menú abre y cierra, Mis recetas desde el menú, Cocinar → «Salir» → Preparar → menú «Seguir cocinando» → Cocinar en el mismo paso.

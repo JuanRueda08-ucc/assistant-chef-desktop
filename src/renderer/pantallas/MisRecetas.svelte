@@ -8,9 +8,8 @@
   import { app } from '../estado/app.svelte'
 
   // Las recetas de la IA que guardó la cuenta: una lista y la elegida, con una acción para empezar.
-  let elegidaId = $state<string | null>(null)
   const elegida = $derived(
-    app.misRecetas.find((g) => g.receta.id === elegidaId) ?? app.misRecetas[0] ?? null
+    app.misRecetas.find((g) => g.receta.id === app.miRecetaElegidaId) ?? app.misRecetas[0] ?? null
   )
   let confirmando = $state(false)
   $effect(() => {
@@ -29,7 +28,7 @@
             <button
               type="button"
               aria-current={receta.id === elegida.receta.id ? 'true' : undefined}
-              onclick={() => (elegidaId = receta.id)}
+              onclick={() => (app.miRecetaElegidaId = receta.id)}
             >
               <span class="nombre">{receta.titulo}</span>
               <span class="datos">

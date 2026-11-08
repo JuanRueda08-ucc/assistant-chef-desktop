@@ -9,7 +9,8 @@
   const usuario = $derived(app.cuenta?.usuario ?? null)
   const sinCuenta = $derived(usuario?.id === USUARIO_LOCAL.id)
   const recetaEnCurso = $derived(
-    app.sesion?.fase === 'cocinar' && (app.pantalla !== 'cocinar' || app.verMisRecetas)
+    app.sesion?.fase === 'cocinar' &&
+      (app.pantalla !== 'cocinar' || app.verMisRecetas || app.enInicio || app.retomando)
       ? (app.sesion.recetaAdaptada?.titulo ?? null)
       : null
   )
@@ -35,6 +36,13 @@
         ><Icono nombre="cerrar" /></button
       >
     </div>
+
+    <button
+      type="button"
+      class="opcion"
+      aria-current={app.enInicio && !app.verMisRecetas ? 'page' : undefined}
+      onclick={() => app.irAlInicio()}><Icono nombre="casa" /><span>Inicio</span></button
+    >
 
     {#if recetaEnCurso}
       <button

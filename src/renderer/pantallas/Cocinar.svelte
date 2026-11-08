@@ -189,6 +189,15 @@
     })
     if (r?.ok) nuevaEtiqueta = ''
   }
+  // Al cambiar de paso, el formulario propone el temporizador del paso nuevo, no el del anterior.
+  $effect(() => {
+    void paso?.id
+    untrack(() => {
+      if (panel !== 'temporizadores') return
+      nuevaEtiqueta = sugerido?.etiqueta ?? ''
+      nuevosMinutos = sugerido ? Math.round(sugerido.segundos / 60) : 5
+    })
+  })
   function ponerSugerido(): void {
     if (!sugerido || !paso) return
     accion('iniciar_temporizador', {
@@ -255,14 +264,23 @@
         {/if}
         {#if app.error}<p role="alert">{app.error}</p>{/if}
       {/if}
-      <Boton onclick={() => app.cocinarOtra()}>Cocinar otra receta</Boton>
+      <div class="fin-acciones">
+        <Boton onclick={() => app.cocinarOtra()}>Cocinar otra receta</Boton>
+        <Boton
+          variante="secundario"
+          onclick={() => {
+            app.cocinarOtra()
+            app.irAlInicio()
+          }}>Ir al inicio</Boton
+        >
+      </div>
     </div>
   </main>
 {:else if receta && paso && sesion}
   <main class="cocinar">
     <header class="cabeza">
       <!-- Cada pantalla tiene su salida (0022): la receta queda guardada para seguir luego. -->
-      <button type="button" class="salir" onclick={() => app.irA('preparar')}
+      <button type="button" class="salir" onclick={() => app.irAlInicio()}
         ><Icono nombre="atras" tamano={18} />Salir</button
       >
       <div class="titulo">
@@ -404,7 +422,7 @@
                     required
                   /></label
                 >
-                <Boton>Poner temporizador</Boton>
+                <Boton tipo="submit">Poner temporizador</Boton>
               </form>
             {:else}
               <p class="descripcion">
@@ -584,7 +602,7 @@
 {:else}
   <main class="final">
     <Globo cola="izquierda"><h1>No hay ninguna receta en marcha</h1></Globo>
-    <Boton onclick={() => app.irA('preparar')}>Elegir qué cocinar</Boton>
+    <Boton onclick={() => app.irAlInicio()}>Ir al inicio</Boton>
   </main>
 {/if}
 
@@ -1150,6 +1168,11 @@
     justify-content: center;
     gap: var(--espacio-6);
     padding: var(--espacio-6);
+  }
+  .fin-acciones {
+    display: flex;
+    flex-wrap: wrap;
+    gap: var(--espacio-3);
   }
   .final-texto {
     display: flex;
