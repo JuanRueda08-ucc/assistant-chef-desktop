@@ -10,7 +10,11 @@
   const sinCuenta = $derived(usuario?.id === USUARIO_LOCAL.id)
   const recetaEnCurso = $derived(
     app.sesion?.fase === 'cocinar' &&
-      (app.pantalla !== 'cocinar' || app.verMisRecetas || app.enInicio || app.retomando)
+      (app.pantalla !== 'cocinar' ||
+        app.verMisRecetas ||
+        app.enInicio ||
+        app.enConversacion ||
+        app.retomando)
       ? (app.sesion.recetaAdaptada?.titulo ?? null)
       : null
   )
@@ -40,14 +44,25 @@
     <button
       type="button"
       class="opcion"
-      aria-current={app.enInicio && !app.verMisRecetas ? 'page' : undefined}
+      aria-current={app.enInicio && !app.verMisRecetas && !app.enConversacion ? 'page' : undefined}
       onclick={() => app.irAlInicio()}><Icono nombre="casa" /><span>Inicio</span></button
     >
 
     <button
       type="button"
       class="opcion"
-      aria-current={!app.enInicio && !app.verMisRecetas && app.pantalla === 'preparar'
+      aria-current={app.enConversacion && !app.verMisRecetas ? 'page' : undefined}
+      onclick={() => app.abrirConversacion()}
+      ><Icono nombre="microfono" /><span>Hablar con el chef</span></button
+    >
+
+    <button
+      type="button"
+      class="opcion"
+      aria-current={!app.enInicio &&
+      !app.enConversacion &&
+      !app.verMisRecetas &&
+      app.pantalla === 'preparar'
         ? 'page'
         : undefined}
       onclick={() => {

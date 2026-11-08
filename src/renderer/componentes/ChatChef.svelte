@@ -1,7 +1,7 @@
 <script lang="ts">
   import busto from '../assets/chef/chef_busto.png'
   import { app } from '../estado/app.svelte'
-  import { dictar } from '../voz/dictado'
+  import { DictadoChat } from '../voz/hablar-chat.svelte'
   import Boton from './Boton.svelte'
   import Icono from './Icono.svelte'
 
@@ -27,47 +27,16 @@
 
   // «Hablar» (0020): solo fuera de Cocinar, que tiene su propio micrófono. La frase se envía sola.
   const puedeHablar = $derived(app.pantalla !== 'cocinar')
-  let voz = $state<'apagada' | 'escuchando' | 'entendiendo'>('apagada')
-  let vozError = $state<string | null>(null)
-  let controlVoz: AbortController | null = null
-  const detenerVoz = (): void => controlVoz?.abort()
+  const dictado = new DictadoChat()
+  const voz = $derived(dictado.estado)
+  const vozError = $derived(dictado.error)
   $effect(() => {
-    if (!app.chatAbierto || !puedeHablar) detenerVoz()
-    return detenerVoz
+    if (!app.chatAbierto || !puedeHablar) dictado.detener()
+    return () => dictado.detener()
   })
   async function hablar(): Promise<void> {
-    if (voz !== 'apagada' || app.chatOcupado || app.ocupado) return
-    vozError = null
-    const control = new AbortController()
-    controlVoz = control
-    voz = 'escuchando'
-    let pcm: ArrayBuffer | null = null
-    try {
-      await window.api.voz.dictadoIniciar({})
-      pcm = await dictar(control.signal)
-      if (!pcm && !control.signal.aborted) vozError = 'No te oí. Inténtalo de nuevo o escríbelo.'
-    } catch {
-      vozError = 'No pude abrir el micrófono. Revisa el permiso del sistema o escríbelo.'
-    } finally {
-      // El micrófono ya está cerrado; el permiso también se retira aunque esto falle.
-      void window.api.voz.dictadoTerminar({}).catch(() => {})
-    }
-    if (!pcm || control.signal.aborted) {
-      voz = 'apagada'
-      return
-    }
-    voz = 'entendiendo'
-    try {
-      const r = await window.api.voz.transcribir(pcm)
-      if (control.signal.aborted) return
-      voz = 'apagada'
-      if (r.ok) await app.enviarChat(r.texto)
-      else vozError = r.mensaje
-    } catch {
-      vozError = 'No pude entender el audio. Inténtalo de nuevo o escríbelo.'
-    } finally {
-      voz = 'apagada'
-    }
+    if (app.chatOcupado || app.ocupado) return
+    await dictado.hablar((texto) => app.enviarChat(texto))
   }
 
   async function enviar(): Promise<void> {
@@ -98,7 +67,7 @@
     {#if app.chatSimulado}<p class="aviso">Modo de prueba: el chef responde sin Gemini.</p>{/if}
     <div class="mensajes" bind:this={mensajes} aria-live="polite" aria-label="Conversación">
       {#each app.conversacion as turno, i (i)}
-        <p class="tu"><span class="quien">Tú</span>{turno.pregunta}</p>
+        {#if turno.pregunta}<p class="tu"><span class="quien">Tú</span>{turno.pregunta}</p>{/if}
         <p class="chef"><span class="quien">Chef</span>{turno.respuesta}</p>
       {:else}
         <p class="vacio">

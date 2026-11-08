@@ -8,6 +8,8 @@
   import Cocinar from './pantallas/Cocinar.svelte'
   import Elegir from './pantallas/Elegir.svelte'
   import Inicio from './pantallas/Inicio.svelte'
+  import Conversacion from './pantallas/Conversacion.svelte'
+  import Icono from './componentes/Icono.svelte'
   import AvisoTemporizador from './componentes/AvisoTemporizador.svelte'
   import MisRecetas from './pantallas/MisRecetas.svelte'
   import Preparar from './pantallas/Preparar.svelte'
@@ -40,6 +42,7 @@
   const chatDisponible = $derived(
     !!usuario &&
       !app.enInicio &&
+      !app.enConversacion &&
       !app.verMisRecetas &&
       !app.retomando &&
       !(app.pantalla === 'cocinar' && app.sesion?.fase === 'terminado')
@@ -64,6 +67,14 @@
     </div>
     <span></span>
     <div class="derecha">
+      {#if usuario && app.enConversacion && !app.verMisRecetas && app.conversacion.length > 0}
+        <button
+          type="button"
+          class="nueva"
+          disabled={app.chatOcupado}
+          onclick={() => app.nuevaConversacion()}><Icono nombre="mas" />Nueva conversación</button
+        >
+      {/if}
       {#if chatDisponible && app.pantalla !== 'cocinar'}
         <button
           type="button"
@@ -88,6 +99,8 @@
     <Retomar />
   {:else if app.enInicio}
     <Inicio />
+  {:else if app.enConversacion}
+    <Conversacion />
   {:else if app.pantalla === 'preparar'}
     <Preparar />
   {:else if app.pantalla === 'elegir'}
@@ -168,6 +181,24 @@
     display: flex;
     align-items: center;
     gap: var(--espacio-3);
+  }
+  .nueva {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacio-2);
+    min-height: var(--alto-control);
+    padding: 0 var(--espacio-4);
+    font: inherit;
+    font-weight: var(--peso-fuerte);
+    color: var(--color-tinta);
+    background: var(--color-relleno);
+    border: 0;
+    border-radius: var(--radio-boton);
+    cursor: pointer;
+  }
+  .nueva:disabled {
+    opacity: 0.45;
+    cursor: default;
   }
   .abrir-chat {
     font: inherit;

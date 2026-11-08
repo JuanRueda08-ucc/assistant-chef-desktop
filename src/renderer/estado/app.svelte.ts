@@ -19,6 +19,7 @@ import {
 import { resumenRecetaGenerada } from '@shared/recetas/receta-generada'
 import type { ContenidoChat } from '@shared/ia/chat'
 import { ejecutarTurnoChat } from '../lib/chat'
+import { cambiosDelTurno, SIN_CAMBIOS, type CambiosTurno } from '../lib/conversacion'
 import { notaPreferencias } from '@shared/ia/nota-preferencias'
 import { interpretarOrden } from '@shared/ia/ordenes'
 import { unirLista } from '@shared/recetas/lista'
@@ -35,6 +36,17 @@ import type { Ingrediente, RecetaGenerada } from '@shared/types/receta'
 import type { EstadoAvatar, Preferencias, SesionCocina } from '@shared/types/sesion'
 
 export type Pantalla = 'preparar' | 'elegir' | 'cocinar'
+
+/** Un turno de la conversación con el chef, en el panel y en la pantalla de conversación (44). */
+export interface TurnoConversacion {
+  /** `null` cuando lo inicia un botón de la app, como «Buscar recetas con esto». */
+  pregunta: string | null
+  respuesta: string
+  /** Lo que el turno añadió a la despensa, calculado desde el estado. */
+  cambios: CambiosTurno
+  /** El turno buscó recetas o pidió ideas: la respuesta lleva tarjetas. */
+  recetas: boolean
+}
 
 export const PREFERENCIAS_INICIALES: Preferencias = {
   ingredientes: [],
@@ -75,6 +87,11 @@ class EstadoApp {
   menuAbierto = $state(false)
   /** Panel lateral del chat, abierto desde la cabecera. */
   chatAbierto = $state(false)
+  /**
+   * Pantalla de conversación con el chef (tarea 44). Se superpone como Inicio: debajo sigue la
+   * pantalla de Preparar o Elegir sobre la que actúan las herramientas.
+   */
+  enConversacion = $state(false)
   catalogo = $state<Ingrediente[]>([])
   preferencias = $state<Preferencias>(structuredClone(PREFERENCIAS_INICIALES))
   /** Hasta leer lo guardado no se guarda nada, para no pisar la despensa con la vacía. */
@@ -130,19 +147,23 @@ class EstadoApp {
   chatOcupado = $state(false)
   chatError = $state<string | null>(null)
   chatSimulado = $state(false)
-  conversacion = $state<{ pregunta: string; respuesta: string }[]>([])
+  conversacion = $state.raw<TurnoConversacion[]>([])
+  /** Lo marca cada herramienta que busca recetas o pide ideas durante el turno. */
+  private turnoConRecetas = false
   resultadoChef = $state.raw<{
     nombre: string
     argumentos: unknown
     resultado: ResultadoHerramienta
   } | null>(null)
   private turnos: ContenidoChat[][] = []
-  private pantallaConversacion: Pantalla | null = null
+  /** Dónde se habló por última vez: la historia se reinicia al cambiar de pantalla. */
+  private pantallaConversacion: Pantalla | 'conversacion' | null = null
 
   /** Una respuesta tardía nunca actúa sobre preferencias o pasos que cambió el usuario. */
   private huella(): string {
     return JSON.stringify([
       this.pantalla,
+      this.enConversacion,
       this.preferencias,
       this.recetaVisibleId,
       this.sesion?.id,
@@ -157,9 +178,14 @@ class EstadoApp {
     this.chatError = null
     this.confirmacionIngredientes = null
     this.aclaracionTurno = null
-    const pantallaTurno = this.pantalla
+    // En la pantalla de conversación la historia sigue aunque se pase de Preparar a Elegir.
+    const dondeHabla = (): Pantalla | 'conversacion' =>
+      this.enConversacion ? 'conversacion' : this.pantalla
+    const pantallaTurno = dondeHabla()
     if (this.pantallaConversacion !== pantallaTurno) this.turnos = []
     this.pantallaConversacion = pantallaTurno
+    this.turnoConRecetas = false
+    const antes = this.despensaTurno()
     let huella = this.huella()
     const saludAntes = $state.snapshot({
       alergias: this.preferencias.alergias,
@@ -176,10 +202,7 @@ class EstadoApp {
       const orden = this.pantalla === 'cocinar' ? interpretarOrden(texto) : null
       if (orden && 'nombre' in orden) {
         const r = await this.aplicar(orden.nombre, orden.argumentos, orden.confirmado)
-        this.conversacion.push({
-          pregunta: texto,
-          respuesta: r?.decir ?? 'Revisa el paso en pantalla.'
-        })
+        this.anotar(texto, r?.decir ?? 'Revisa el paso en pantalla.')
         return
       }
       const anteriores = this.turnos.flat()
@@ -273,6 +296,7 @@ class EstadoApp {
             // Una receta guardada no siempre sale en los resultados de hoy.
             const guardadaId = ARGUMENTOS_SELECCION.elegir_receta.safeParse(llamada.args).data
               ?.recetaId
+            if (nombre === 'buscar_recetas') this.turnoConRecetas = true
             if (
               nombre === 'elegir_receta' &&
               this.misRecetas.some((g) => g.receta.id === guardadaId)
@@ -312,6 +336,7 @@ class EstadoApp {
               if (nombre === 'ver_receta') {
                 this.ideaVisibleId = null
                 this.elegirDetalle = true
+                this.salirDeConversacionA('elegir')
               }
               if (nombre === 'buscar_recetas' && !mismaBusqueda && this.busqueda?.ofrecerGenerada)
                 void this.proponerIdeas()
@@ -327,7 +352,7 @@ class EstadoApp {
         }
       )
       this.turnos =
-        this.pantalla === pantallaTurno
+        dondeHabla() === pantallaTurno
           ? [...this.turnos, turno.mensajes.slice(anteriores.length)].slice(-2)
           : []
       this.chatSimulado = turno.simulado
@@ -338,13 +363,125 @@ class EstadoApp {
         this.aclaracionTurno ??
         this.preguntaIngredientes() ??
         (nota ? `${turno.texto} ${nota}`.trim() : turno.texto)
-      this.conversacion = [...this.conversacion, { pregunta: texto, respuesta }].slice(-12)
+      this.anotar(texto, respuesta, cambiosDelTurno(antes, this.despensaTurno()))
       this.decir(respuesta)
     } catch (e) {
       this.chatError = mensaje(e)
       // Un fallo puede haber aplicado herramientas; no se reintenta el turno automáticamente.
       this.turnos = []
       void this.comprobarCuenta()
+    } finally {
+      this.chatOcupado = false
+    }
+  }
+
+  private despensaTurno(): {
+    ingredientes: string[]
+    ingredientesSinIdentificar: string[]
+    porciones: number
+  } {
+    const { ingredientes, ingredientesSinIdentificar, porciones } = $state.snapshot(
+      this.preferencias
+    )
+    return { ingredientes, ingredientesSinIdentificar, porciones }
+  }
+
+  /** Añade un turno a la conversación (se guardan los 12 últimos). */
+  private anotar(pregunta: string | null, respuesta: string, cambios = SIN_CAMBIOS): void {
+    this.conversacion = [
+      ...this.conversacion,
+      { pregunta, respuesta, cambios, recetas: this.turnoConRecetas }
+    ].slice(-12)
+    this.turnoConRecetas = false
+  }
+
+  /** Abre la pantalla de conversación (tarea 44) desde Inicio o el menú. */
+  abrirConversacion(): void {
+    this.enInicio = false
+    this.verMisRecetas = false
+    this.retomando = false
+    this.menuAbierto = false
+    this.chatAbierto = false
+    this.error = null
+    // Las herramientas de la conversación son las de elegir receta, no las del paso a paso; la
+    // receta en curso no se descarta y sigue en el menú («Seguir cocinando»).
+    if (this.pantalla === 'cocinar') this.pantalla = this.puedeIrA('elegir') ? 'elegir' : 'preparar'
+    this.enConversacion = true
+  }
+
+  /** «Nueva conversación»: olvida la conversación, no la despensa ni las recetas encontradas. */
+  nuevaConversacion(): void {
+    if (this.chatOcupado) return
+    this.conversacion = []
+    this.turnos = []
+    this.confirmacionIngredientes = null
+    this.chatError = null
+  }
+
+  /**
+   * Al ver una receta o empezar a escribirla, se pasa a su detalle en Elegir. La respuesta del chef
+   * sigue a la vista en el panel lateral.
+   */
+  private salirDeConversacionA(pantalla: 'elegir'): void {
+    if (!this.enConversacion) return
+    this.enConversacion = false
+    this.pantalla = pantalla
+    this.chatAbierto = true
+  }
+
+  /** «Ver receta» en una tarjeta de la conversación: abre su detalle en Elegir. */
+  verEnElegir(destino: { recetaId: string } | { ideaId: string }): void {
+    if (!this.puedeIrA('elegir')) return
+    if ('recetaId' in destino) {
+      this.ideaVisibleId = null
+      this.recetaVisibleId = destino.recetaId
+    } else {
+      this.ideaVisibleId = destino.ideaId
+    }
+    this.elegirDetalle = true
+    this.enConversacion = false
+    this.pantalla = 'elegir'
+  }
+
+  /** Quita un ingrediente desde una etiqueta de la conversación. */
+  quitarIngrediente(ingrediente: { id: string } | { libre: string }): void {
+    if (this.chatOcupado) return
+    if ('id' in ingrediente)
+      this.preferencias.ingredientes = this.preferencias.ingredientes.filter(
+        (i) => i !== ingrediente.id
+      )
+    else
+      this.preferencias.ingredientesSinIdentificar =
+        this.preferencias.ingredientesSinIdentificar.filter((n) => n !== ingrediente.libre)
+  }
+
+  /** «Buscar recetas con esto»: lo hace la app con la despensa, sin pasar por el modelo. */
+  async buscarDesdeConversacion(): Promise<void> {
+    if (this.chatOcupado || this.ocupado) return
+    this.chatError = null
+    const prefs = this.preferencias
+    if (
+      !hayIngredientesSeleccionados(prefs.ingredientes, this.catalogo) &&
+      prefs.ingredientesSinIdentificar.length === 0
+    ) {
+      this.anotar(null, MENSAJE_SIN_INGREDIENTES)
+      return
+    }
+    this.chatOcupado = true
+    try {
+      await this.buscar()
+      if (this.error) {
+        this.chatError = this.error
+        return
+      }
+      const n = this.busqueda?.resultados.length ?? 0
+      this.turnoConRecetas = true
+      this.anotar(
+        null,
+        n
+          ? `Encontré ${n} ${n === 1 ? 'receta guardada' : 'recetas guardadas'} con lo que tienes; primero las que usan más de tu despensa.`
+          : 'No encontré recetas guardadas con eso, así que te propongo ideas.'
+      )
     } finally {
       this.chatOcupado = false
     }
@@ -376,9 +513,10 @@ class EstadoApp {
     const pregunta =
       accion === 'reemplazar' ? 'Reemplazar mi selección' : 'Añadirlos a mi selección'
     if (!r.ok) {
-      this.conversacion = [...this.conversacion, { pregunta, respuesta: r.decir }].slice(-12)
+      this.anotar(pregunta, r.decir)
       return
     }
+    const antes = this.despensaTurno()
     this.limpiarIdeas()
     this.preferencias = r.estado.preferencias
     this.busqueda = r.estado.busqueda
@@ -389,6 +527,7 @@ class EstadoApp {
     if (pendiente.luego) {
       this.chatOcupado = true
       this.chatError = null
+      this.turnoConRecetas = true
       try {
         if (pendiente.luego.ideas) {
           const ideas = await this.herramientaIdea('proponer_ideas', {
@@ -409,7 +548,7 @@ class EstadoApp {
         this.chatOcupado = false
       }
     }
-    this.conversacion = [...this.conversacion, { pregunta, respuesta }].slice(-12)
+    this.anotar(pregunta, respuesta, cambiosDelTurno(antes, this.despensaTurno()))
     this.decir(respuesta)
   }
 
@@ -445,6 +584,7 @@ class EstadoApp {
     this.avisos = []
     this.retomando = false
     this.chatAbierto = false
+    this.enConversacion = false
     this.error = null
     this.chatError = null
   }
@@ -497,6 +637,7 @@ class EstadoApp {
     this.verMisRecetas = false
     this.chatAbierto = false
     this.menuAbierto = false
+    this.enConversacion = false
     this.error = null
     this.enInicio = true
   }
@@ -616,6 +757,7 @@ class EstadoApp {
       )
         return fallo(MENSAJE_SIN_INGREDIENTES)
       if (this.pantalla !== 'elegir' || !this.busqueda) await this.buscar(false)
+      this.turnoConRecetas = true
       await this.proponerIdeas(pedido ?? null)
       if (this.ideasError) return fallo(this.ideasError)
       const lista = this.ideas?.lista ?? []
@@ -640,6 +782,7 @@ class EstadoApp {
     this.recetaVisibleId = null
     this.pantalla = 'elegir'
     this.elegirDetalle = true
+    this.salirDeConversacionA('elegir')
     if (nombre === 'cocinar_idea') {
       const generada = this.recetasDeIdeas[idea.id]
       if (!generada) return fallo('Primero hay que escribir la receta con escribir_receta.')
@@ -756,6 +899,7 @@ class EstadoApp {
       })
       this.pantalla = 'cocinar'
       this.enInicio = false
+      this.enConversacion = false
       this.verMisRecetas = false
       this.retomando = false
       this.globo = null
@@ -766,6 +910,7 @@ class EstadoApp {
   abrirMisRecetas(recetaId: string | null = null): void {
     this.error = null
     this.chatAbierto = false
+    this.enConversacion = false
     this.miRecetaElegidaId = recetaId
     this.verMisRecetas = true
   }
@@ -873,6 +1018,7 @@ class EstadoApp {
   irA(pantalla: Pantalla): void {
     if (this.puedeIrA(pantalla)) {
       this.enInicio = false
+      this.enConversacion = false
       this.menuAbierto = false
       this.verMisRecetas = false
       this.retomando = false

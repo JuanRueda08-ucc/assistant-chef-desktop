@@ -34,23 +34,19 @@
       .catch(() => {})
   })
 
-  // Dibujos de línea alrededor del chef, en lugar de un brillo de fondo.
-  // Solo a los lados: nunca detrás del texto ni de los botones.
+  // Dibujos de línea alrededor del chef, en lugar de un brillo de fondo. Fondo 2 «Más presencia»
+  // (elegido por el autor el 2026-11-08): casi el doble de grandes y cada uno sobre una mancha
+  // amarilla suave. Solo a los lados: nunca detrás del texto ni de los botones.
   const DIBUJOS = [
-    { icono: 'verduras', x: 12, y: 6, giro: -18, tam: 54 },
-    { icono: 'lacteos', x: 22, y: 28, giro: 6, tam: 40 },
-    { icono: 'olla', x: 5, y: 46, giro: 8, tam: 58 },
-    { icono: 'cereales', x: 15, y: 72, giro: 14, tam: 44 },
-    { icono: 'frutas', x: 80, y: 6, giro: 12, tam: 50 },
-    { icono: 'proteinas', x: 90, y: 24, giro: 20, tam: 42 },
-    { icono: 'especias', x: 76, y: 48, giro: -10, tam: 46 },
-    { icono: 'legumbres', x: 88, y: 70, giro: -14, tam: 48 }
+    { icono: 'verduras', x: 8, y: 6, giro: -18, tam: 102 },
+    { icono: 'lacteos', x: 18, y: 28, giro: 6, tam: 76 },
+    { icono: 'olla', x: 1, y: 46, giro: 8, tam: 110 },
+    { icono: 'cereales', x: 11, y: 72, giro: 14, tam: 84 },
+    { icono: 'frutas', x: 80, y: 6, giro: 12, tam: 95 },
+    { icono: 'proteinas', x: 90, y: 24, giro: 20, tam: 80 },
+    { icono: 'especias', x: 76, y: 48, giro: -10, tam: 87 },
+    { icono: 'legumbres', x: 88, y: 70, giro: -14, tam: 91 }
   ] as const
-
-  function hablarConElChef(): void {
-    app.irA('preparar')
-    app.chatAbierto = true
-  }
 </script>
 
 <main class="inicio">
@@ -76,7 +72,7 @@
         <Boton variante="secundario" ancho onclick={() => app.abrirMisRecetas()}
           ><Icono nombre="tecnica" />Mis recetas</Boton
         >
-        <Boton variante="oscuro" ancho onclick={hablarConElChef}
+        <Boton variante="oscuro" ancho onclick={() => app.abrirConversacion()}
           ><Icono nombre="microfono" />Hablar con el chef</Boton
         >
       </div>
@@ -125,10 +121,24 @@
     inset: 0 var(--espacio-6) 180px;
     pointer-events: none;
     color: var(--color-tinta);
-    opacity: 0.16;
+    isolation: isolate;
   }
   .dibujos span {
     position: absolute;
+    display: grid;
+  }
+  /* La mancha va a plena intensidad; solo el trazo se aclara. */
+  .dibujos span::before {
+    content: '';
+    position: absolute;
+    inset: 14%;
+    z-index: -1;
+    border-radius: 50%;
+    background: var(--color-acento-suave);
+  }
+  .dibujos :global(svg) {
+    opacity: 0.34;
+    stroke-width: 1.4;
   }
   .centro {
     position: relative;
