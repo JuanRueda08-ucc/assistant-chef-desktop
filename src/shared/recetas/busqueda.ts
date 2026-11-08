@@ -3,6 +3,7 @@
 
 import type {
   Descarte,
+  EvaluacionReceta,
   Faltante,
   MotivoDescarte,
   OpcionSustitucion,
@@ -93,6 +94,27 @@ export function buscarRecetas(
     descartadas,
     ofrecerGenerada: !resultados.some((r) => r.coberturaConSustituciones >= UMBRAL_COBERTURA)
   }
+}
+
+/**
+ * Evalúa una sola receta con los filtros duros y el panel «qué falta» de `buscarRecetas`. A
+ * diferencia de la búsqueda, no exige que la receta use algo de lo elegido: la persona ya la
+ * escogió (por ejemplo, desde «Para inspirarte hoy» en Inicio).
+ */
+export function evaluarReceta(
+  preferencias: Preferencias,
+  receta: Receta,
+  catalogo: Catalogo,
+  sustituciones: readonly Sustitucion[],
+  opciones: { incluirBorradores: boolean } = { incluirBorradores: false }
+): EvaluacionReceta {
+  const motivos = motivosDescarte(receta, preferencias, opciones.incluirBorradores)
+  if (motivos.length > 0) return { ok: false, motivos }
+  const porId = comoMapa(catalogo)
+  const disponibles = new Set(preferencias.ingredientes)
+  const tiene = (ingredienteId: string): boolean =>
+    disponibles.has(ingredienteId) || porId.get(ingredienteId)?.esBasicoDespensa === true
+  return { ok: true, resultado: puntuar(receta, preferencias, porId, sustituciones, tiene) }
 }
 
 export function motivosDescarte(

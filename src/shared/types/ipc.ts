@@ -1,7 +1,7 @@
 // Contrato IPC entre renderer (vía preload) y main. Los nombres de canal se usan en ambos lados.
 
 import type { AplicacionHerramienta, LlamadaHerramienta } from '../ia/herramientas'
-import type { ResultadoBusqueda } from './busqueda'
+import type { EvaluacionReceta, ResultadoBusqueda } from './busqueda'
 import type { IdeaModelo, ResultadoIdeas, ResultadoRecetaGenerada } from './ideas'
 import type { Ingrediente, Receta, RecetaGenerada } from './receta'
 import type { Preferencias, SesionCocina } from './sesion'
@@ -30,6 +30,7 @@ export const CANALES_IPC = {
   recetasListar: 'recetas:listar',
   recetasObtener: 'recetas:obtener',
   recetasBuscar: 'recetas:buscar',
+  recetasEvaluar: 'recetas:evaluar',
   recetasProponer: 'recetas:proponer',
   recetasGenerar: 'recetas:generar',
   recetasImagen: 'recetas:imagen',
@@ -120,6 +121,14 @@ export interface ApiChef {
     listar(): Promise<ResumenReceta[]>
     obtener(id: string): Promise<Receta | null>
     buscar(preferencias: Preferencias): Promise<ResultadoBusqueda>
+    /**
+     * Una receta de la base frente a las preferencias, con las reglas de la búsqueda (tarea 45).
+     * `null` si no existe.
+     */
+    evaluar(datos: {
+      recetaId: string
+      preferencias: Preferencias
+    }): Promise<EvaluacionReceta | null>
     /** Ideas del chef con la IA, ya comprobadas en main contra catálogo, alergias y dieta. */
     proponer(datos: {
       preferencias: Preferencias

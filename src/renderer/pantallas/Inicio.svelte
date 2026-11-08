@@ -4,6 +4,7 @@
   import type { ResumenReceta } from '@shared/types/ipc'
   import Boton from '../componentes/Boton.svelte'
   import ChefBlob from '../componentes/ChefBlob.svelte'
+  import DesplegableReceta from '../componentes/DesplegableReceta.svelte'
   import Icono from '../componentes/Icono.svelte'
   import { app } from '../estado/app.svelte'
   import { fotoDe } from '../lib/fotos'
@@ -20,6 +21,18 @@
 
   // Fotos para inspirarse: cuatro recetas guardadas al azar, distintas cada vez.
   let inspiracion = $state.raw<ResumenReceta[]>([])
+  /** Foto pulsada: abre su desplegable (tarea 45). Otra foto lo cambia; la misma lo cierra. */
+  let abierta = $state<number | null>(null)
+  const fotos: HTMLButtonElement[] = []
+  const recetaAbierta = $derived(abierta === null ? null : (inspiracion[abierta] ?? null))
+  function alternar(n: number): void {
+    abierta = abierta === n ? null : n
+  }
+  function cerrarDesplegable(): void {
+    const n = abierta
+    abierta = null
+    if (n !== null) fotos[n]?.focus()
+  }
   onMount(() => {
     window.api.recetas
       .listar()
@@ -94,14 +107,27 @@
     <section class="inspiracion" aria-labelledby="titulo-inspiracion">
       <h2 id="titulo-inspiracion">Para inspirarte hoy</h2>
       <ul>
-        {#each inspiracion as r (r.id)}
+        {#each inspiracion as r, n (r.id)}
           <li>
-            <img src={fotoDe(r.imagen)!.url} alt="" />
-            <span>{r.titulo}</span>
+            <button
+              type="button"
+              class:activa={abierta === n}
+              class:apagada={abierta !== null && abierta !== n}
+              aria-expanded={abierta === n}
+              aria-controls={abierta === n ? 'desplegable-receta' : undefined}
+              bind:this={fotos[n]}
+              onclick={() => alternar(n)}
+            >
+              <img src={fotoDe(r.imagen)!.url} alt="" />
+              <span>{r.titulo}</span>
+            </button>
           </li>
         {/each}
       </ul>
     </section>
+  {/if}
+  {#if abierta !== null && recetaAbierta}
+    <DesplegableReceta receta={recetaAbierta} posicion={abierta} oncerrar={cerrarDesplegable} />
   {/if}
 </main>
 
@@ -218,6 +244,7 @@
   }
   .inspiracion {
     position: relative;
+    z-index: 5;
     display: grid;
     grid-template-columns: 130px repeat(4, 1fr);
     gap: var(--espacio-4);
@@ -231,10 +258,39 @@
     list-style: none;
   }
   .inspiracion li {
-    position: relative;
     height: 128px;
+  }
+  .inspiracion button {
+    position: relative;
+    width: 100%;
+    height: 100%;
+    padding: 0;
+    border: 0;
     border-radius: var(--radio-l);
     overflow: hidden;
+    font: inherit;
+    color: var(--color-tinta);
+    background: var(--color-relleno);
+    cursor: pointer;
+    transition:
+      transform var(--transicion),
+      opacity var(--transicion);
+  }
+  .inspiracion button:hover {
+    transform: translateY(-3px);
+  }
+  /* La pulsada lleva el trazo de tinta; las demás se apagan pero se pueden pulsar. */
+  .inspiracion button.activa {
+    box-shadow:
+      0 0 0 4px var(--color-fondo),
+      0 0 0 calc(4px + var(--trazo)) var(--color-tinta);
+    overflow: visible;
+  }
+  .inspiracion button.activa img {
+    border-radius: var(--radio-l);
+  }
+  .inspiracion button.apagada {
+    opacity: 0.5;
   }
   .inspiracion img {
     width: 100%;

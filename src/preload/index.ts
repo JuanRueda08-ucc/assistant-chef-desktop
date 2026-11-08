@@ -35,6 +35,7 @@ const api: ApiChef = {
     listar: () => ipcRenderer.invoke(CANALES_IPC.recetasListar),
     obtener: (id) => ipcRenderer.invoke(CANALES_IPC.recetasObtener, id),
     buscar: (preferencias) => ipcRenderer.invoke(CANALES_IPC.recetasBuscar, preferencias),
+    evaluar: (datos) => ipcRenderer.invoke(CANALES_IPC.recetasEvaluar, datos),
     proponer: (datos) => ipcRenderer.invoke(CANALES_IPC.recetasProponer, datos),
     generar: (datos) => ipcRenderer.invoke(CANALES_IPC.recetasGenerar, datos),
     imagen: (datos) => ipcRenderer.invoke(CANALES_IPC.recetasImagen, datos)

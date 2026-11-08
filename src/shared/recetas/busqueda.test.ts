@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest'
 import { esquemaSustitucion } from '../esquemas/receta'
 import type { Receta, Sustitucion } from '../types/receta'
 import type { Preferencias } from '../types/sesion'
-import { buscarRecetas, UMBRAL_COBERTURA } from './busqueda'
+import { buscarRecetas, evaluarReceta, UMBRAL_COBERTURA } from './busqueda'
 import { conEtiquetas, indexar } from './etiquetas'
 import {
   arrozConPollo as arrozSemilla,
@@ -428,5 +428,41 @@ describe('relevancia de lo elegido', () => {
 
   it('sin nada elegido no filtra por esto', () => {
     expect(ids(['sal'], [con('solo_basicos', ['sal'])])).toEqual(['solo_basicos'])
+  })
+})
+
+describe('evaluarReceta', () => {
+  it('da el mismo panel «qué falta» que la búsqueda', () => {
+    const [enBusqueda] = buscarRecetas(conPolloYArroz, [arroz()], conExtra, []).resultados
+    expect(evaluarReceta(conPolloYArroz, arroz(), conExtra, [])).toEqual({
+      ok: true,
+      resultado: enBusqueda
+    })
+  })
+
+  it('evalúa aunque no use nada de lo elegido, o sin nada elegido', () => {
+    const conOtro = preferencias({ ingredientes: ['caldo_verduras'] })
+    expect(buscarRecetas(conOtro, [arroz()], conExtra, []).resultados).toEqual([])
+    const r = evaluarReceta(conOtro, arroz(), conExtra, [])
+    expect(r.ok && r.resultado.faltantes.map((f) => f.ingredienteId)).toContain('pollo_muslo')
+    expect(evaluarReceta(preferencias(), arroz(), conExtra, []).ok).toBe(true)
+  })
+
+  it('aplica los filtros duros: alergias, dieta y revisión', () => {
+    expect(evaluarReceta(preferencias({ alergias: ['apio'] }), arroz(), conExtra, [])).toEqual({
+      ok: false,
+      motivos: ['alergia']
+    })
+    expect(
+      evaluarReceta(preferencias({ restricciones: ['vegetariana'] }), arroz(), conExtra, [])
+    ).toEqual({ ok: false, motivos: ['restriccion'] })
+    const borrador = arroz({ estadoRevision: 'borrador' })
+    expect(evaluarReceta(preferencias(), borrador, conExtra, [])).toEqual({
+      ok: false,
+      motivos: ['no_revisada']
+    })
+    expect(
+      evaluarReceta(preferencias(), borrador, conExtra, [], { incluirBorradores: true }).ok
+    ).toBe(true)
   })
 })

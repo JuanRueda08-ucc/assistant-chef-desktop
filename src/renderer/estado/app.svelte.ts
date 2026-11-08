@@ -29,7 +29,7 @@ import {
   hayIngredientesSeleccionados,
   MENSAJE_SIN_INGREDIENTES
 } from '@shared/recetas/disponibilidad'
-import type { ResultadoBusqueda } from '@shared/types/busqueda'
+import type { ResultadoBusqueda, ResultadoReceta } from '@shared/types/busqueda'
 import type { EstadoCuenta } from '@shared/types/cuenta'
 import type { FuenteIdea, FuenteWeb, IdeaReceta } from '@shared/types/ideas'
 import type { Ingrediente, RecetaGenerada } from '@shared/types/receta'
@@ -640,6 +640,28 @@ class EstadoApp {
     this.enConversacion = false
     this.error = null
     this.enInicio = true
+  }
+
+  /**
+   * «Elegir y cocinar» en el desplegable de «Para inspirarte hoy» (tarea 45): abre el detalle de la
+   * receta en Elegir, donde se confirman las porciones y se empieza. Si hay una búsqueda vigente se
+   * añade a ella; si no, Elegir muestra solo esta receta.
+   */
+  elegirDesdeInicio(resultado: ResultadoReceta): void {
+    const busqueda = this.busqueda
+    if (busqueda && this.criteriosBusqueda === this.criterios()) {
+      if (!busqueda.resultados.some((r) => r.receta.id === resultado.receta.id))
+        this.busqueda = { ...busqueda, resultados: [resultado, ...busqueda.resultados] }
+    } else {
+      this.limpiarIdeas()
+      this.busqueda = { resultados: [resultado], descartadas: [], ofrecerGenerada: false }
+      this.criteriosBusqueda = this.criterios()
+    }
+    this.recetaVisibleId = resultado.receta.id
+    this.ideaVisibleId = null
+    this.elegirDetalle = true
+    this.globo = null
+    this.irA('elegir')
   }
 
   /** «Pedir ideas al chef» desde Inicio: con despensa, busca y pide ideas; si no, a Preparar. */

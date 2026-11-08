@@ -390,6 +390,19 @@ describe('cuenta IPC', () => {
         preferencias({ ingredientes: ['cebolla'], alergias: ['huevo'] })
       )) as { resultados: { receta: { id: string } }[] }
       expect(conAlergia.resultados.map((r) => r.receta.id)).not.toContain('gen_prueba')
+      // Una receta suelta, aunque no use nada de lo elegido (tarea 45).
+      const evaluar = canal(CANALES_IPC.recetasEvaluar)
+      const suelta = (await evaluar(null, {
+        recetaId: 'arroz_con_pollo',
+        preferencias: preferencias({ ingredientes: ['cebolla'] })
+      })) as { ok: boolean; motivos?: string[] }
+      expect(typeof suelta.ok).toBe('boolean')
+      expect(
+        await evaluar(null, { recetaId: 'no_existe', preferencias: preferencias() })
+      ).toBeNull()
+      await expect(
+        Promise.resolve().then(() => evaluar(null, { recetaId: 'arroz_con_pollo' }))
+      ).rejects.toThrow()
       expect(listarMisRecetas(db, 'otra')).toEqual([])
       expect(await canal(CANALES_IPC.misRecetasQuitar)(null, { recetaId: 'gen_prueba' })).toEqual(
         []

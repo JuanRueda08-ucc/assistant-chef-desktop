@@ -56,6 +56,13 @@ export interface Descarte {
   motivos: MotivoDescarte[]
 }
 
+/**
+ * Una receta suelta frente a las preferencias, con las mismas reglas que la búsqueda (tarea 45):
+ * su panel «qué falta», o por qué no se puede proponer.
+ */
+export type EvaluacionReceta =
+  { ok: true; resultado: ResultadoReceta } | { ok: false; motivos: MotivoDescarte[] }
+
 export interface ResultadoBusqueda {
   /** Ordenados de mejor a peor. */
   resultados: ResultadoReceta[]

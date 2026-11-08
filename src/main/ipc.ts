@@ -21,7 +21,7 @@ import {
 import type { ResultadoCuenta } from '@shared/types/cuenta'
 import { CANALES_IPC, type ApiChef } from '@shared/types/ipc'
 import { aplicarEnCocina, iniciarCocina, retomarCocina } from './cocina'
-import { buscarEnBase } from './db/busqueda'
+import { buscarEnBase, evaluarEnBase } from './db/busqueda'
 import { listarIngredientes, listarTecnicas } from './db/catalogo'
 import type { BaseDatos } from './db/conexion'
 import {
@@ -305,6 +305,15 @@ export function registrarIpc(
         opciones.verBorradores,
         cuenta.estado().usuario?.id ?? null
       )
+  )
+
+  const esquemaEvaluar = z.object({ recetaId: esquemaId, preferencias: esquemaPreferencias })
+  ipcMain.handle(
+    CANALES_IPC.recetasEvaluar,
+    (_evento, datos: unknown): Resultado<ApiChef['recetas']['evaluar']> => {
+      const { recetaId, preferencias } = esquemaEvaluar.parse(datos)
+      return evaluarEnBase(db, recetaId, preferencias, opciones.verBorradores)
+    }
   )
 
   ipcMain.handle(

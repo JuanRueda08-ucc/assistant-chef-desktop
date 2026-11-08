@@ -2,7 +2,6 @@
   import { escalarReceta } from '@shared/recetas/escalado'
   import { recuentoDisponibilidad } from '@shared/recetas/disponibilidad'
   import {
-    estadoIngredienteGenerado,
     ingredientesConLibres,
     type EstadoIngredienteGenerado
   } from '@shared/recetas/receta-generada'
@@ -15,7 +14,7 @@
   import Icono from '../componentes/Icono.svelte'
   import { app } from '../estado/app.svelte'
   import { fotoDe } from '../lib/fotos'
-  import { describirIngrediente } from '../lib/medidas'
+  import { ingredientesConEstado } from '../lib/disponibilidad-receta'
   import { unirLista } from '@shared/recetas/lista'
 
   // Elegir (rediseño 43): tarjetas para comparar de un vistazo y, arriba, pedir ideas al chef. Al
@@ -81,29 +80,11 @@
       : null
   )
 
-  const ingredientes = $derived.by(() => {
-    if (!escalada || !actual) return []
-    const faltan = new Map(actual.faltantes.map((f) => [f.ingredienteId, f]))
-    return escalada.ingredientes.map((ir) => {
-      const catalogo = app.catalogoCompleto.find((i) => i.id === ir.ingredienteId)
-      const faltante = faltan.get(ir.ingredienteId)
-      const estado: EstadoIngredienteGenerado = faltante
-        ? 'falta'
-        : estadoIngredienteGenerado(ir, catalogo, app.preferencias)
-      return {
-        id: ir.id,
-        estado,
-        sustituciones: faltante?.sustituciones ?? [],
-        ...describirIngrediente({
-          cantidad: ir.cantidad,
-          unidad: ir.unidad,
-          ingrediente: catalogo,
-          idIngrediente: ir.ingredienteId,
-          preparacion: null
-        })
-      }
-    })
-  })
+  const ingredientes = $derived(
+    escalada && actual
+      ? ingredientesConEstado(escalada, actual.faltantes, app.catalogoCompleto, app.preferencias)
+      : []
+  )
   const ETIQUETA_ESTADO: Record<EstadoIngredienteGenerado, string> = {
     tienes: 'Lo tienes',
     basico: 'Básico',
