@@ -1,234 +1,245 @@
 <script lang="ts">
+  import { onMount } from 'svelte'
   import { USUARIO_LOCAL } from '@shared/types/cuenta'
+  import type { ResumenReceta } from '@shared/types/ipc'
   import Boton from '../componentes/Boton.svelte'
   import ChefBlob from '../componentes/ChefBlob.svelte'
   import Icono from '../componentes/Icono.svelte'
   import { app } from '../estado/app.svelte'
   import { fotoDe } from '../lib/fotos'
+  import { saludoDelChef } from '../lib/saludos'
 
-  // Inicio (pedido del autor, 2026-11-08): desde aquí se empieza, se sigue una receta a medias o se
-  // abre una guardada. Es la primera pantalla al abrir la app y la casita del menú.
+  // Inicio, opción A «Conversación» (elegida por el autor el 2026-11-08): el chef pregunta si vamos a
+  // cocinar. «Sí» lleva a la despensa; debajo, Mis recetas y hablar con el chef, del mismo tamaño.
   const usuario = $derived(app.cuenta?.usuario ?? null)
-  const saludo = $derived(
-    usuario && usuario.id !== USUARIO_LOCAL.id ? `¡Hola, ${usuario.nombre}!` : '¡Hola!'
-  )
+  const nombre = $derived(usuario && usuario.id !== USUARIO_LOCAL.id ? usuario.nombre : null)
+  // Cambia cada vez que se entra a Inicio.
+  const azar = Math.random()
+  const saludo = $derived(saludoDelChef(new Date().getHours(), azar, nombre))
   const enCurso = $derived(app.sesion?.fase === 'cocinar' ? app.sesion : null)
-  const despensa = $derived([
-    ...app.catalogo
-      .filter((i) => !i.esBasicoDespensa && app.preferencias.ingredientes.includes(i.id))
-      .map((i) => i.nombre),
-    ...app.preferencias.ingredientesSinIdentificar
-  ])
-  const guardadas = $derived(app.misRecetas.slice(0, 3))
+
+  // Fotos para inspirarse: cuatro recetas guardadas al azar, distintas cada vez.
+  let inspiracion = $state.raw<ResumenReceta[]>([])
+  onMount(() => {
+    window.api.recetas
+      .listar()
+      .then((recetas) => {
+        inspiracion = recetas
+          .filter((r) => fotoDe(r.imagen))
+          .map((r) => ({ r, orden: Math.random() }))
+          .sort((a, b) => a.orden - b.orden)
+          .slice(0, 4)
+          .map(({ r }) => r)
+      })
+      .catch(() => {})
+  })
+
+  // Dibujos de línea alrededor del chef, en lugar de un brillo de fondo.
+  // Solo a los lados: nunca detrás del texto ni de los botones.
+  const DIBUJOS = [
+    { icono: 'verduras', x: 12, y: 6, giro: -18, tam: 54 },
+    { icono: 'lacteos', x: 22, y: 28, giro: 6, tam: 40 },
+    { icono: 'olla', x: 5, y: 46, giro: 8, tam: 58 },
+    { icono: 'cereales', x: 15, y: 72, giro: 14, tam: 44 },
+    { icono: 'frutas', x: 80, y: 6, giro: 12, tam: 50 },
+    { icono: 'proteinas', x: 90, y: 24, giro: 20, tam: 42 },
+    { icono: 'especias', x: 76, y: 48, giro: -10, tam: 46 },
+    { icono: 'legumbres', x: 88, y: 70, giro: -14, tam: 48 }
+  ] as const
+
+  function hablarConElChef(): void {
+    app.irA('preparar')
+    app.chatAbierto = true
+  }
 </script>
 
 <main class="inicio">
-  <section class="bienvenida" aria-labelledby="titulo-inicio">
-    <ChefBlob pose="hablando" tamano={150} />
-    <div class="texto">
-      <h1 id="titulo-inicio">{saludo} ¿Qué cocinamos hoy?</h1>
-      <p>Dime qué tienes y te propongo recetas, o deja que el chef invente una.</p>
-      <div class="acciones">
-        <Boton onclick={() => app.irA('preparar')}>Empezar con lo que tengo</Boton>
-        <Boton variante="oscuro" onclick={() => app.ideasDesdeInicio()}
-          ><Icono nombre="chispa" />Pedir ideas al chef</Boton
+  <div class="dibujos" aria-hidden="true">
+    {#each DIBUJOS as d (d.icono)}
+      <span style:left="{d.x}%" style:top="{d.y}%" style:rotate="{d.giro}deg"
+        ><Icono nombre={d.icono} tamano={d.tam} /></span
+      >
+    {/each}
+  </div>
+
+  <section class="centro" aria-labelledby="titulo-inicio">
+    <div class="chef">
+      <ChefBlob pose="hablando" tamano={170} />
+      <p class="globo">{saludo}</p>
+    </div>
+    <h1 id="titulo-inicio">¿Listo para cocinar hoy?</h1>
+    <p class="sub">Dime qué tienes y te ayudo a elegir, paso a paso.</p>
+
+    <div class="acciones">
+      <Boton ancho onclick={() => app.irA('preparar')}>¡Sí, vamos!</Boton>
+      <div class="pareja">
+        <Boton variante="secundario" ancho onclick={() => app.abrirMisRecetas()}
+          ><Icono nombre="tecnica" />Mis recetas</Boton
+        >
+        <Boton variante="oscuro" ancho onclick={hablarConElChef}
+          ><Icono nombre="microfono" />Hablar con el chef</Boton
         >
       </div>
     </div>
+
+    {#if enCurso?.recetaAdaptada}
+      <button type="button" class="en-curso" onclick={() => app.irA('cocinar')}>
+        <Icono nombre="olla" />
+        <span
+          >Tienes a medias <b>{enCurso.recetaAdaptada.titulo}</b> · paso {enCurso.pasoActual} de {enCurso
+            .recetaAdaptada.pasos.length}</span
+        >
+        <span class="seguir">Seguir</span>
+      </button>
+    {/if}
   </section>
 
-  {#if enCurso?.recetaAdaptada}
-    <section class="tarjeta en-curso" aria-labelledby="titulo-en-curso">
-      <div>
-        <h2 id="titulo-en-curso">Tienes una receta a medias</h2>
-        <p>
-          {enCurso.recetaAdaptada.titulo} · paso {enCurso.pasoActual} de {enCurso.recetaAdaptada
-            .pasos.length}
-        </p>
-      </div>
-      <Boton onclick={() => app.irA('cocinar')}>Seguir cocinando</Boton>
+  {#if inspiracion.length > 0}
+    <section class="inspiracion" aria-labelledby="titulo-inspiracion">
+      <h2 id="titulo-inspiracion">Para inspirarte hoy</h2>
+      <ul>
+        {#each inspiracion as r (r.id)}
+          <li>
+            <img src={fotoDe(r.imagen)!.url} alt="" />
+            <span>{r.titulo}</span>
+          </li>
+        {/each}
+      </ul>
     </section>
   {/if}
-
-  <div class="columnas">
-    <section class="tarjeta" aria-labelledby="titulo-despensa">
-      <div class="fila">
-        <h2 id="titulo-despensa">Tu despensa</h2>
-        <button type="button" class="enlace" onclick={() => app.irA('preparar')}>Editar</button>
-      </div>
-      {#if despensa.length > 0}
-        <ul class="chips">
-          {#each despensa.slice(0, 8) as nombre (nombre)}<li>{nombre}</li>{/each}
-          {#if despensa.length > 8}<li class="mas">y {despensa.length - 8} más</li>{/if}
-        </ul>
-      {:else}
-        <p class="vacio">Todavía no has añadido ingredientes.</p>
-      {/if}
-    </section>
-
-    <section class="tarjeta" aria-labelledby="titulo-guardadas">
-      <div class="fila">
-        <h2 id="titulo-guardadas">Mis recetas</h2>
-        {#if app.misRecetas.length > 0}
-          <button type="button" class="enlace" onclick={() => app.abrirMisRecetas()}
-            >Ver todas</button
-          >
-        {/if}
-      </div>
-      {#if guardadas.length > 0}
-        <ul class="guardadas">
-          {#each guardadas as { receta } (receta.id)}
-            <li>
-              <button type="button" onclick={() => app.abrirMisRecetas(receta.id)}>
-                <span class="miniatura">
-                  {#if fotoDe(receta.imagen)}<img
-                      src={fotoDe(receta.imagen)!.url}
-                      alt=""
-                    />{:else}<ChefBlob pose="busto" tamano={48} />{/if}
-                </span>
-                <span class="nombre">{receta.titulo}</span>
-              </button>
-            </li>
-          {/each}
-        </ul>
-      {:else}
-        <p class="vacio">Cuando termines una receta del chef, podrás guardarla aquí.</p>
-      {/if}
-    </section>
-  </div>
 </main>
 
 <style>
   .inicio {
+    position: relative;
     display: flex;
     flex-direction: column;
+    justify-content: space-between;
     gap: var(--espacio-5);
-    padding: var(--espacio-2) var(--espacio-6) var(--espacio-6);
+    padding: 0 var(--espacio-6) var(--espacio-6);
     min-height: 0;
     overflow-y: auto;
   }
-  .bienvenida {
+  .dibujos {
+    position: absolute;
+    inset: 0 var(--espacio-6) 180px;
+    pointer-events: none;
+    color: var(--color-tinta);
+    opacity: 0.16;
+  }
+  .dibujos span {
+    position: absolute;
+  }
+  .centro {
+    position: relative;
     display: flex;
+    flex-direction: column;
     align-items: center;
-    gap: var(--espacio-6);
-    padding: var(--espacio-5) var(--espacio-6);
-    background: var(--color-acento-suave);
-    border-radius: var(--radio-xl);
+    text-align: center;
+    gap: var(--espacio-3);
+  }
+  .chef {
+    position: relative;
+  }
+  .globo {
+    position: absolute;
+    left: 150px;
+    top: 4px;
+    margin: 0;
+    padding: var(--espacio-2) var(--espacio-4);
+    background: var(--color-superficie);
+    border: var(--trazo) solid var(--color-tinta);
+    border-radius: var(--radio-m) var(--radio-m) var(--radio-m) 4px;
+    font-weight: var(--peso-fuerte);
+    white-space: nowrap;
+    animation: aparecer 400ms 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
+  }
+  @keyframes aparecer {
+    from {
+      opacity: 0;
+      transform: translateY(6px) scale(0.96);
+    }
   }
   h1 {
-    font-size: 36px;
-    line-height: 1.1;
+    font-size: 46px;
+    line-height: 1.05;
   }
-  .texto p {
-    margin: var(--espacio-2) 0 var(--espacio-4);
+  .sub {
+    margin: 0;
     color: var(--color-tinta-suave);
     font-size: var(--texto-m);
   }
   .acciones {
+    width: min(560px, 100%);
     display: flex;
-    flex-wrap: wrap;
+    flex-direction: column;
     gap: var(--espacio-3);
+    margin-top: var(--espacio-2);
   }
-  .tarjeta {
-    background: var(--color-superficie);
-    border-radius: var(--radio-l);
-    padding: var(--espacio-5);
+  /* Los tres botones con la misma altura (pedido del autor). */
+  .acciones :global(.boton) {
+    min-height: 60px;
+  }
+  .pareja {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: var(--espacio-3);
   }
   .en-curso {
     display: flex;
     align-items: center;
-    justify-content: space-between;
-    gap: var(--espacio-4);
-    border: var(--trazo) solid var(--color-tinta);
-  }
-  .en-curso p {
-    margin: 4px 0 0;
-    color: var(--color-tinta-suave);
-  }
-  .columnas {
-    display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--espacio-5);
-  }
-  h2 {
-    font-size: var(--texto-l);
-  }
-  .fila {
-    display: flex;
-    align-items: baseline;
-    justify-content: space-between;
-    margin-bottom: var(--espacio-3);
-  }
-  .enlace {
-    font: inherit;
-    font-weight: var(--peso-fuerte);
-    color: var(--color-tinta);
-    background: none;
-    border: 0;
-    text-decoration: underline;
-    cursor: pointer;
-  }
-  ul {
-    list-style: none;
-    margin: 0;
-    padding: 0;
-  }
-  .chips {
-    display: flex;
-    flex-wrap: wrap;
-    gap: var(--espacio-2);
-  }
-  .chips li {
-    padding: 6px var(--espacio-3);
-    border-radius: var(--radio-m);
-    background: var(--color-acento-suave);
-    font-weight: var(--peso-fuerte);
-    font-size: var(--texto-s);
-  }
-  .chips .mas {
-    background: var(--color-relleno);
-  }
-  .guardadas {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacio-2);
-  }
-  .guardadas button {
-    width: 100%;
-    display: flex;
-    align-items: center;
     gap: var(--espacio-3);
-    padding: var(--espacio-2);
+    width: min(560px, 100%);
+    padding: var(--espacio-3) var(--espacio-4);
     font: inherit;
-    font-weight: var(--peso-fuerte);
     text-align: left;
     color: var(--color-tinta);
-    background: none;
-    border: 0;
-    border-radius: var(--radio-m);
+    background: var(--color-superficie);
+    border: var(--trazo) solid var(--color-tinta);
+    border-radius: var(--radio-boton);
     cursor: pointer;
-    transition: background-color var(--transicion);
   }
-  .guardadas button:hover {
-    background: var(--color-relleno);
+  .en-curso span:first-of-type {
+    flex: 1;
   }
-  .miniatura {
-    flex: none;
-    width: 64px;
-    height: 48px;
-    border-radius: var(--radio-m);
-    overflow: hidden;
+  .seguir {
+    font-weight: var(--peso-fuerte);
+    text-decoration: underline;
+  }
+  .inspiracion {
+    position: relative;
     display: grid;
-    place-items: center;
-    background: var(--color-acento-suave);
+    grid-template-columns: 130px repeat(4, 1fr);
+    gap: var(--espacio-4);
+    align-items: center;
   }
-  .miniatura img {
+  .inspiracion h2 {
+    font-size: var(--texto-l);
+  }
+  .inspiracion ul {
+    display: contents;
+    list-style: none;
+  }
+  .inspiracion li {
+    position: relative;
+    height: 128px;
+    border-radius: var(--radio-l);
+    overflow: hidden;
+  }
+  .inspiracion img {
     width: 100%;
     height: 100%;
     object-fit: cover;
+    display: block;
   }
-  .vacio {
-    margin: 0;
-    color: var(--color-tinta-suave);
+  .inspiracion li span {
+    position: absolute;
+    left: var(--espacio-2);
+    bottom: var(--espacio-2);
+    padding: 4px var(--espacio-3);
+    border-radius: var(--radio-m);
+    background: var(--color-superficie);
+    font-size: var(--texto-xs);
+    font-weight: var(--peso-fuerte);
   }
 </style>

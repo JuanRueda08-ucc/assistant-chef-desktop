@@ -44,6 +44,18 @@
       onclick={() => app.irAlInicio()}><Icono nombre="casa" /><span>Inicio</span></button
     >
 
+    <button
+      type="button"
+      class="opcion"
+      aria-current={!app.enInicio && !app.verMisRecetas && app.pantalla === 'preparar'
+        ? 'page'
+        : undefined}
+      onclick={() => {
+        cerrar()
+        app.irA('preparar')
+      }}><Icono nombre="despensa" /><span>Tu despensa</span></button
+    >
+
     {#if recetaEnCurso}
       <button
         type="button"

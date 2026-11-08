@@ -17,7 +17,11 @@ Sobre los mismos componentes y tokens; sin nuevas maquetas.
 
 ### Inicio y avisos de temporizador (2026-11-08)
 
-- **Inicio** (`pantallas/Inicio.svelte`): primera pantalla al abrir la app, a la que se vuelve con «Inicio» en el menú, el logo o «Salir» en Cocinar. Tiene el saludo con «Empezar con lo que tengo» y «Pedir ideas al chef», «Tienes una receta a medias» si la hay, tu despensa y las últimas recetas guardadas. Sin chat: el chef aparece al empezar.
+- **Inicio** (`pantallas/Inicio.svelte`, opción A «Conversación», elegida por el autor; maquetas en `plan/diseno/rediseno-inicio.html`): es la primera pantalla al abrir la app, y se vuelve a ella con «Inicio» en el menú, el logo o «Salir» en Cocinar.
+  - **Arriba:** el chef con un globo que cambia en cada visita (`lib/saludos.ts`), «¿Listo para cocinar hoy?», «¡Sí, vamos!» (a la despensa) y debajo, del mismo alto, «Mis recetas» y «Hablar con el chef» (abre Preparar con el chat).
+  - **Abajo:** «Tienes a medias…» si la hay, y cuatro fotos al azar «Para inspirarte hoy».
+  - **Fondo:** en lugar de un brillo, dibujos de línea de ingredientes a los lados.
+  - **Menú:** Inicio, Tu despensa y Mis recetas.
 - **Aviso de temporizador** (`componentes/AvisoTemporizador.svelte`): al terminar, en cualquier pantalla, tres pitidos generados en el momento, un aviso con «Entendido» (quita el temporizador) e «Ir a la receta», el globo del chef y una notificación del sistema si la ventana no está a la vista. No usa la voz de Gemini.
 - Al guardar una receta se abre Mis recetas con ella elegida, y «Volver» lleva a Inicio.
 

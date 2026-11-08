@@ -16,6 +16,11 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-08 · Inicio, opción A
+- Al autor no le gustó el primer Inicio («muy pobre», con mucho espacio). Se le mostraron tres opciones (`plan/diseno/rediseno-inicio.html`) y eligió la A, sin «Hoy solo miro», con botones del mismo tamaño y saludos que cambien. Sobre el brillo de fondo, se propusieron dibujos de línea de ingredientes como el trazo del chef; se aplicaron, con la franja amarilla o el fondo liso como alternativas si no le convencen.
+- La despensa sale de Inicio y pasa al menú, entre Inicio y Mis recetas.
+- Verificado en la app sin sonido: los tres botones miden 60 px de alto, los saludos cambian al recargar, hay cuatro fotos, nada se desborda, el menú muestra Inicio, Tu despensa y Mis recetas, y «Hablar con el chef» abre Preparar con el chat.
+
 ### 2026-11-08 · Fallos de flujo de la prueba del autor e Inicio
 - **No se podían poner temporizadores a mano:** el botón «Poner temporizador» no enviaba el formulario (`Boton` es `type="button"` por defecto). Corregido con `tipo="submit"`.
 - **El temporizador del paso anterior seguía propuesto:** el formulario guardaba el nombre y los minutos del paso en que se abrió. Ahora se actualiza al cambiar de paso; la tarjeta ya usaba el paso actual.
