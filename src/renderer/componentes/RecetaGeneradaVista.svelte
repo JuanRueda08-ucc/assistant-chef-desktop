@@ -8,6 +8,7 @@
   import { NOMBRE_ALERGENO, NOMBRE_DIFICULTAD } from '@shared/textos'
   import type { RecetaGenerada } from '@shared/types/receta'
   import { app } from '../estado/app.svelte'
+  import { fotoDe } from '../lib/fotos'
   import { describirIngrediente } from '../lib/medidas'
   import Icono from './Icono.svelte'
 
@@ -21,6 +22,8 @@
     falta: 'Falta',
     opcional: 'Opcional'
   }
+  // Imagen creada por IA, si la hay (con facturación de Gemini); si no, no se dibuja nada.
+  const foto = $derived(fotoDe(generada.receta.imagen))
   const catalogo = $derived([...app.catalogo, ...generada.ingredientesNuevos])
   const receta = $derived(escalarReceta(generada.receta, app.preferencias.porciones).receta)
   const sinVerificar = $derived(ingredientesSinVerificar(receta, catalogo))
@@ -42,6 +45,13 @@
     })
   })
 </script>
+
+{#if foto}
+  <figure class="imagen">
+    <img src={foto.url} alt={generada.receta.titulo} />
+    <figcaption>{foto.credito}</figcaption>
+  </figure>
+{/if}
 
 <ul class="datos" aria-label="Datos de la receta">
   <li><Icono nombre="reloj" tamano={18} />{receta.tiempoTotalMin} min</li>
@@ -96,6 +106,22 @@
 </section>
 
 <style>
+  .imagen {
+    margin: 0;
+    max-width: 420px;
+  }
+  .imagen img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radio-l);
+    display: block;
+  }
+  .imagen figcaption {
+    margin-top: 4px;
+    font-size: var(--texto-xs);
+    color: var(--color-tinta-suave);
+  }
   ul {
     list-style: none;
     margin: 0;

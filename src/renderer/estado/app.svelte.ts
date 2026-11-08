@@ -490,6 +490,17 @@ class EstadoApp {
     this.recetaIdeaError = null
   }
 
+  /** La imagen llega aparte: la receta ya se puede leer y cocinar mientras tanto. */
+  private async pedirImagen(ideaId: string, recetaId: string): Promise<void> {
+    const imagen = await window.api.recetas.imagen({ recetaId }).catch(() => null)
+    const actual = this.recetasDeIdeas[ideaId]
+    if (!imagen || actual?.receta.id !== recetaId) return
+    this.recetasDeIdeas = {
+      ...this.recetasDeIdeas,
+      [ideaId]: { ...actual, receta: { ...actual.receta, imagen } }
+    }
+  }
+
   /** Escribe la receta completa de una idea (tarea 40). Solo una a la vez. */
   async generarRecetaDeIdea(idea: IdeaReceta): Promise<void> {
     if (this.ideaGenerandoId || this.recetasDeIdeas[idea.id]) return
@@ -509,6 +520,7 @@ class EstadoApp {
           ...this.recetasDeIdeas,
           [idea.id]: { receta, ingredientesNuevos }
         }
+        void this.pedirImagen(idea.id, receta.id)
       } else {
         this.recetaIdeaError = r.mensaje
       }

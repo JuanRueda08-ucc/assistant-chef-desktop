@@ -34,6 +34,12 @@ export interface ProveedorIA {
   /** Token efímero para que el cliente abra la sesión de voz en tiempo real. */
   crearTokenVoz(instalacion: string): Promise<TokenVoz>
   narrar(texto: string): Promise<AudioNarracion | null>
+  /** Imagen del plato en base64, o `null` si no hay (por ejemplo, sin cuota de imágenes). */
+  generarImagen(peticion: {
+    titulo: string
+    descripcion: string
+    ingredientes: string[]
+  }): Promise<{ datos: string; mimeType: string } | null>
   /** Lo que se dijo en un WAV en base64, para el chat. Vacío si no se entiende. */
   transcribir(audio: string): Promise<string>
   conversar(peticion: PeticionChat): Promise<unknown>

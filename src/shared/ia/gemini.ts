@@ -18,6 +18,13 @@ export const PAUSA_BUSQUEDA_MS = 10 * 60 * 1000
 /** Tiempo máximo por intento: los dos juntos quedan por debajo de los 30 s que espera main. */
 export const ESPERA_MODELO_MS = 8_000
 export const ESPERA_RESPALDO_MS = 15_000
+/**
+ * Imagen de las recetas de la IA. Ningún modelo de imagen tiene cuota en el plan gratuito
+ * (comprobado el 2026-11-08: todos dan 429); funciona al activar la facturación.
+ */
+export const MODELO_IMAGEN = 'gemini-3.1-flash-image'
+export const ESPERA_IMAGEN_MS = 40_000
+export const PAUSA_IMAGEN_MS = 10 * 60 * 1000
 /** Una receta completa es mucho más larga que un turno de chat. */
 export const ESPERA_RECETA_MS = 25_000
 export const ESPERA_RECETA_RESPALDO_MS = 40_000

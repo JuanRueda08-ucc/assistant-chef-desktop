@@ -78,6 +78,17 @@ describe('POST /voz/token', () => {
   })
 })
 
+describe('POST /recetas/imagen', () => {
+  it('sin imagen del proveedor responde null y cuenta en su propio límite', async () => {
+    const { manejar } = banco()
+    const r = await manejar(
+      post('/recetas/imagen', { titulo: 'Sopa', descripcion: 'Caliente.', ingredientes: ['papa'] })
+    )
+    expect(await r.json()).toEqual({ imagen: null })
+    expect(r.headers.get('x-limite-restantes')).toBe('19')
+  })
+})
+
 describe('POST /voz/transcribir', () => {
   it('devuelve el texto y rechaza lo que no es base64', async () => {
     const { manejar } = banco()

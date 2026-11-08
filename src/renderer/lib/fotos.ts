@@ -21,6 +21,9 @@ const porCredito = creditos as Record<string, { autor: string; fuente: string; u
 /** `null` si la receta no tiene foto o el archivo no está en la app. */
 export function fotoDe(imagen: string | null): Foto | null {
   if (!imagen) return null
+  // Las recetas de la IA pueden traer una imagen creada por IA: se dice siempre que no es una foto.
+  if (imagen.startsWith('data:image/'))
+    return { url: imagen, credito: 'Imagen creada por IA, no es una foto real', enlace: null }
   const url = archivos[`../assets/${imagen}`]
   if (!url) return null
   const id = imagen.replace(/^recetas\//, '').replace(/\.jpg$/, '')

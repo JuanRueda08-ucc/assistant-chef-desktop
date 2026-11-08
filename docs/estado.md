@@ -16,6 +16,11 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-08 · Imagen creada por IA para las recetas de la IA
+- El autor no quería el plato dibujado en las recetas de la IA y eligió una imagen creada por IA. Se comprobó con su clave: los seis modelos de imagen de Gemini dan 429 sin facturación, así que **funcionará al activarla**, igual que la búsqueda. Detalle en `ia-chef.md`.
+- Al escribir la receta, la app pide la imagen aparte; la receta se puede leer y cocinar mientras tanto. Se reduce, se guarda con la receta (sesión y Mis recetas) y se etiqueta «Imagen creada por IA, no es una foto real». Sin imagen, se muestra al chef.
+- Verificado: 517 tests, tipos y lint, y en la app con Gemini real: receta escrita en 9 s, sin imagen (429 sin facturación), sin errores en pantalla y con el chef en su lugar. **La generación real no se pudo probar** sin facturación.
+
 ### 2026-11-08 · Fotos de las 18 recetas (parte de la 18)
 - El autor eligió fotos de bancos gratuitos y autorizó descargarlas. Son 18 fotos de Pexels (licencia libre, sin atribución obligatoria) a 1000×750, unos 2 MB en total, en `src/renderer/assets/recetas/`. Están dentro de la app y no se cargan de internet. La semilla guarda la ruta en `imagen`; `renderer/lib/fotos.ts` la convierte en URL y añade el crédito de `creditos.json`, que se muestra bajo la foto del detalle. Créditos también en `db/seed/README.md`.
 - Se ven en las tarjetas de Elegir y en el detalle. Son platos parecidos, no la receta exacta; cambiar una es sustituir el archivo y su crédito.

@@ -2,6 +2,9 @@ import { z } from 'zod'
 import { ErrorProveedor } from '../error-proveedor'
 import {
   ESPERA_BUSQUEDA_MS,
+  ESPERA_IMAGEN_MS,
+  MODELO_IMAGEN,
+  PAUSA_IMAGEN_MS,
   ESPERA_MODELO_MS,
   ESPERA_RECETA_MS,
   ESPERA_RECETA_RESPALDO_MS,
@@ -245,6 +248,72 @@ export class ProveedorGemini implements ProveedorIA {
       .map((p) => p.text ?? '')
       .join('')
   }
+  /**
+   * Foto realista del plato. Sin cuota (plan gratuito) devuelve `null` y no lo reintenta en un rato:
+   * la imagen es un extra y la receta se muestra igual.
+   */
+  async generarImagen(p: {
+    titulo: string
+    descripcion: string
+    ingredientes: string[]
+  }): Promise<{ datos: string; mimeType: string } | null> {
+    if (this.ahora() < this.imagenPausadaHasta) return null
+    let bruto: unknown
+    try {
+      bruto = await this.post(
+        `models/${MODELO_IMAGEN}:generateContent`,
+        {
+          contents: [
+            {
+              role: 'user',
+              parts: [
+                {
+                  text: [
+                    `Fotografía de comida realista y apetitosa del plato casero «${p.titulo}»: ${p.descripcion}`,
+                    p.ingredientes.length ? `Lleva: ${p.ingredientes.join(', ')}.` : '',
+                    'Servido en un plato sobre una mesa de cocina, luz natural, vista en ángulo de 45 grados.',
+                    'Sin texto, sin letras, sin marcas de agua, sin personas ni manos.'
+                  ]
+                    .filter(Boolean)
+                    .join(' ')
+                }
+              ]
+            }
+          ],
+          generationConfig: { responseModalities: ['IMAGE'] }
+        },
+        ESPERA_IMAGEN_MS
+      )
+    } catch (error) {
+      if (error instanceof ErrorProveedor) {
+        this.imagenPausadaHasta = this.ahora() + PAUSA_IMAGEN_MS
+        return null
+      }
+      throw error
+    }
+    const respuesta = z
+      .object({
+        candidates: z
+          .array(
+            z.object({
+              content: z.object({
+                parts: z.array(
+                  z.object({
+                    inlineData: z.object({ mimeType: z.string(), data: z.string() }).optional()
+                  })
+                )
+              })
+            })
+          )
+          .min(1)
+      })
+      .safeParse(bruto)
+    const imagen = respuesta.success
+      ? respuesta.data.candidates[0]!.content.parts.find((x) => x.inlineData)?.inlineData
+      : undefined
+    return imagen ? { datos: imagen.data, mimeType: imagen.mimeType } : null
+  }
+
   async narrar(texto: string): Promise<AudioNarracion> {
     const bruto = z
       .object({
@@ -293,6 +362,7 @@ export class ProveedorGemini implements ProveedorIA {
   private readonly ahora: () => number
   private principalPausadoHasta = 0
   private busquedaPausadaHasta = 0
+  private imagenPausadaHasta = 0
 
   constructor(
     private readonly clave: string,

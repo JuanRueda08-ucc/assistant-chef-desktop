@@ -44,6 +44,13 @@ export { esquemaPeticionIdeas } from '@shared/esquemas/ideas'
 
 export const esquemaPeticionVoz = z.strictObject({})
 
+/** Lo necesario para imaginar el plato; nada de la cuenta. */
+export const esquemaPeticionImagen = z.strictObject({
+  titulo: z.string().trim().min(1).max(120),
+  descripcion: z.string().trim().min(1).max(400),
+  ingredientes: z.array(z.string().trim().min(1).max(80)).max(30)
+})
+
 /** Ocho segundos de PCM16 a 16 kHz en un WAV, en base64 (unos 342 KB). */
 export const esquemaPeticionTranscripcion = z.strictObject({
   audio: z.base64().min(1).max(350_000)

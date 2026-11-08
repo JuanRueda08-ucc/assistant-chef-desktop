@@ -116,6 +116,11 @@ export class ProveedorFalso implements ProveedorIA {
     this.fallarSiToca()
     return 'dame ideas'
   }
+  /** Sin red: no hay imagen y la app muestra al chef. */
+  async generarImagen(): Promise<null> {
+    this.fallarSiToca()
+    return null
+  }
   async narrar(): Promise<null> {
     this.fallarSiToca()
     return null

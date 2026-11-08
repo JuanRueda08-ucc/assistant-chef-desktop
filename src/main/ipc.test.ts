@@ -57,7 +57,8 @@ describe('voz:token IPC', () => {
           conversar,
           proponerRecetas: vi.fn(),
           generarReceta: vi.fn(),
-          transcribir: vi.fn()
+          transcribir: vi.fn(),
+          generarImagen: vi.fn()
         },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
@@ -106,7 +107,8 @@ describe('voz:token IPC', () => {
           conversar: vi.fn(),
           proponerRecetas: vi.fn(),
           generarReceta: vi.fn(),
-          transcribir: vi.fn()
+          transcribir: vi.fn(),
+          generarImagen: vi.fn()
         },
         voz,
         lector,
@@ -163,7 +165,8 @@ describe('voz:token IPC', () => {
           conversar: vi.fn(),
           proponerRecetas: vi.fn(),
           generarReceta: vi.fn(),
-          transcribir: vi.fn()
+          transcribir: vi.fn(),
+          generarImagen: vi.fn()
         },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
@@ -209,7 +212,8 @@ describe('cuenta IPC', () => {
           conversar: vi.fn(),
           proponerRecetas,
           generarReceta,
-          transcribir
+          transcribir,
+          generarImagen: vi.fn()
         },
         voz,
         { leer: vi.fn(), detener: vi.fn() },

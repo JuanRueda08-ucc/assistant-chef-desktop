@@ -155,7 +155,12 @@
           {#each ideas as idea (idea.id)}
             <li>
               <button type="button" class="tarjeta idea" onclick={() => verIdea(idea.id)}>
-                <span class="foto"><ChefBlob pose="hablando" tamano={92} /></span>
+                <span class="foto"
+                  >{#if app.recetasDeIdeas[idea.id]?.receta.imagen}<img
+                      src={app.recetasDeIdeas[idea.id]!.receta.imagen}
+                      alt=""
+                    />{:else}<ChefBlob pose="hablando" tamano={92} />{/if}</span
+                >
                 <span class="cuerpo">
                   <span class="nombre">{idea.titulo}</span>
                   <span class="datos">
@@ -179,6 +184,9 @@
                       src={fotoDe(r.receta.imagen)!.url}
                       alt=""
                       loading="lazy"
+                    />{:else if r.receta.origen === 'generada'}<ChefBlob
+                      pose="hablando"
+                      tamano={92}
                     />{:else}<span class="comida variante-{n % 3}"></span>{/if}
                 </span>
                 <span class="cuerpo">

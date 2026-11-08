@@ -10,7 +10,7 @@ describe('contadores de uso en Supabase', () => {
       .mockImplementation(async () => new Response(JSON.stringify(++usadas)))
     const limitador = new Limitador(
       new AlmacenSupabase('https://p.supabase.co', 'sb_secret_x', solicitar),
-      { voz: 1, chat: 1, recetas: 1, sustituciones: 1 }
+      { voz: 1, chat: 1, recetas: 1, sustituciones: 1, imagenes: 1 }
     )
     const ahora = Date.UTC(2026, 9, 23, 10)
     expect((await limitador.consumir('usuario:u1', 'chat', ahora)).permitido).toBe(true)

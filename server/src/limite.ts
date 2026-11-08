@@ -2,7 +2,7 @@
 // control. El almacén es intercambiable: en memoria vale para un solo proceso; en serverless con
 // varias instancias habrá que usar uno compartido (KV, Redis…) que implemente `AlmacenUso`.
 
-export const GRUPOS = ['voz', 'recetas', 'sustituciones', 'chat'] as const
+export const GRUPOS = ['voz', 'recetas', 'sustituciones', 'chat', 'imagenes'] as const
 export type Grupo = (typeof GRUPOS)[number]
 
 /** Peticiones por instalación y día. Se pueden cambiar con `LIMITE_VOZ`, `LIMITE_RECETAS`… */
@@ -10,7 +10,8 @@ export const LIMITES_POR_DEFECTO: Record<Grupo, number> = {
   voz: 40,
   chat: 120,
   recetas: 20,
-  sustituciones: 60
+  sustituciones: 60,
+  imagenes: 20
 }
 
 export interface AlmacenUso {
@@ -73,6 +74,7 @@ export function limitesDesdeEntorno(
     voz: leer('voz'),
     recetas: leer('recetas'),
     sustituciones: leer('sustituciones'),
-    chat: leer('chat')
+    chat: leer('chat'),
+    imagenes: leer('imagenes')
   }
 }

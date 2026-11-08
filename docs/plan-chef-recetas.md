@@ -58,6 +58,7 @@ Comprobado el 2026-11-06 con la clave del autor: Gemini responde sin búsqueda, 
 ## Pendiente con el autor
 
 - **Fecha:** el autor mencionó el **18 de noviembre de 2026** para su entrega o integración (dicho el 2026-11-07); hay tiempo para la interfaz (43).
+- **Imagen de las recetas de la IA:** elegida por el autor el 2026-11-08 y programada. Como la búsqueda, solo funciona con la facturación de Gemini (todos los modelos de imagen dan 429 en el plan gratuito). Cuesta unos centavos de dólar por imagen; límite propio de 20 al día.
 - **Voz para pedir recetas:** elegido y hecho el botón «Hablar» (0020). Falta su prueba con micrófono y decidir si el chef debe responder en voz alta allí.
 - **Interfaz (dicho el 2026-11-07, para después; ver `estado.md`):** la materia es Diseño de Interfaces y la interfaz no le convence: desorganizada y con demasiada información. Hay que hacer un repaso propio.
 - Revisar las 18 recetas en la app y aprobarlas; faltan también sus fotos (tarea 18).

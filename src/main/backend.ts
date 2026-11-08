@@ -62,6 +62,11 @@ export function crearClienteBackend(
   proponerRecetas: (peticion: PeticionIdeas) => Promise<Respuesta<RespuestaIdeas>>
   generarReceta: (peticion: PeticionRecetaGenerada) => Promise<Respuesta<RecetaGenerada>>
   transcribir: (audio: string) => Promise<Respuesta<{ texto: string }>>
+  generarImagen: (peticion: {
+    titulo: string
+    descripcion: string
+    ingredientes: string[]
+  }) => Promise<Respuesta<{ imagen: { datos: string; mimeType: string } | null }>>
 } {
   const base = validarApiUrl(apiUrl)
   const cabeceras = async (): Promise<Record<string, string>> => {
@@ -133,6 +138,20 @@ export function crearClienteBackend(
         fallo: 'El chef no logró escribir una receta segura con esta idea. Prueba con otra.',
         invalida: 'El chef devolvió una receta no válida. Inténtalo de nuevo.'
       }),
+    generarImagen: (peticion) =>
+      pedirDatos(
+        'recetas/imagen',
+        peticion,
+        60_000,
+        z.strictObject({
+          imagen: z.strictObject({ datos: z.string(), mimeType: z.string() }).nullable()
+        }),
+        {
+          limite: 'Has llegado al límite de imágenes de hoy.',
+          fallo: 'No se pudo crear la imagen.',
+          invalida: 'No se pudo crear la imagen.'
+        }
+      ),
     transcribir: (audio) =>
       pedirDatos('voz/transcribir', { audio }, 30_000, z.strictObject({ texto: z.string() }), {
         limite: 'Has llegado al límite de voz de hoy. Puedes seguir escribiendo.',

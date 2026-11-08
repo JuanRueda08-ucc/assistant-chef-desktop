@@ -32,6 +32,7 @@ export const CANALES_IPC = {
   recetasBuscar: 'recetas:buscar',
   recetasProponer: 'recetas:proponer',
   recetasGenerar: 'recetas:generar',
+  recetasImagen: 'recetas:imagen',
   misRecetasListar: 'mis-recetas:listar',
   misRecetasGuardar: 'mis-recetas:guardar',
   misRecetasQuitar: 'mis-recetas:quitar',
@@ -129,6 +130,11 @@ export interface ApiChef {
       idea: IdeaModelo
       preferencias: Preferencias
     }): Promise<ResultadoRecetaGenerada>
+    /**
+     * Imagen creada por IA para una receta recién escrita: data URL JPEG, o `null` si no hay (sin
+     * facturación de Gemini no hay cuota de imágenes). Queda en la receta para cocinarla y guardarla.
+     */
+    imagen(datos: { recetaId: string }): Promise<string | null>
   }
   /** Recetas de la IA que guardó la cuenta. Guardar y quitar devuelven la lista al día. */
   misRecetas: {

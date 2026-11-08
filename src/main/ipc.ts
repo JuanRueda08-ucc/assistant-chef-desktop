@@ -1,4 +1,4 @@
-import { ipcMain } from 'electron'
+import { ipcMain, nativeImage } from 'electron'
 import { z } from 'zod'
 import { esquemaId } from '@shared/esquemas/receta'
 import { PORCIONES_MAX, PORCIONES_MIN, esquemaPreferencias } from '@shared/esquemas/sesion'
@@ -39,6 +39,18 @@ import { dictado, MS_MAX_DICTADO } from './voz/dictado'
 import type { VozLocal } from './voz/local'
 import { pcmAWavBase64 } from './voz/wav'
 import type { crearLectorLocal } from './voz/lector'
+
+/**
+ * La imagen llega en PNG grande: se reduce a un JPEG de 800 px de ancho para guardarla con la
+ * receta. `null` si no es una imagen que Electron pueda leer.
+ */
+function reducirImagen(base64: string): string | null {
+  const imagen = nativeImage.createFromBuffer(Buffer.from(base64, 'base64'))
+  if (imagen.isEmpty()) return null
+  const { width } = imagen.getSize()
+  const reducida = width > 800 ? imagen.resize({ width: 800, quality: 'good' }) : imagen
+  return `data:image/jpeg;base64,${reducida.toJPEG(82).toString('base64')}`
+}
 
 /** Recetas escritas por la IA que siguen esperando a cocinarse; al cocinar pasan a la sesión. */
 const MAX_GENERADAS = 20
@@ -366,6 +378,30 @@ export function registrarIpc(
       if (generadas.size >= MAX_GENERADAS) generadas.delete(generadas.keys().next().value!)
       generadas.set(generada.receta.id, { usuarioId: usuario, generada })
       return { ok: true, ...generada }
+    }
+  )
+
+  ipcMain.handle(
+    CANALES_IPC.recetasImagen,
+    async (_evento, datos: unknown): Promise<Resultado<ApiChef['recetas']['imagen']>> => {
+      const { recetaId } = z.strictObject({ recetaId: esquemaId }).parse(datos)
+      const guardada = generadas.get(recetaId)
+      if (!guardada || guardada.usuarioId !== usuarioId()) return null
+      const { receta, ingredientesNuevos } = guardada.generada
+      if (receta.imagen) return receta.imagen
+      const nombres = [...listarIngredientes(db), ...ingredientesNuevos]
+      const respuesta = await backend.generarImagen({
+        titulo: receta.titulo,
+        descripcion: receta.descripcion,
+        ingredientes: receta.ingredientes
+          .slice(0, 30)
+          .map((ir) => nombres.find((i) => i.id === ir.ingredienteId)?.nombre ?? ir.ingredienteId)
+      })
+      if (!respuesta.ok || !respuesta.datos.imagen) return null
+      const imagen = reducirImagen(respuesta.datos.imagen.datos)
+      if (!imagen) return null
+      receta.imagen = imagen
+      return imagen
     }
   )
 

@@ -13,6 +13,7 @@ import {
 import {
   esquemaInstalacion,
   esquemaPeticionIdeas,
+  esquemaPeticionImagen,
   esquemaPeticionReceta,
   esquemaPeticionSustitucion,
   esquemaPeticionTranscripcion,
@@ -167,6 +168,21 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
           'receta_invalida',
           `La receta generada no pasó la validación dos veces: ${error}`
         )
+      }
+    },
+
+    '/recetas/imagen': {
+      grupo: 'imagenes',
+      esquema: esquemaPeticionImagen,
+      manejar: async (cuerpo: z.output<typeof esquemaPeticionImagen>) => {
+        const imagen = await delProveedor(() => dep.proveedor.generarImagen(cuerpo))
+        // Solo formatos de imagen y un tamaño razonable; lo demás se descarta sin fallar.
+        const valida =
+          imagen &&
+          /^image\/(png|jpeg|webp)$/.test(imagen.mimeType) &&
+          /^[A-Za-z0-9+/]+={0,2}$/.test(imagen.datos) &&
+          imagen.datos.length <= 8_000_000
+        return { imagen: valida ? imagen : null }
       }
     },
 
