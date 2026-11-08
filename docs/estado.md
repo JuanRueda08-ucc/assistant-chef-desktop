@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-**Siguiente: que el autor pruebe la conversación con el chef (44), el fondo 2 y el desplegable de «Para inspirarte hoy» (45, variante 1), todo hecho el 2026-11-08, sobre todo con Gemini real.** Después, lo que pida. Quedan pendientes los «Próximos pasos propuestos» de más abajo y el login (0017). **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
+**Siguiente: que el autor pruebe con Gemini real los cambios del chat (46): el mensaje al instante, el historial de chats con nombre y la vuelta de Elegir al chat.** Después, lo que pida. **Requisito de entrega (2026-11-08):** app descargable en Windows, Linux y Mac (tarea 19), y chats y Mis recetas guardados por cuenta en Supabase (0024, tarea 47, con el login). Quedan pendientes los «Próximos pasos propuestos» de más abajo. **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
 
 Todo está subido a origin/main hasta este punto. Pendientes del autor: activar la facturación de Gemini (búsqueda en internet, imágenes con IA y más cuota de voz natural), revisar las 18 recetas en borrador (18) y el login con Supabase al final (0017, `despliegue.md`).
 
@@ -20,6 +20,11 @@ Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-11-08 · Chat del chef: mensaje al instante, historial con nombre y volver al chat (46, 0024)
+- El autor probó la app y pidió tres cosas. (1) **Ver su mensaje al enviarlo:** `app.preguntaPendiente` se muestra al momento en la pantalla y en el panel, con el chef «pensando» y tres puntos. (2) **Historial de chats con nombre puesto por la IA:** `app.chats`, una lista a la izquierda con «Nuevo chat», abrir y borrar, y título con `POST /chat/titulo` (`titularChat` en Gemini y en el proveedor de prueba, canal `chef:titular`, `shared/ia/titulo.ts` con test). (3) **Volver de Elegir al chat:** con `app.volverAConversacion`, Elegir muestra «Volver al chat con el chef».
+- **Dónde guardar los chats:** el autor no quiere que se guarden en el equipo. La app se entregará descargable en Windows, Linux y Mac, y cada usuario debe tener sus chats y recetas en la nube. Decisión 0024: Supabase por cuenta con el login (tarea 47); mientras tanto, en memoria.
+- Verificado: tipos, lint y 535 tests. Un test de `ipc.test.ts` falló una vez por tiempo, con la máquina cargada, y pasa al repetirlo. En la app compilada, sin sonido, sin micrófono y con `PROVEEDOR_IA=falso`: el mensaje aparece a los 120 ms con el chef pensando; el chat sale en la lista como «Tengo pollo y arroz»; «Ver receta» → Elegir muestra «Volver al chat con el chef» y vuelve al mismo chat; «Nuevo chat» y «somos 2» dejan dos chats; se abre el anterior con sus mensajes y se borra otro sin perder el abierto. **No probado:** el título que pone Gemini real (el de prueba repite la pregunta) ni «Ver las N en Elegir» con volver (mismo código).
 
 ### 2026-11-08 · Desplegable de «Para inspirarte hoy» (45, variante 1)
 - El autor eligió la variante 1. Hecho: `componentes/DesplegableReceta.svelte`; en Inicio, las fotos pasan a ser botones. `evaluarReceta` (shared, con test) y el canal `recetas:evaluar` evalúan una sola receta con las reglas de la búsqueda: alergias, dieta, borradores y sustituciones. `app.elegirDesdeInicio` la añade a la búsqueda vigente, o crea una solo con ella, y abre su detalle en Elegir. Elegir y el desplegable comparten `lib/disponibilidad-receta.ts` (con test).

@@ -163,6 +163,7 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   | `/voz/token` | `{}` | `{ token, expiraEn }` |
   | `/voz/narrar` | `{ texto }` (máx. 2000 caracteres) | `{ audio: { datos, mimeType: 'audio/wav' } \| null }` |
   | `/chat` | `{ pantalla, contexto, mensajes }` | `{ contenido: { role: 'model', parts }, simulado }` |
+  | `/chat/titulo` | `{ pregunta, respuesta }` (primer intercambio) | `{ titulo }`, limpio y de 40 caracteres como máximo, o `null` (0024). Grupo de límite del chat |
   | `/recetas/generar` | `{ preferencias, catalogo, tecnicas?, idea? }` | `{ receta, ingredientesNuevos }` |
   | `/recetas/proponer` | `{ ingredientes, porciones, restricciones, alergias, tiempoMaxMin, nivel, equipo, excluir }` | `{ ideas, fuente, fuentes, sugerenciasBusqueda }` |
   | `/sustituciones/sugerir` | `{ ingredienteId, recetaId?, tituloReceta?, preferencias: { ingredientes?, restricciones?, alergias? }, catalogo }` | `{ sustituciones }` |

@@ -78,6 +78,8 @@ Fondo del inicio: el autor preguntó si cambiarlo. Llevar a la maqueta los dibuj
 
 ## Pendiente con el autor
 
+- **Entrega como app descargable en Windows, Linux y Mac** (dicho el 2026-11-08). Los instaladores son la tarea 19. **Los chats y las recetas de cada usuario deben guardarse en la nube por cuenta, no en el equipo:** Supabase con el login (0024, tarea 47). Hasta crear el proyecto de Supabase, los chats viven en memoria.
+
 - **Fecha:** el autor mencionó el **18 de noviembre de 2026** para su entrega o integración (dicho el 2026-11-07); hay tiempo para la interfaz (43).
 - **Imagen de las recetas de la IA:** elegida por el autor el 2026-11-08 y programada. Como la búsqueda, solo funciona con la facturación de Gemini (todos los modelos de imagen dan 429 en el plan gratuito). Cuesta unos centavos de dólar por imagen; límite propio de 20 al día.
 - **Voz para pedir recetas:** elegido y hecho el botón «Hablar» (0020). Falta su prueba con micrófono y decidir si el chef debe responder en voz alta allí.

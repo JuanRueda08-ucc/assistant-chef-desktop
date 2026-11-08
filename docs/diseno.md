@@ -40,6 +40,9 @@ Sobre los mismos componentes y tokens; sin nuevas maquetas.
 - **Cabecera:** «Nueva conversación» a la derecha cuando ya hay mensajes.
 - **Aviso de temporizador** (`componentes/AvisoTemporizador.svelte`): al terminar, en cualquier pantalla, tres pitidos generados en el momento, un aviso con «Entendido» (quita el temporizador) e «Ir a la receta», el globo del chef y una notificación del sistema si la ventana no está a la vista. No usa la voz de Gemini.
 - Al guardar una receta se abre Mis recetas con ella elegida, y «Volver» lleva a Inicio.
+- **Historial de chats** (0024, pedido del autor): una columna blanca de 250 px a la izquierda con «Nuevo chat» (amarillo), «Tus chats» y la lista. El chat abierto lleva fondo amarillo suave y el trazo de tinta; la X para borrarlo aparece al pasar el ratón y en el abierto. El nombre lo pone la IA; mientras llega, el principio de lo que escribiste. Sustituye a «Nueva conversación» de la cabecera.
+- **Tu mensaje aparece al enviarlo**, y debajo el chef con tres puntos que saltan y «El chef está pensando…». En el panel lateral también aparece al momento.
+- **Volver al chat:** si llegaste a Elegir desde el chat («Ver receta» o «Ver las N en Elegir»), el enlace de arriba dice «Volver al chat con el chef» en lugar de «Cambiar ingredientes» o «Todas las recetas».
 
 ### Pantallas separadas y menú lateral (2026-11-08, decisión 0022)
 
