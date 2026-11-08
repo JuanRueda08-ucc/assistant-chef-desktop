@@ -10,7 +10,7 @@
   "origen": "revisada",
   "estadoRevision": "borrador",
   "equipo": ["sarten"],
-  "imagen": null,
+  "imagen": "recetas/quesadillas_queso.jpg",
   "ingredientes": [
     {
       "id": "ir_1",

@@ -10,7 +10,7 @@
   "origen": "revisada",
   "estadoRevision": "borrador",
   "equipo": ["horno"],
-  "imagen": null,
+  "imagen": "recetas/pollo_horno_papas.jpg",
   "ingredientes": [
     {
       "id": "ir_1",

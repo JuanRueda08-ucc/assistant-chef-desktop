@@ -14,6 +14,7 @@
   import Globo from '../componentes/Globo.svelte'
   import Icono from '../componentes/Icono.svelte'
   import { app } from '../estado/app.svelte'
+  import { fotoDe } from '../lib/fotos'
   import { describirIngrediente } from '../lib/medidas'
   import { unirLista } from '@shared/recetas/lista'
 
@@ -24,6 +25,7 @@
   const actual = $derived(
     resultados.find((r) => r.receta.id === app.recetaVisibleId) ?? resultados[0]
   )
+  const foto = $derived(actual ? fotoDe(actual.receta.imagen) : null)
   const ideas = $derived(app.ideas?.lista ?? [])
   const ideaActual = $derived(ideas.find((i) => i.id === app.ideaVisibleId) ?? null)
   const hayContenido = $derived(
@@ -173,9 +175,11 @@
             <li>
               <button type="button" class="tarjeta" onclick={() => verReceta(r.receta.id)}>
                 <span class="foto">
-                  {#if r.receta.imagen}<img src={r.receta.imagen} alt="" />{:else}<span
-                      class="comida variante-{n % 3}"
-                    ></span>{/if}
+                  {#if fotoDe(r.receta.imagen)}<img
+                      src={fotoDe(r.receta.imagen)!.url}
+                      alt=""
+                      loading="lazy"
+                    />{:else}<span class="comida variante-{n % 3}"></span>{/if}
                 </span>
                 <span class="cuerpo">
                   <span class="nombre">{r.receta.titulo}</span>
@@ -220,22 +224,21 @@
       <article class="detalle" aria-labelledby="titulo-receta">
         <div class="contenido">
           <header class="cabeza">
-            <div class="plato" aria-hidden={actual.receta.imagen ? undefined : 'true'}>
-              {#if actual.receta.imagen}
-                <img src={actual.receta.imagen} alt="" />
-              {:else}
-                <div class="comida"></div>
-              {/if}
-            </div>
+            {#if foto}
+              <figure class="foto-detalle">
+                <img src={foto.url} alt={actual.receta.titulo} />
+                {#if foto.credito}<figcaption>{foto.credito}</figcaption>{/if}
+              </figure>
+            {:else}
+              <div class="plato" aria-hidden="true"><div class="comida"></div></div>
+            {/if}
             <div>
               {#if actual.receta.origen === 'generada'}
                 <p class="aviso-foto">Receta generada · guardada por ti</p>
               {/if}
               <h2 id="titulo-receta">{actual.receta.titulo}</h2>
               <p class="descripcion">{actual.receta.descripcion}</p>
-              {#if !actual.receta.imagen && actual.receta.origen !== 'generada'}<p
-                  class="aviso-foto"
-                >
+              {#if !foto && actual.receta.origen !== 'generada'}<p class="aviso-foto">
                   Foto pendiente
                 </p>{/if}
             </div>
@@ -523,6 +526,23 @@
     gap: var(--espacio-5);
     align-items: center;
   }
+  .foto-detalle {
+    flex: none;
+    margin: 0;
+    width: 240px;
+  }
+  .foto-detalle img {
+    width: 100%;
+    aspect-ratio: 4 / 3;
+    object-fit: cover;
+    border-radius: var(--radio-l);
+    display: block;
+  }
+  .foto-detalle figcaption {
+    margin-top: 4px;
+    font-size: var(--texto-xs);
+    color: var(--color-tinta-suave);
+  }
   .plato {
     flex: none;
     width: 116px;
@@ -532,11 +552,6 @@
     display: grid;
     place-items: center;
     overflow: hidden;
-  }
-  .plato img {
-    width: 100%;
-    height: 100%;
-    object-fit: cover;
   }
   .comida {
     width: 76%;

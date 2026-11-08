@@ -1,0 +1,92 @@
+{
+  "arepas_queso": {
+    "autor": "Christian Bolaños",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/traditional-colombian-arepas-with-scrambled-eggs-37025260/"
+  },
+  "arroz_con_pollo": {
+    "autor": "Andres Alaniz",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/chicken-and-rice-21821573/"
+  },
+  "arroz_verduras": {
+    "autor": "Speak Media Uganda",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/colorful-vegetarian-rice-dish-on-plate-33776459/"
+  },
+  "carne_molida_guisada": {
+    "autor": "Laura Oliveira",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/bowl-of-savory-minced-meat-and-vegetable-stew-34429590/"
+  },
+  "crema_zanahoria": {
+    "autor": "Natalie Goodwin",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/rustic-carrot-soup-with-fresh-herbs-33972458/"
+  },
+  "ensalada_atun": {
+    "autor": "Piriyonel Piri",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/tuna-salad-with-lettuce-cucumber-and-tomatoes-5950496/"
+  },
+  "garbanzos_espinaca": {
+    "autor": "Iva Tomic",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/cooked-food-on-black-bowl-12765333/"
+  },
+  "huevos_pericos": {
+    "autor": "Markus Winkler",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/delicious-homemade-scrambled-eggs-with-tomatoes-30855418/"
+  },
+  "lentejas_guisadas": {
+    "autor": "Vural Yavas",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/rustic-lentil-stew-with-red-bell-peppers-35646479/"
+  },
+  "panqueques": {
+    "autor": "ClickerHappy",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/selective-focus-of-pile-of-pan-cakes-730922/"
+  },
+  "pasta_atun": {
+    "autor": "Eiliv Aceron",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/tuna-salad-on-white-bowl-6896393/"
+  },
+  "pasta_tomate": {
+    "autor": "Willians Huerta",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/delicious-spaghetti-with-tomato-sauce-on-plate-36430170/"
+  },
+  "pescado_limon": {
+    "autor": "Busenur Demirkan",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/grilled-fish-with-fresh-salad-and-lemon-slice-33991134/"
+  },
+  "pollo_horno_papas": {
+    "autor": "Vincent Rivaud",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/golden-baked-chicken-with-seasoned-potatoes-34173961/"
+  },
+  "pollo_plancha_ensalada": {
+    "autor": "Piriyonel Piri",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/fresh-salad-with-grilled-meat-5950811/"
+  },
+  "quesadillas_queso": {
+    "autor": "The Castlebar",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/delicious-melted-cheese-quesadilla-15662087/"
+  },
+  "sopa_pollo": {
+    "autor": "Muhammad Khawar Nazir",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/hearty-chicken-and-potato-soup-in-a-white-bowl-36945057/"
+  },
+  "tortilla_papa": {
+    "autor": "MikeGz",
+    "fuente": "Pexels",
+    "url": "https://www.pexels.com/photo/photo-of-a-piece-of-spanish-omelette-14941247/"
+  }
+}

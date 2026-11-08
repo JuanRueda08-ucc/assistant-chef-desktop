@@ -10,7 +10,7 @@
   "origen": "revisada",
   "estadoRevision": "borrador",
   "equipo": ["olla"],
-  "imagen": null,
+  "imagen": "recetas/arroz_verduras.jpg",
   "ingredientes": [
     {
       "id": "ir_1",

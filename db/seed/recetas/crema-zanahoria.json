@@ -10,7 +10,7 @@
   "origen": "revisada",
   "estadoRevision": "borrador",
   "equipo": ["olla", "licuadora"],
-  "imagen": null,
+  "imagen": "recetas/crema_zanahoria.jpg",
   "ingredientes": [
     {
       "id": "ir_1",

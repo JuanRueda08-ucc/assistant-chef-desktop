@@ -161,7 +161,7 @@ describe('repositorio de recetas', () => {
       dietas: ['sin_gluten', 'sin_lactosa'],
       alergenos: ['apio'],
       equipo: ['olla'],
-      imagen: null
+      imagen: 'recetas/arroz_con_pollo.jpg'
     })
   })
 
