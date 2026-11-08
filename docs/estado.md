@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-**Para el próximo chat (2026-11-08): empezar por la maqueta de la tarea 44, pantalla de conversación con el chef.** El autor la aprobó como idea y quiere verla en maqueta antes de construirla, como se hizo con el inicio. Pedido completo en `plan-chef-recetas.md`, «Siguiente: conversación con el chef». Después, la vista previa de «Para inspirarte hoy» (45) y la decisión sobre el fondo del inicio. **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
+**Esperando la elección del autor sobre la maqueta de las tareas 44 y 45 y el fondo del inicio (2026-11-08).** Está en `plan/diseno/conversacion-chef.html`, con capturas en `plan/diseno/capturas-conversacion/` (sin versionar, como todo `plan/`). Conversación: A «Chat centrado», B «El chef a un lado», C «Conversación y mesa». Desplegable de «Para inspirarte hoy»: variante 1, que sube sobre el saludo, o variante 2, en la que la foto crece en su sitio. Fondo: 1, el actual; 2, con más presencia; 3, con franja amarilla. **No construir nada hasta que elija.** Después, construir según el pedido completo de `plan-chef-recetas.md`, «Siguiente: conversación con el chef». **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
 
 Todo está subido a origin/main hasta este punto. Pendientes del autor: activar la facturación de Gemini (búsqueda en internet, imágenes con IA y más cuota de voz natural), revisar las 18 recetas en borrador (18) y el login con Supabase al final (0017, `despliegue.md`).
 
@@ -20,6 +20,12 @@ Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-11-08 · Maqueta de la conversación con el chef (44), el desplegable de inspiración (45) y el fondo
+- Hechas tres opciones de pantalla de conversación, cada una al empezar y a mitad de conversación: frases sugeridas, ingredientes como etiquetas que se pueden quitar, «Para 2», tarjetas de receta con foto («Guardada» o «Idea del chef»), «Ver receta» y «Dame otras», y el campo con «Hablar».
+- Propuesta para lo pendiente de diseño: lo que el chef apunta en la despensa se marca con «Añadido a tu despensa · Deshacer», y la conversación se conserva mientras la app esté abierta, hasta pulsar «Nueva conversación».
+- Desplegable de 45 con «Lo que tienes», «Te falta», básicos que se asumen y «Elegir y cocinar», que lleva a la confirmación de Elegir. Dos variantes de colocación.
+- Capturas renderizadas con Electron, `--mute-audio` y `CHEF_SIN_SONIDO=1`, sin micrófono. Falta la elección del autor.
 
 ### 2026-11-08 · Siguiente: conversación con el chef (cierre de este chat)
 - El autor pidió una **pantalla de conversación aparte**, como ChatGPT, además del panel lateral. Se le propuso un diseño (abajo, en el plan) y lo aprobó; quiere maqueta primero.
