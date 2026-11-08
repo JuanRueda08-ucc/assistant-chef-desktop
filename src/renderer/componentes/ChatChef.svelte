@@ -76,7 +76,10 @@
             : 'Dile qué tienes, para cuántos cocinas o qué te apetece, y busca recetas contigo.'}
         </p>
       {/each}
-      {#if app.chatOcupado}<p class="estado">El chef está revisando tu petición…</p>{/if}
+      {#if app.preguntaPendiente}<p class="tu">
+          <span class="quien">Tú</span>{app.preguntaPendiente}
+        </p>{/if}
+      {#if app.chatOcupado}<p class="estado">El chef está pensando…</p>{/if}
       {#if app.confirmacionIngredientes}
         <div class="confirmar" role="group" aria-label="Qué hacer con los ingredientes">
           <Boton onclick={() => void app.resolverIngredientes('reemplazar')}

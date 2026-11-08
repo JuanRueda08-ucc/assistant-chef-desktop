@@ -25,6 +25,7 @@ import { filtrarSugerencias } from './sugerencias'
 import { validarRecetaGenerada } from './validar-receta'
 import { esquemaPeticionNarracion, esquemaRespuestaNarracion } from '@shared/esquemas/voz'
 import { esquemaPeticionChat, esquemaRespuestaChat } from '@shared/ia/chat'
+import { esquemaPeticionTitulo, limpiarTitulo } from '@shared/ia/titulo'
 import { esquemaCodigoErrorProveedor } from '@shared/ia/errores'
 import { ErrorProveedor } from './error-proveedor'
 
@@ -111,6 +112,14 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
             simulado: dep.proveedor.nombre === 'falso'
           })
         )
+    },
+    '/chat/titulo': {
+      grupo: 'chat',
+      esquema: esquemaPeticionTitulo,
+      manejar: async (cuerpo: z.output<typeof esquemaPeticionTitulo>) =>
+        delProveedor(async () => ({
+          titulo: limpiarTitulo(await dep.proveedor.titularChat(cuerpo))
+        }))
     },
     '/voz/narrar': {
       grupo: 'voz',

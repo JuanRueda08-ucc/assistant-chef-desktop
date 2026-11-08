@@ -4,6 +4,7 @@ import { esquemaId } from '@shared/esquemas/receta'
 import { PORCIONES_MAX, PORCIONES_MIN, esquemaPreferencias } from '@shared/esquemas/sesion'
 import { esquemaLlamadaHerramienta } from '@shared/ia/herramientas'
 import { esquemaChatIpc } from '@shared/ia/chat'
+import { esquemaPeticionTitulo } from '@shared/ia/titulo'
 import { contextoCompacto } from '@shared/ia/contexto'
 import { esquemaGenerarIpc, esquemaProponerIpc } from '@shared/esquemas/ideas'
 import { conEtiquetas } from '@shared/recetas/etiquetas'
@@ -127,6 +128,15 @@ export function registrarIpc(
     return usuario ? obtenerSesionCocinando(db, usuario.id) : null
   }
 
+  ipcMain.handle(
+    CANALES_IPC.chefTitular,
+    async (_evento, datos: unknown): Promise<Resultado<ApiChef['chef']['titular']>> => {
+      const peticion = esquemaPeticionTitulo.parse(datos)
+      usuarioId()
+      const respuesta = await backend.titularChat(peticion)
+      return respuesta.ok ? respuesta.datos.titulo : null
+    }
+  )
   ipcMain.handle(CANALES_IPC.chefConversar, async (_evento, datos: unknown) => {
     const peticion = esquemaChatIpc.parse(datos)
     let contexto: string

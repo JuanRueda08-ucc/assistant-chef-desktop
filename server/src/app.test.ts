@@ -436,3 +436,17 @@ describe('límite de uso por instalación', () => {
     expect((await manejar(post('/recetas/generar', cuerpoReceta()))).status).toBe(200)
   })
 })
+
+describe('POST /chat/titulo', () => {
+  it('devuelve un título limpio y rechaza una pregunta vacía', async () => {
+    const { manejar } = banco()
+    const r = await leer(
+      await manejar(
+        post('/chat/titulo', { pregunta: '«tengo pollo y arroz».', respuesta: 'Bien.' })
+      )
+    )
+    expect(r).toMatchObject({ estado: 200, cuerpo: { titulo: 'Tengo pollo y arroz' } })
+    const mal = await leer(await manejar(post('/chat/titulo', { pregunta: ' ', respuesta: '' })))
+    expect(mal.estado).toBe(400)
+  })
+})

@@ -98,9 +98,15 @@
     <div class="rejilla-vista">
       <div class="titulo-fila">
         <div>
-          <button type="button" class="volver" onclick={() => app.irA('preparar')}
-            ><Icono nombre="atras" tamano={16} />Cambiar ingredientes</button
-          >
+          {#if app.volverAConversacion}
+            <button type="button" class="volver" onclick={() => app.abrirConversacion()}
+              ><Icono nombre="atras" tamano={16} />Volver al chat con el chef</button
+            >
+          {:else}
+            <button type="button" class="volver" onclick={() => app.irA('preparar')}
+              ><Icono nombre="atras" tamano={16} />Cambiar ingredientes</button
+            >
+          {/if}
           <h1>¿Qué cocinamos?</h1>
         </div>
         {#if conQue}<p class="con-que">Con {conQue}</p>{/if}
@@ -198,9 +204,16 @@
       {/if}
     </div>
   {:else}
-    <button type="button" class="volver" onclick={() => (app.elegirDetalle = false)}
-      ><Icono nombre="atras" tamano={16} />Todas las recetas</button
-    >
+    <!-- Desde el chat, «volver» lleva al chat (pedido del autor, 2026-11-08). -->
+    {#if app.volverAConversacion}
+      <button type="button" class="volver" onclick={() => app.abrirConversacion()}
+        ><Icono nombre="atras" tamano={16} />Volver al chat con el chef</button
+      >
+    {:else}
+      <button type="button" class="volver" onclick={() => (app.elegirDetalle = false)}
+        ><Icono nombre="atras" tamano={16} />Todas las recetas</button
+      >
+    {/if}
     {#if ideaActual && app.ideas}
       <DetalleIdea
         idea={ideaActual}

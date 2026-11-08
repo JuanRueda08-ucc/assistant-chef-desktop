@@ -7,6 +7,7 @@ import type { Ingrediente, Receta, RecetaGenerada } from './receta'
 import type { Preferencias, SesionCocina } from './sesion'
 import type { AudioNarracion, RespuestaTokenVoz, ResultadoVosk, ResultadoVozLocal } from './voz'
 import type { PeticionChatIpc, RespuestaChat } from '../ia/chat'
+import type { PeticionTitulo } from '../ia/titulo'
 import type {
   DatosCodigo,
   DatosEntrar,
@@ -26,6 +27,7 @@ export const CANALES_IPC = {
   cuentaRecuperar: 'cuenta:recuperar',
   cuentaRestablecer: 'cuenta:restablecer',
   chefConversar: 'chef:conversar',
+  chefTitular: 'chef:titular',
   catalogoIngredientes: 'catalogo:ingredientes',
   recetasListar: 'recetas:listar',
   recetasObtener: 'recetas:obtener',
@@ -96,7 +98,11 @@ export interface ApiChef {
     recuperar(datos: { email: string }): Promise<ResultadoCuenta>
     restablecer(datos: DatosRestablecer): Promise<ResultadoCuenta>
   }
-  chef: { conversar(datos: PeticionChatIpc): Promise<RespuestaChat> }
+  chef: {
+    conversar(datos: PeticionChatIpc): Promise<RespuestaChat>
+    /** Título del chat que propone la IA con su primer intercambio; `null` si no llega. */
+    titular(datos: PeticionTitulo): Promise<string | null>
+  }
   voz: {
     /** Main añade X-Instalacion; el renderer no envía URLs ni identificadores. */
     token(datos: Record<string, never>): Promise<RespuestaTokenVoz>

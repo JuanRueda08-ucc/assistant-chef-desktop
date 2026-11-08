@@ -73,262 +73,461 @@
 </script>
 
 <main class="conversacion">
-  <div class="hilo" bind:this={hilo} aria-live="polite" aria-label="Conversación con el chef">
-    <div class="columna">
-      {#if app.conversacion.length === 0}
-        <section class="vacio" aria-labelledby="titulo-conversacion">
-          <ChefBlob pose="hablando" tamano={170} />
-          <h1 id="titulo-conversacion">¿Qué cocinamos hoy?</h1>
-          <p>Cuéntame qué tienes, para cuántos y cuánto tiempo. Yo te propongo recetas.</p>
-        </section>
-      {/if}
+  <nav class="historial" aria-label="Tus chats con el chef">
+    <button
+      type="button"
+      class="nuevo"
+      disabled={app.chatOcupado || app.conversacion.length === 0}
+      onclick={() => app.nuevaConversacion()}><Icono nombre="mas" />Nuevo chat</button
+    >
+    {#if app.chats.length}
+      <h2>Tus chats</h2>
+      <ul>
+        {#each app.chats as chat (chat.id)}
+          <li class:actual={chat.id === app.chatActualId}>
+            <button
+              type="button"
+              class="abrir"
+              aria-current={chat.id === app.chatActualId ? 'true' : undefined}
+              disabled={app.chatOcupado && chat.id !== app.chatActualId}
+              title={chat.titulo}
+              onclick={() => app.abrirChat(chat.id)}>{chat.titulo}</button
+            >
+            <button
+              type="button"
+              class="borrar"
+              aria-label="Borrar el chat «{chat.titulo}»"
+              title="Borrar"
+              disabled={app.chatOcupado}
+              onclick={() => app.borrarChat(chat.id)}><Icono nombre="cerrar" tamano={16} /></button
+            >
+          </li>
+        {/each}
+      </ul>
+    {:else}
+      <p class="sin-chats">Aquí aparecerán tus chats, cada uno con su nombre.</p>
+    {/if}
+  </nav>
 
-      {#each app.conversacion as turno, n (n)}
-        {@const etiquetas = etiquetasVigentes(turno.cambios, despensa)}
-        {#if turno.pregunta}<p class="yo">{turno.pregunta}</p>{/if}
-        <div class="chef">
-          <ChefBlob pose="busto" tamano={46} />
-          <div class="cuerpo">
-            <p>{turno.respuesta}</p>
+  <div class="chat">
+    <div class="hilo" bind:this={hilo} aria-live="polite" aria-label="Conversación con el chef">
+      <div class="columna">
+        {#if app.conversacion.length === 0 && !app.preguntaPendiente}
+          <section class="vacio" aria-labelledby="titulo-conversacion">
+            <ChefBlob pose="hablando" tamano={170} />
+            <h1 id="titulo-conversacion">¿Qué cocinamos hoy?</h1>
+            <p>Cuéntame qué tienes, para cuántos y cuánto tiempo. Yo te propongo recetas.</p>
+          </section>
+        {/if}
 
-            {#if hayCambios(etiquetas)}
-              <ul class="etiquetas" aria-label="Lo que añadí a tu despensa">
-                {#each etiquetas.ingredientes as id (id)}
-                  <li>
-                    {nombreDe(id)}
+        {#each app.conversacion as turno, n (n)}
+          {@const etiquetas = etiquetasVigentes(turno.cambios, despensa)}
+          {#if turno.pregunta}<p class="yo">{turno.pregunta}</p>{/if}
+          <div class="chef">
+            <ChefBlob pose="busto" tamano={46} />
+            <div class="cuerpo">
+              <p>{turno.respuesta}</p>
+
+              {#if hayCambios(etiquetas)}
+                <ul class="etiquetas" aria-label="Lo que añadí a tu despensa">
+                  {#each etiquetas.ingredientes as id (id)}
+                    <li>
+                      {nombreDe(id)}
+                      <button
+                        type="button"
+                        aria-label="Quitar {nombreDe(id)}"
+                        disabled={ocupado}
+                        onclick={() => app.quitarIngrediente({ id })}
+                        ><Icono nombre="cerrar" tamano={14} /></button
+                      >
+                    </li>
+                  {/each}
+                  {#each etiquetas.sinIdentificar as libre (libre)}
+                    <li class="libre" title="Fuera del catálogo: alérgenos sin verificar">
+                      {libre}
+                      <button
+                        type="button"
+                        aria-label="Quitar {libre}"
+                        disabled={ocupado}
+                        onclick={() => app.quitarIngrediente({ libre })}
+                        ><Icono nombre="cerrar" tamano={14} /></button
+                      >
+                    </li>
+                  {/each}
+                  {#if etiquetas.porciones !== null}
+                    <li class="porciones">
+                      <Icono nombre="personas" tamano={18} />Para {etiquetas.porciones}
+                    </li>
+                  {/if}
+                </ul>
+                {#if etiquetas.ingredientes.length || etiquetas.sinIdentificar.length}
+                  <p class="apunte">
+                    <Icono nombre="check" tamano={18} />Añadido a tu despensa ·
                     <button
                       type="button"
-                      aria-label="Quitar {nombreDe(id)}"
+                      class="enlace"
                       disabled={ocupado}
-                      onclick={() => app.quitarIngrediente({ id })}
-                      ><Icono nombre="cerrar" tamano={14} /></button
+                      onclick={() => deshacer(etiquetas)}>Deshacer</button
                     >
-                  </li>
-                {/each}
-                {#each etiquetas.sinIdentificar as libre (libre)}
-                  <li class="libre" title="Fuera del catálogo: alérgenos sin verificar">
-                    {libre}
-                    <button
-                      type="button"
-                      aria-label="Quitar {libre}"
-                      disabled={ocupado}
-                      onclick={() => app.quitarIngrediente({ libre })}
-                      ><Icono nombre="cerrar" tamano={14} /></button
-                    >
-                  </li>
-                {/each}
-                {#if etiquetas.porciones !== null}
-                  <li class="porciones">
-                    <Icono nombre="personas" tamano={18} />Para {etiquetas.porciones}
-                  </li>
-                {/if}
-              </ul>
-              {#if etiquetas.ingredientes.length || etiquetas.sinIdentificar.length}
-                <p class="apunte">
-                  <Icono nombre="check" tamano={18} />Añadido a tu despensa ·
-                  <button
-                    type="button"
-                    class="enlace"
-                    disabled={ocupado}
-                    onclick={() => deshacer(etiquetas)}>Deshacer</button
-                  >
-                </p>
-                {#if n === app.conversacion.length - 1 && !turno.recetas}
-                  <button
-                    type="button"
-                    class="accion"
-                    disabled={ocupado}
-                    onclick={() => void app.buscarDesdeConversacion()}
-                    ><Icono nombre="buscar" />Buscar recetas con esto</button
-                  >
-                {/if}
-              {/if}
-            {/if}
-
-            {#if turno.recetas && n === ultimoConRecetas}
-              {#if !recetasVigentes}
-                {#if !ofreceBuscar}
-                  <div class="aviso">
-                    <p>Cambió tu despensa o tus preferencias después de buscar.</p>
+                  </p>
+                  {#if n === app.conversacion.length - 1 && !turno.recetas}
                     <button
                       type="button"
                       class="accion"
                       disabled={ocupado}
                       onclick={() => void app.buscarDesdeConversacion()}
-                      ><Icono nombre="repetir" />Buscar de nuevo</button
-                    >
-                  </div>
-                {/if}
-              {:else}
-                {#if guardadas.length || ideas.length}
-                  <ul class="tarjetas" aria-label="Recetas propuestas">
-                    {#each guardadas as r (r.receta.id)}
-                      {@const foto = fotoDe(r.receta.imagen)}
-                      <li class="tarjeta">
-                        <span class="foto">
-                          {#if foto}<img src={foto.url} alt="" />{:else}<ChefBlob
-                              pose="hablando"
-                              tamano={92}
-                            />{/if}
-                          <span class="origen"
-                            >{r.receta.origen === 'generada'
-                              ? 'De Mis recetas'
-                              : r.receta.estadoRevision === 'borrador'
-                                ? 'Guardada · sin revisar'
-                                : 'Guardada'}</span
-                          >
-                        </span>
-                        <span class="info">
-                          <b>{r.receta.titulo}</b>
-                          <span class="meta"
-                            >{r.receta.tiempoTotalMin} min · {NOMBRE_DIFICULTAD[
-                              r.receta.dificultad
-                            ].toLocaleLowerCase('es')}</span
-                          >
-                          <span class="faltan" class:completa={r.faltantes.length === 0}
-                            >{textoFaltan(r.faltantes.length)}</span
-                          >
-                          <button
-                            type="button"
-                            class="ver"
-                            onclick={() => app.verEnElegir({ recetaId: r.receta.id })}
-                            >Ver receta</button
-                          >
-                        </span>
-                      </li>
-                    {/each}
-                    {#each ideas as idea (idea.id)}
-                      {@const imagen = app.recetasDeIdeas[idea.id]?.receta.imagen}
-                      <li class="tarjeta">
-                        <span class="foto idea">
-                          {#if imagen}<img src={imagen} alt="" />{:else}<ChefBlob
-                              pose="hablando"
-                              tamano={92}
-                            />{/if}
-                          <span class="origen">Idea del chef</span>
-                        </span>
-                        <span class="info">
-                          <b>{idea.titulo}</b>
-                          <span class="meta">{idea.tiempoTotalMin} min</span>
-                          <span class="faltan" class:completa={idea.faltan.length === 0}
-                            >{textoFaltan(idea.faltan.length)}</span
-                          >
-                          <button
-                            type="button"
-                            class="ver"
-                            onclick={() => app.verEnElegir({ ideaId: idea.id })}>Ver receta</button
-                          >
-                        </span>
-                      </li>
-                    {/each}
-                  </ul>
-                {/if}
-                {#if app.ideasCargando}
-                  <p class="estado">El chef está pensando ideas…</p>
-                {:else if app.ideasError}
-                  <p class="error" role="alert">{app.ideasError}</p>
-                {/if}
-                <div class="fila">
-                  <button
-                    type="button"
-                    class="accion"
-                    disabled={ocupado || app.ideasCargando}
-                    onclick={() => void app.proponerIdeas()}
-                    ><Icono nombre="repetir" />Dame otras</button
-                  >
-                  {#if masGuardadas > 0}
-                    <button type="button" class="accion suave" onclick={() => app.irA('elegir')}
-                      >Ver las {masGuardadas + MAX_GUARDADAS} en Elegir</button
+                      ><Icono nombre="buscar" />Buscar recetas con esto</button
                     >
                   {/if}
-                </div>
+                {/if}
               {/if}
-            {/if}
+
+              {#if turno.recetas && n === ultimoConRecetas}
+                {#if !recetasVigentes}
+                  {#if !ofreceBuscar}
+                    <div class="aviso">
+                      <p>Cambió tu despensa o tus preferencias después de buscar.</p>
+                      <button
+                        type="button"
+                        class="accion"
+                        disabled={ocupado}
+                        onclick={() => void app.buscarDesdeConversacion()}
+                        ><Icono nombre="repetir" />Buscar de nuevo</button
+                      >
+                    </div>
+                  {/if}
+                {:else}
+                  {#if guardadas.length || ideas.length}
+                    <ul class="tarjetas" aria-label="Recetas propuestas">
+                      {#each guardadas as r (r.receta.id)}
+                        {@const foto = fotoDe(r.receta.imagen)}
+                        <li class="tarjeta">
+                          <span class="foto">
+                            {#if foto}<img src={foto.url} alt="" />{:else}<ChefBlob
+                                pose="hablando"
+                                tamano={92}
+                              />{/if}
+                            <span class="origen"
+                              >{r.receta.origen === 'generada'
+                                ? 'De Mis recetas'
+                                : r.receta.estadoRevision === 'borrador'
+                                  ? 'Guardada · sin revisar'
+                                  : 'Guardada'}</span
+                            >
+                          </span>
+                          <span class="info">
+                            <b>{r.receta.titulo}</b>
+                            <span class="meta"
+                              >{r.receta.tiempoTotalMin} min · {NOMBRE_DIFICULTAD[
+                                r.receta.dificultad
+                              ].toLocaleLowerCase('es')}</span
+                            >
+                            <span class="faltan" class:completa={r.faltantes.length === 0}
+                              >{textoFaltan(r.faltantes.length)}</span
+                            >
+                            <button
+                              type="button"
+                              class="ver"
+                              onclick={() => app.verEnElegir({ recetaId: r.receta.id })}
+                              >Ver receta</button
+                            >
+                          </span>
+                        </li>
+                      {/each}
+                      {#each ideas as idea (idea.id)}
+                        {@const imagen = app.recetasDeIdeas[idea.id]?.receta.imagen}
+                        <li class="tarjeta">
+                          <span class="foto idea">
+                            {#if imagen}<img src={imagen} alt="" />{:else}<ChefBlob
+                                pose="hablando"
+                                tamano={92}
+                              />{/if}
+                            <span class="origen">Idea del chef</span>
+                          </span>
+                          <span class="info">
+                            <b>{idea.titulo}</b>
+                            <span class="meta">{idea.tiempoTotalMin} min</span>
+                            <span class="faltan" class:completa={idea.faltan.length === 0}
+                              >{textoFaltan(idea.faltan.length)}</span
+                            >
+                            <button
+                              type="button"
+                              class="ver"
+                              onclick={() => app.verEnElegir({ ideaId: idea.id })}
+                              >Ver receta</button
+                            >
+                          </span>
+                        </li>
+                      {/each}
+                    </ul>
+                  {/if}
+                  {#if app.ideasCargando}
+                    <p class="estado">El chef está pensando ideas…</p>
+                  {:else if app.ideasError}
+                    <p class="error" role="alert">{app.ideasError}</p>
+                  {/if}
+                  <div class="fila">
+                    <button
+                      type="button"
+                      class="accion"
+                      disabled={ocupado || app.ideasCargando}
+                      onclick={() => void app.proponerIdeas()}
+                      ><Icono nombre="repetir" />Dame otras</button
+                    >
+                    {#if masGuardadas > 0}
+                      <button
+                        type="button"
+                        class="accion suave"
+                        onclick={() => app.verTodasEnElegir()}
+                        >Ver las {masGuardadas + MAX_GUARDADAS} en Elegir</button
+                      >
+                    {/if}
+                  </div>
+                {/if}
+              {/if}
+            </div>
           </div>
-        </div>
-      {/each}
-
-      {#if app.confirmacionIngredientes}
-        <div class="fila" role="group" aria-label="Qué hacer con los ingredientes">
-          <button
-            type="button"
-            class="accion principal"
-            onclick={() => void app.resolverIngredientes('reemplazar')}
-            >Reemplazar mi selección</button
-          >
-          <button
-            type="button"
-            class="accion"
-            onclick={() => void app.resolverIngredientes('anadir')}>Añadir a mi selección</button
-          >
-        </div>
-      {/if}
-      {#if app.chatOcupado}<p class="estado">El chef está revisando tu petición…</p>{/if}
-      {#if dictado.estado === 'escuchando'}
-        <p class="estado" role="status">Te escucho. El micrófono se apaga solo al terminar.</p>
-      {:else if dictado.estado === 'entendiendo'}
-        <p class="estado" role="status">Entendiendo lo que dijiste…</p>
-      {/if}
-      {#if app.chatError}<p class="error" role="alert">{app.chatError}</p>{/if}
-      {#if dictado.error}<p class="error" role="alert">{dictado.error}</p>{/if}
-    </div>
-  </div>
-
-  <div class="pie">
-    {#if app.conversacion.length === 0 && !app.chatOcupado}
-      <div class="sugerencias" aria-label="Frases para empezar">
-        {#each SUGERENCIAS as s (s.texto)}
-          <button type="button" disabled={ocupado} onclick={() => void enviar(s.texto)}
-            ><Icono nombre={s.icono} />{s.texto}</button
-          >
         {/each}
+
+        {#if app.confirmacionIngredientes}
+          <div class="fila" role="group" aria-label="Qué hacer con los ingredientes">
+            <button
+              type="button"
+              class="accion principal"
+              onclick={() => void app.resolverIngredientes('reemplazar')}
+              >Reemplazar mi selección</button
+            >
+            <button
+              type="button"
+              class="accion"
+              onclick={() => void app.resolverIngredientes('anadir')}>Añadir a mi selección</button
+            >
+          </div>
+        {/if}
+        {#if app.preguntaPendiente}<p class="yo">{app.preguntaPendiente}</p>{/if}
+        {#if app.chatOcupado}
+          <div class="chef pensando" role="status">
+            <ChefBlob pose="busto" tamano={46} />
+            <p>
+              <span class="puntos" aria-hidden="true"><i></i><i></i><i></i></span>El chef está
+              pensando…
+            </p>
+          </div>
+        {/if}
+        {#if dictado.estado === 'escuchando'}
+          <p class="estado" role="status">Te escucho. El micrófono se apaga solo al terminar.</p>
+        {:else if dictado.estado === 'entendiendo'}
+          <p class="estado" role="status">Entendiendo lo que dijiste…</p>
+        {/if}
+        {#if app.chatError}<p class="error" role="alert">{app.chatError}</p>{/if}
+        {#if dictado.error}<p class="error" role="alert">{dictado.error}</p>{/if}
       </div>
-    {/if}
-    <form
-      class="campo"
-      onsubmit={(evento) => {
-        evento.preventDefault()
-        void enviar(texto)
-      }}
-    >
-      <label for="mensaje-conversacion" class="oculto">Mensaje para el chef</label>
-      <input
-        id="mensaje-conversacion"
-        type="text"
-        bind:this={entrada}
-        bind:value={texto}
-        placeholder="Escribe al chef: lo que tienes, cuántos son, cuánto tiempo…"
-        maxlength="2000"
-        autocomplete="off"
-        disabled={app.chatOcupado}
-      />
-      <button
-        type="button"
-        class="hablar"
-        class:escuchando={dictado.estado === 'escuchando'}
-        disabled={dictado.estado !== 'apagada' || ocupado}
-        onclick={() => void dictado.hablar((t) => app.enviarChat(t))}
-        ><Icono nombre="microfono" />{dictado.estado === 'escuchando'
-          ? 'Escuchando'
-          : 'Hablar'}</button
+    </div>
+
+    <div class="pie">
+      {#if app.conversacion.length === 0 && !app.chatOcupado && !app.preguntaPendiente}
+        <div class="sugerencias" aria-label="Frases para empezar">
+          {#each SUGERENCIAS as s (s.texto)}
+            <button type="button" disabled={ocupado} onclick={() => void enviar(s.texto)}
+              ><Icono nombre={s.icono} />{s.texto}</button
+            >
+          {/each}
+        </div>
+      {/if}
+      <form
+        class="campo"
+        onsubmit={(evento) => {
+          evento.preventDefault()
+          void enviar(texto)
+        }}
       >
-      <button
-        type="submit"
-        class="enviar"
-        aria-label={app.chatOcupado ? 'Consultando' : 'Enviar'}
-        title="Enviar"
-        disabled={!texto.trim() || ocupado}><Icono nombre="enviar" /></button
-      >
-    </form>
-    {#if app.chatSimulado}<p class="nota">Modo de prueba: el chef responde sin Gemini.</p>{/if}
+        <label for="mensaje-conversacion" class="oculto">Mensaje para el chef</label>
+        <input
+          id="mensaje-conversacion"
+          type="text"
+          bind:this={entrada}
+          bind:value={texto}
+          placeholder="Escribe al chef: lo que tienes, cuántos son, cuánto tiempo…"
+          maxlength="2000"
+          autocomplete="off"
+          disabled={app.chatOcupado}
+        />
+        <button
+          type="button"
+          class="hablar"
+          class:escuchando={dictado.estado === 'escuchando'}
+          disabled={dictado.estado !== 'apagada' || ocupado}
+          onclick={() => void dictado.hablar((t) => app.enviarChat(t))}
+          ><Icono nombre="microfono" />{dictado.estado === 'escuchando'
+            ? 'Escuchando'
+            : 'Hablar'}</button
+        >
+        <button
+          type="submit"
+          class="enviar"
+          aria-label={app.chatOcupado ? 'Consultando' : 'Enviar'}
+          title="Enviar"
+          disabled={!texto.trim() || ocupado}><Icono nombre="enviar" /></button
+        >
+      </form>
+      {#if app.chatSimulado}<p class="nota">Modo de prueba: el chef responde sin Gemini.</p>{/if}
+    </div>
   </div>
 </main>
 
 <style>
   .conversacion {
     display: grid;
-    grid-template-rows: minmax(0, 1fr) auto;
+    grid-template-columns: 250px minmax(0, 1fr);
+    gap: var(--espacio-5);
     padding: 0 var(--espacio-6) var(--espacio-5);
+  }
+  /* Lista de chats, como en los asistentes de conversación (pedido del autor, 2026-11-08). */
+  .historial {
+    min-height: 0;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-2);
+    padding: var(--espacio-4);
+    background: var(--color-superficie);
+    border-radius: var(--radio-l);
+    overflow: hidden;
+  }
+  .nuevo {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacio-2);
+    min-height: var(--alto-control);
+    padding: 0 var(--espacio-4);
+    font: inherit;
+    font-weight: var(--peso-fuerte);
+    color: var(--color-tinta);
+    background: var(--color-acento);
+    box-shadow: var(--sombra-boton);
+    border: 0;
+    border-radius: var(--radio-boton);
+    cursor: pointer;
+  }
+  .nuevo:disabled {
+    box-shadow: none;
+  }
+  .historial h2 {
+    margin: var(--espacio-3) 0 0;
+    font-size: var(--texto-s);
+    color: var(--color-tinta-suave);
+  }
+  .historial ul {
+    list-style: none;
+    margin: 0;
+    padding: 0;
+    overflow-y: auto;
+    display: flex;
+    flex-direction: column;
+    gap: 2px;
+  }
+  .historial li {
+    display: flex;
+    align-items: center;
+    border-radius: var(--radio-boton);
+    transition: background-color var(--transicion);
+  }
+  .historial li:hover {
+    background: var(--color-relleno);
+  }
+  .historial li.actual {
+    background: var(--color-acento-suave);
+    box-shadow: inset 0 0 0 var(--trazo) var(--color-tinta);
+  }
+  .abrir {
+    flex: 1;
+    min-width: 0;
+    min-height: var(--alto-control);
+    padding: 0 var(--espacio-3);
+    font: inherit;
+    font-size: var(--texto-s);
+    font-weight: 600;
+    text-align: left;
+    color: var(--color-tinta);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .historial li.actual .abrir {
+    font-weight: var(--peso-fuerte);
+  }
+  .borrar {
+    flex: none;
+    width: 36px;
+    height: 36px;
+    margin-right: 4px;
+    display: grid;
+    place-items: center;
+    color: var(--color-tinta-suave);
+    background: none;
+    border: 0;
+    border-radius: 10px;
+    cursor: pointer;
+    opacity: 0;
+  }
+  .historial li:hover .borrar,
+  .historial li.actual .borrar,
+  .borrar:focus-visible {
+    opacity: 1;
+  }
+  .borrar:hover {
+    background: var(--color-superficie);
+    color: var(--color-tinta);
+  }
+  .sin-chats {
+    margin: var(--espacio-2) 0 0;
+    font-size: var(--texto-s);
+    color: var(--color-tinta-suave);
+    line-height: 1.4;
+  }
+  .chat {
+    min-height: 0;
+    display: grid;
+    grid-template-rows: minmax(0, 1fr) auto;
+  }
+  .pensando p {
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacio-2);
+    margin: 0;
+    padding-top: var(--espacio-3);
+    color: var(--color-tinta-suave);
+  }
+  .puntos {
+    display: inline-flex;
+    gap: 4px;
+  }
+  .puntos i {
+    width: 8px;
+    height: 8px;
+    border-radius: 50%;
+    background: var(--color-tinta-suave);
+    animation: puntos 1.2s ease-in-out infinite;
+  }
+  .puntos i:nth-child(2) {
+    animation-delay: 0.15s;
+  }
+  .puntos i:nth-child(3) {
+    animation-delay: 0.3s;
+  }
+  @keyframes puntos {
+    0%,
+    60%,
+    100% {
+      opacity: 0.3;
+      transform: translateY(0);
+    }
+    30% {
+      opacity: 1;
+      transform: translateY(-4px);
+    }
   }
   .hilo {
     overflow-y: auto;

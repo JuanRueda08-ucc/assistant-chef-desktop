@@ -1,3 +1,4 @@
+import { esquemaRespuestaTitulo, type PeticionTitulo } from '@shared/ia/titulo'
 import { esquemaRespuestaIdeas } from '@shared/esquemas/ideas'
 import { esquemaRecetaGenerada } from '@shared/esquemas/receta'
 import type { IdeaModelo, PeticionIdeas, RespuestaIdeas } from '@shared/types/ideas'
@@ -62,6 +63,7 @@ export function crearClienteBackend(
   proponerRecetas: (peticion: PeticionIdeas) => Promise<Respuesta<RespuestaIdeas>>
   generarReceta: (peticion: PeticionRecetaGenerada) => Promise<Respuesta<RecetaGenerada>>
   transcribir: (audio: string) => Promise<Respuesta<{ texto: string }>>
+  titularChat: (peticion: PeticionTitulo) => Promise<Respuesta<{ titulo: string | null }>>
   generarImagen: (peticion: {
     titulo: string
     descripcion: string
@@ -152,6 +154,12 @@ export function crearClienteBackend(
           invalida: 'No se pudo crear la imagen.'
         }
       ),
+    titularChat: (peticion) =>
+      pedirDatos('chat/titulo', peticion, 15_000, esquemaRespuestaTitulo, {
+        limite: 'Has llegado al límite del chat de hoy.',
+        fallo: 'No se pudo poner nombre al chat.',
+        invalida: 'No se pudo poner nombre al chat.'
+      }),
     transcribir: (audio) =>
       pedirDatos('voz/transcribir', { audio }, 30_000, z.strictObject({ texto: z.string() }), {
         limite: 'Has llegado al límite de voz de hoy. Puedes seguir escribiendo.',

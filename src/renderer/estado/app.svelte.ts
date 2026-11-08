@@ -18,6 +18,7 @@ import {
 } from '@shared/ia/seleccion'
 import { resumenRecetaGenerada } from '@shared/recetas/receta-generada'
 import type { ContenidoChat } from '@shared/ia/chat'
+import { tituloProvisional } from '@shared/ia/titulo'
 import { ejecutarTurnoChat } from '../lib/chat'
 import { cambiosDelTurno, SIN_CAMBIOS, type CambiosTurno } from '../lib/conversacion'
 import { notaPreferencias } from '@shared/ia/nota-preferencias'
@@ -46,6 +47,21 @@ export interface TurnoConversacion {
   cambios: CambiosTurno
   /** El turno buscó recetas o pidió ideas: la respuesta lleva tarjetas. */
   recetas: boolean
+}
+
+/**
+ * Un chat con el chef, con su nombre (pedido del autor, 2026-11-08). Por ahora viven en memoria
+ * (0010); se guardarán por cuenta en Supabase al hacer el login (0024).
+ */
+export interface ChatChef {
+  id: string
+  /** Provisional (lo escrito por la persona) hasta que llega el de la IA. */
+  titulo: string
+  tituloDeIA: boolean
+  turnos: TurnoConversacion[]
+  /** Contexto que se manda al modelo, para seguir el chat al volver a él. */
+  contexto: ContenidoChat[][]
+  actualizado: number
 }
 
 export const PREFERENCIAS_INICIALES: Preferencias = {
@@ -148,6 +164,13 @@ class EstadoApp {
   chatError = $state<string | null>(null)
   chatSimulado = $state(false)
   conversacion = $state.raw<TurnoConversacion[]>([])
+  /** Todos los chats con algún mensaje, incluido el actual; el más reciente primero. */
+  chats = $state.raw<ChatChef[]>([])
+  chatActualId = $state<string>(crypto.randomUUID())
+  /** Lo que la persona acaba de enviar: se muestra al momento, antes de la respuesta. */
+  preguntaPendiente = $state<string | null>(null)
+  /** Se llegó a Elegir desde la conversación: «volver» lleva al chat, no a la despensa. */
+  volverAConversacion = $state(false)
   /** Lo marca cada herramienta que busca recetas o pide ideas durante el turno. */
   private turnoConRecetas = false
   resultadoChef = $state.raw<{
@@ -175,6 +198,7 @@ class EstadoApp {
     texto = texto.trim()
     if (!texto || texto.length > 2000 || this.chatOcupado || this.ocupado) return
     this.chatOcupado = true
+    this.preguntaPendiente = texto
     this.chatError = null
     this.confirmacionIngredientes = null
     this.aclaracionTurno = null
@@ -372,6 +396,7 @@ class EstadoApp {
       void this.comprobarCuenta()
     } finally {
       this.chatOcupado = false
+      this.preguntaPendiente = null
     }
   }
 
@@ -393,6 +418,69 @@ class EstadoApp {
       { pregunta, respuesta, cambios, recetas: this.turnoConRecetas }
     ].slice(-12)
     this.turnoConRecetas = false
+    this.guardarChatActual(pregunta, respuesta)
+  }
+
+  /** Copia el chat actual en la lista; con su primera pregunta, le pide un nombre a la IA. */
+  private guardarChatActual(pregunta: string | null, respuesta: string): void {
+    const id = this.chatActualId
+    const previo = this.chats.find((c) => c.id === id)
+    // Un chat que empezó con un botón de la app toma el nombre de la primera pregunta.
+    const primeraPregunta = !!pregunta && !previo?.turnos.some((t) => t.pregunta)
+    const chat: ChatChef = {
+      id,
+      titulo: previo && !primeraPregunta ? previo.titulo : tituloProvisional(pregunta ?? respuesta),
+      tituloDeIA: previo?.tituloDeIA ?? false,
+      turnos: this.conversacion,
+      contexto: this.turnos,
+      actualizado: Date.now()
+    }
+    this.chats = [chat, ...this.chats.filter((c) => c.id !== id)]
+    if (pregunta && !chat.tituloDeIA && !this.titulando.has(id))
+      void this.ponerTitulo(id, pregunta, respuesta)
+  }
+
+  private titulando = new Set<string>()
+
+  private async ponerTitulo(id: string, pregunta: string, respuesta: string): Promise<void> {
+    this.titulando.add(id)
+    const titulo = await window.api.chef
+      .titular({ pregunta: pregunta.slice(0, 2000), respuesta: respuesta.slice(0, 4000) })
+      .catch(() => null)
+    if (!titulo) {
+      // Sin respuesta de la IA se queda el provisional; se reintenta con la próxima pregunta.
+      this.titulando.delete(id)
+      return
+    }
+    this.chats = this.chats.map((c) => (c.id === id ? { ...c, titulo, tituloDeIA: true } : c))
+  }
+
+  /** Vuelve a un chat anterior de la lista. */
+  abrirChat(id: string): void {
+    if (this.chatOcupado || id === this.chatActualId) return
+    const chat = this.chats.find((c) => c.id === id)
+    if (!chat) return
+    this.chatActualId = id
+    this.conversacion = chat.turnos
+    this.turnos = chat.contexto
+    this.pantallaConversacion = 'conversacion'
+    this.confirmacionIngredientes = null
+    this.chatError = null
+  }
+
+  /** Quita un chat de la lista; si es el actual, empieza uno nuevo. */
+  borrarChat(id: string): void {
+    if (this.chatOcupado) return
+    this.chats = this.chats.filter((c) => c.id !== id)
+    if (id === this.chatActualId) this.empezarChatNuevo()
+  }
+
+  private empezarChatNuevo(): void {
+    this.chatActualId = crypto.randomUUID()
+    this.conversacion = []
+    this.turnos = []
+    this.confirmacionIngredientes = null
+    this.chatError = null
   }
 
   /** Abre la pantalla de conversación (tarea 44) desde Inicio o el menú. */
@@ -407,15 +495,13 @@ class EstadoApp {
     // receta en curso no se descarta y sigue en el menú («Seguir cocinando»).
     if (this.pantalla === 'cocinar') this.pantalla = this.puedeIrA('elegir') ? 'elegir' : 'preparar'
     this.enConversacion = true
+    this.volverAConversacion = false
   }
 
   /** «Nueva conversación»: olvida la conversación, no la despensa ni las recetas encontradas. */
   nuevaConversacion(): void {
     if (this.chatOcupado) return
-    this.conversacion = []
-    this.turnos = []
-    this.confirmacionIngredientes = null
-    this.chatError = null
+    this.empezarChatNuevo()
   }
 
   /**
@@ -425,6 +511,7 @@ class EstadoApp {
   private salirDeConversacionA(pantalla: 'elegir'): void {
     if (!this.enConversacion) return
     this.enConversacion = false
+    this.volverAConversacion = true
     this.pantalla = pantalla
     this.chatAbierto = true
   }
@@ -440,7 +527,16 @@ class EstadoApp {
     }
     this.elegirDetalle = true
     this.enConversacion = false
+    this.volverAConversacion = true
     this.pantalla = 'elegir'
+  }
+
+  /** «Ver las N en Elegir» desde la conversación: la lista, con «volver» al chat. */
+  verTodasEnElegir(): void {
+    if (!this.puedeIrA('elegir')) return
+    this.elegirDetalle = false
+    this.irA('elegir')
+    this.volverAConversacion = true
   }
 
   /** Quita un ingrediente desde una etiqueta de la conversación. */
@@ -526,6 +622,7 @@ class EstadoApp {
     let respuesta = r.decir
     if (pendiente.luego) {
       this.chatOcupado = true
+      this.preguntaPendiente = pregunta
       this.chatError = null
       this.turnoConRecetas = true
       try {
@@ -546,6 +643,7 @@ class EstadoApp {
         }
       } finally {
         this.chatOcupado = false
+        this.preguntaPendiente = null
       }
     }
     this.anotar(pregunta, respuesta, cambiosDelTurno(antes, this.despensaTurno()))
@@ -585,6 +683,10 @@ class EstadoApp {
     this.retomando = false
     this.chatAbierto = false
     this.enConversacion = false
+    this.volverAConversacion = false
+    // Los chats son de la cuenta: no se quedan para la siguiente.
+    this.chats = []
+    this.empezarChatNuevo()
     this.error = null
     this.chatError = null
   }
@@ -638,6 +740,7 @@ class EstadoApp {
     this.chatAbierto = false
     this.menuAbierto = false
     this.enConversacion = false
+    this.volverAConversacion = false
     this.error = null
     this.enInicio = true
   }
@@ -1007,8 +1110,8 @@ class EstadoApp {
     this.sesion = null
     this.busqueda = null
     this.recetaVisibleId = null
-    this.turnos = []
-    this.conversacion = []
+    // El chat de la receta anterior queda en la lista; se empieza uno nuevo.
+    this.empezarChatNuevo()
     this.resultadoChef = null
     this.globo = null
     this.mostrarAvatar(ESPERAR)
@@ -1041,6 +1144,7 @@ class EstadoApp {
     if (this.puedeIrA(pantalla)) {
       this.enInicio = false
       this.enConversacion = false
+      this.volverAConversacion = false
       this.menuAbierto = false
       this.verMisRecetas = false
       this.retomando = false

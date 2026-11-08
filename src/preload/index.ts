@@ -14,7 +14,10 @@ const api: ApiChef = {
     recuperar: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaRecuperar, datos),
     restablecer: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaRestablecer, datos)
   },
-  chef: { conversar: (datos) => ipcRenderer.invoke(CANALES_IPC.chefConversar, datos) },
+  chef: {
+    conversar: (datos) => ipcRenderer.invoke(CANALES_IPC.chefConversar, datos),
+    titular: (datos) => ipcRenderer.invoke(CANALES_IPC.chefTitular, datos)
+  },
   voz: {
     token: (datos) => ipcRenderer.invoke(CANALES_IPC.vozToken, datos),
     iniciar: (datos) => ipcRenderer.invoke(CANALES_IPC.vozIniciar, datos),

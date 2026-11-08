@@ -58,7 +58,8 @@ describe('voz:token IPC', () => {
           proponerRecetas: vi.fn(),
           generarReceta: vi.fn(),
           transcribir: vi.fn(),
-          generarImagen: vi.fn()
+          generarImagen: vi.fn(),
+          titularChat: vi.fn()
         },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
@@ -108,7 +109,8 @@ describe('voz:token IPC', () => {
           proponerRecetas: vi.fn(),
           generarReceta: vi.fn(),
           transcribir: vi.fn(),
-          generarImagen: vi.fn()
+          generarImagen: vi.fn(),
+          titularChat: vi.fn()
         },
         voz,
         lector,
@@ -166,7 +168,8 @@ describe('voz:token IPC', () => {
           proponerRecetas: vi.fn(),
           generarReceta: vi.fn(),
           transcribir: vi.fn(),
-          generarImagen: vi.fn()
+          generarImagen: vi.fn(),
+          titularChat: vi.fn()
         },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
@@ -202,6 +205,10 @@ describe('cuenta IPC', () => {
     const proponerRecetas = vi.fn()
     const generarReceta = vi.fn()
     const transcribir = vi.fn()
+    const titularChat = vi
+      .fn()
+      .mockResolvedValueOnce({ ok: true, datos: { titulo: 'Arroz con pollo' } })
+      .mockResolvedValueOnce({ ok: false, mensaje: 'Sin cuota.' })
     try {
       cargarSemilla(db, leerSemilla())
       registrarIpc(
@@ -213,7 +220,8 @@ describe('cuenta IPC', () => {
           proponerRecetas,
           generarReceta,
           transcribir,
-          generarImagen: vi.fn()
+          generarImagen: vi.fn(),
+          titularChat
         },
         voz,
         { leer: vi.fn(), detener: vi.fn() },
@@ -408,6 +416,16 @@ describe('cuenta IPC', () => {
         []
       )
       descartarSesionCocinando(db, 'u1')
+
+      // El título del chat lo pone la IA; si falla, la app conserva el suyo (null).
+      const titular = canal(CANALES_IPC.chefTitular)
+      expect(await titular(null, { pregunta: 'tengo pollo', respuesta: 'Bien.' })).toBe(
+        'Arroz con pollo'
+      )
+      expect(await titular(null, { pregunta: 'tengo pollo', respuesta: '' })).toBeNull()
+      await expect(
+        Promise.resolve().then(() => titular(null, { pregunta: '', respuesta: '' }))
+      ).rejects.toThrow()
 
       // «Hablar» permite el micrófono solo mientras dura, y un texto vacío no llega al chat.
       await canal(CANALES_IPC.vozDictadoIniciar)(null, {})

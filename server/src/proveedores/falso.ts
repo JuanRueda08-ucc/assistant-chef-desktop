@@ -10,6 +10,7 @@ import type {
 } from '../proveedor'
 import type { ContenidoChat, PeticionChat } from '@shared/ia/chat'
 import { normalizarTexto } from '@shared/recetas/catalogo'
+import { tituloProvisional, type PeticionTitulo } from '@shared/ia/titulo'
 import { z } from 'zod'
 
 const contextoDemo = z.object({
@@ -111,6 +112,11 @@ export class ProveedorFalso implements ProveedorIA {
       : decir(
           'Soy tu ayudante de cocina. Modo de prueba: escribe «tengo pollo y arroz», «somos 2» o «busca recetas». Para preguntas abiertas configura Gemini en el backend.'
         )
+  }
+  /** Sin red: el principio de lo que escribió la persona. */
+  async titularChat(peticion: PeticionTitulo): Promise<string> {
+    this.fallarSiToca()
+    return tituloProvisional(peticion.pregunta)
   }
   async transcribir(): Promise<string> {
     this.fallarSiToca()

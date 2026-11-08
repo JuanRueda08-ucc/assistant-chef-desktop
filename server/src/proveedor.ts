@@ -4,6 +4,7 @@
 import type { Ingrediente, Tecnica } from '@shared/types/receta'
 import type { Preferencias } from '@shared/types/sesion'
 import type { PeticionChat } from '@shared/ia/chat'
+import type { PeticionTitulo } from '@shared/ia/titulo'
 
 export interface PeticionReceta {
   preferencias: Preferencias
@@ -43,6 +44,8 @@ export interface ProveedorIA {
   /** Lo que se dijo en un WAV en base64, para el chat. Vacío si no se entiende. */
   transcribir(audio: string): Promise<string>
   conversar(peticion: PeticionChat): Promise<unknown>
+  /** Título corto para un chat, a partir de su primer intercambio. app.ts lo limpia. */
+  titularChat(peticion: PeticionTitulo): Promise<string>
   /**
    * Receta en bruto (JSON del modelo). `errorAnterior` trae el motivo por el que se rechazó el
    * intento anterior, para que el modelo lo corrija en el reintento.
