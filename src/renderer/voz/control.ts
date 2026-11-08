@@ -176,7 +176,6 @@ export class ControlVoz {
       }
       if (!vigente()) return
       if (!natural) {
-        this.eventos.error('Voz local de respaldo: la voz natural no está disponible.')
         const r = await this.api.voz.repetir({})
         if (!r.ok && vigente()) this.eventos.error(r.mensaje)
       }

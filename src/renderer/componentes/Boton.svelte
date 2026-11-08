@@ -55,8 +55,12 @@
   .ancho {
     width: 100%;
   }
+  /* Desactivado: gris y con borde de puntos, no un amarillo apagado que parezca disponible. */
   .boton:disabled {
     cursor: default;
-    opacity: 0.55;
+    background: var(--color-panel-suave);
+    border-style: dashed;
+    border-color: var(--color-borde-control);
+    color: var(--color-tinta-suave);
   }
 </style>

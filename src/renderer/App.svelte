@@ -48,7 +48,7 @@
           >Mis recetas</button
         >
       {/if}
-      {#if chatDisponible}
+      {#if chatDisponible && app.pantalla !== 'cocinar'}
         <button
           type="button"
           class="abrir-chat"
@@ -57,11 +57,10 @@
           >{app.chatAbierto ? 'Cerrar chat' : 'Escribir al chef'}</button
         >
       {/if}
-      {#if usuario}
+      <!-- Sin cuenta real (0018) no hay nombre ni «Salir» que mostrar. -->
+      {#if usuario && usuario.id !== USUARIO_LOCAL.id}
         <span class="usuario" title={usuario.email}>{usuario.nombre}</span>
-        {#if usuario.id !== USUARIO_LOCAL.id}
-          <button type="button" class="salir" onclick={() => app.salir()}>Salir</button>
-        {/if}
+        <button type="button" class="salir" onclick={() => app.salir()}>Salir</button>
       {/if}
     </div>
   </header>

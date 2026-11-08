@@ -15,6 +15,15 @@ Sobre los mismos componentes y tokens; sin nuevas maquetas.
 - **Elegir:** a la izquierda la lista para comparar (nombre, tiempo, nivel y «Faltan N» o «Tienes todo»; flechas arriba/abajo cambian de receta) y «Cambiar ingredientes». A la derecha la vista previa: plato, título, descripción, píldoras de tiempo/porciones/nivel/equipo, etiquetas de dieta y alérgenos, cobertura («N de M disponibles (X tuyos + Y básicos)») y todos los ingredientes escalados con su estado: Lo tienes, Básico, Falta (con sustituciones) u Opcional. «Cocinar esta receta» queda fijo al pie. Sin cápsulas grandes ni avatar.
 - **Cocinar:** cabecera con título, «Paso N de M» y la barra de pasos; a la derecha «Ingredientes (N porciones)», los temporizadores en marcha y «Temporizadores», todos con texto. «Ver cómo se hace» y el temporizador sugerido van dentro de la tarjeta del paso. Columna derecha (300 px): globo, avatar de 110 px y una caja «Voz» con micrófono, voz del chef y estado. Barra inferior: Atrás y Repetir de 180 px y «Listo, siguiente» grande a la derecha. A 1186×763 ni el paso ni la columna del chef necesitan desplazamiento.
 
+### Primer repaso de la tarea 43 (2026-11-07)
+
+El autor encontró la interfaz desorganizada y con demasiada información. Primer paso, sin cambiar el estilo:
+- **Cabecera:** sin el nombre «Desarrollo» del modo sin cuenta (0018). En Cocinar solo quedan la marca y los momentos; «Escribir al chef» pasa a la columna del chef.
+- **Cocinar:** la columna del chef reúne micrófono, voz y «Escribir al chef». El estado del micrófono solo se muestra mientras escucha o piensa, y el respaldo de voz ya no aparece como error. Los ingredientes del paso van justo debajo de la instrucción.
+- **Botones desactivados:** gris con borde de puntos (`--color-panel-suave`), en lugar de un amarillo apagado que parecía disponible.
+- **Elegir:** «Cambiar ingredientes» pasa a un enlace sobre el título; al pie solo queda «Pedir ideas al chef».
+- **Preparar:** se quitó la nota repetida sobre los alérgenos sin verificar; la etiqueta de cada ingrediente ya lo dice.
+
 ## Dirección visual: A «Mostaza» (elegida el 2026-10-18)
 
 Decisión en `docs/decisiones/0005-direccion-visual.md`. Maqueta de referencia: `docs/diseno/maquetas.html` (abre la dirección A; las B y C fueron las alternativas descartadas). Para verla con las imágenes del chef hay que servirla por HTTP desde la raíz del repositorio, por ejemplo con `python -m http.server 4310`, y abrir `http://localhost:4310/docs/diseno/maquetas.html`.

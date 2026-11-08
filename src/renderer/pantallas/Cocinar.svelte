@@ -330,6 +330,13 @@
         <section class="paso" aria-live="polite">
           <div class="paso-num"><b>{paso.orden}</b>de {total}</div>
           <p class="paso-texto">{paso.texto}</p>
+          {#if ingredientesPaso.length > 0}
+            <ul class="paso-ing" aria-label="Ingredientes de este paso">
+              {#each ingredientesPaso as ing (ing.id)}
+                <li><b>{ing.nombre}</b><small>{ing.detalle}</small></li>
+              {/each}
+            </ul>
+          {/if}
           {#if paso.senalHecho}
             <p class="senal"><Icono nombre="ojo" /><span>{paso.senalHecho}</span></p>
           {/if}
@@ -350,13 +357,6 @@
                 </Boton>
               {/if}
             </div>
-          {/if}
-          {#if ingredientesPaso.length > 0}
-            <ul class="paso-ing" aria-label="Ingredientes de este paso">
-              {#each ingredientesPaso as ing (ing.id)}
-                <li><b>{ing.nombre}</b><small>{ing.detalle}</small></li>
-              {/each}
-            </ul>
           {/if}
         </section>
 
@@ -517,19 +517,23 @@
             }}>Voz: {narracionActiva ? 'sí' : 'no'}</Chip
           >
           {#if estadoVoz === 'local'}<Chip onclick={() => voz.activar()}>Hablar al chef</Chip>{/if}
-          <small role="status"
-            >{estadoVoz === 'local'
-              ? 'Órdenes: «listo», «ya terminé», «atrás», «repite». Para preguntar, di «Chef».'
-              : estadoVoz === 'escuchando'
-                ? 'Te escucho · haz tu pregunta y deja una pausa · hasta 8 segundos'
-                : estadoVoz === 'iniciando'
-                  ? 'Preparando el micrófono…'
-                  : estadoVoz === 'pensando'
-                    ? 'El chef está pensando…'
-                    : estadoVoz === 'hablando'
-                      ? 'El chef está hablando'
-                      : 'Micrófono apagado'}</small
+          <!-- Todo lo del chef en un sitio: hablarle, oírlo y escribirle (pedido del autor, 43). -->
+          <Chip seleccionado={app.chatAbierto} onclick={() => (app.chatAbierto = !app.chatAbierto)}
+            >Escribir al chef</Chip
           >
+          {#if estadoVoz !== 'apagado'}<small role="status"
+              >{estadoVoz === 'local'
+                ? 'Órdenes: «listo», «ya terminé», «atrás», «repite». Para preguntar, di «Chef».'
+                : estadoVoz === 'escuchando'
+                  ? 'Te escucho · haz tu pregunta y deja una pausa · hasta 8 segundos'
+                  : estadoVoz === 'iniciando'
+                    ? 'Preparando el micrófono…'
+                    : estadoVoz === 'pensando'
+                      ? 'El chef está pensando…'
+                      : estadoVoz === 'hablando'
+                        ? 'El chef está hablando'
+                        : ''}</small
+            >{/if}
           {#if confirmarVoz}
             <span>¿Dijiste «{confirmarVoz}»?</span>
             <Chip onclick={() => voz.confirmarOrden()}>Sí, ejecutar</Chip>
@@ -796,7 +800,7 @@
   }
   .paso-ing {
     list-style: none;
-    margin: auto 0 0;
+    margin: 0;
     padding: 0;
     display: grid;
     grid-template-columns: repeat(auto-fill, minmax(190px, 1fr));
@@ -862,8 +866,12 @@
     font-size: 26px;
     min-height: var(--alto-boton-cocina);
   }
+  /* Desactivado: gris y con borde de puntos, no un amarillo apagado que parezca disponible. */
   .accion:disabled {
-    opacity: 0.4;
+    background: var(--color-panel-suave);
+    border-style: dashed;
+    border-color: var(--color-borde-control);
+    color: var(--color-tinta-suave);
     cursor: default;
   }
   .error {

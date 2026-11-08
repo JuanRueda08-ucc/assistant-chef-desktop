@@ -28,7 +28,7 @@ La repetición de la prueba personal (34) queda aplazada por decisión del autor
 - [x] 40. Receta completa: generar, validar y cocinar la elegida (de memoria; las ideas de internet, pendientes de las condiciones de Google)
 - [x] 41. Mis recetas: guardar las generadas por cuenta
 - [x] 42. Chat y voz para pedir todo lo anterior (botón «Hablar», 0020; falta la prueba del autor con su micrófono)
-- [ ] 43. Simplificar la interfaz: solo lo principal en cada pantalla, botones más notorios y flujos más claros (pedido del autor, 2026-11-07, para después de las tareas de función)
+- [ ] 43. Simplificar la interfaz: solo lo principal en cada pantalla, botones más notorios y flujos más claros (pedido del autor, 2026-11-07; primer repaso hecho, ver `diseno.md`; falta la opinión del autor)
 
 ## Base
 - [x] 1. Proyecto electron-vite con Svelte + TypeScript, Vitest, ESLint, Prettier; comandos en `AGENTS.md`

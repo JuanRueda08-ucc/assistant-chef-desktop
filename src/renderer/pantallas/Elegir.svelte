@@ -117,6 +117,9 @@
 <main class="elegir">
   {#if hayContenido}
     <section class="comparar" aria-labelledby="titulo-elegir">
+      <button type="button" class="volver" onclick={() => app.irA('preparar')}
+        ><Icono nombre="atras" tamano={16} />Cambiar ingredientes</button
+      >
       <h1 id="titulo-elegir">
         {#if resultados.length > 0}
           {resultados.length}
@@ -202,8 +205,6 @@
         >
           {ideas.length > 0 ? 'Dame otras' : 'Pedir ideas al chef'}
         </Boton>
-        <Boton variante="secundario" onclick={() => app.irA('preparar')}>Cambiar ingredientes</Boton
-        >
       </div>
     </section>
 
@@ -423,6 +424,21 @@
     font-size: var(--texto-s);
     border-left: 4px solid var(--color-acento);
     padding-left: var(--espacio-3);
+  }
+  .volver {
+    align-self: flex-start;
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+    padding: var(--espacio-1) 0;
+    font: inherit;
+    font-size: var(--texto-s);
+    font-weight: var(--peso-fuerte);
+    color: var(--color-tinta);
+    background: none;
+    border: 0;
+    text-decoration: underline;
+    cursor: pointer;
   }
   .acciones-lista {
     display: flex;

@@ -328,12 +328,6 @@
               </li>
             {/each}
           </ul>
-          {#if prefs.ingredientesSinIdentificar.length > 0}
-            <p class="ayuda">
-              Lo que tiene alérgenos sin verificar solo cuenta para las ideas del chef. Púlsalo para
-              buscarlo con otro nombre.
-            </p>
-          {/if}
         {:else}
           <p class="ayuda">
             Tu despensa está vacía. Busca ingredientes, elígelos por categoría o díselos al chef. Se
