@@ -55,6 +55,17 @@
     return e.ingredientes.length > 0 || e.sinIdentificar.length > 0
   })
 
+  /** Ingredientes elegidos de la despensa, sin los básicos que se asumen. */
+  const elegidos = $derived.by(() => {
+    const basicos = new Set(app.catalogoCompleto.filter((i) => i.esBasicoDespensa).map((i) => i.id))
+    return despensa.ingredientes.filter((id) => !basicos.has(id))
+  })
+  /** Chat nuevo con ingredientes de antes: el chef pregunta si seguir con ellos o usar otros. */
+  const preguntarIngredientes = $derived(
+    !app.ingredientesDelChatDecididos &&
+      (elegidos.length > 0 || despensa.ingredientesSinIdentificar.length > 0)
+  )
+
   const nombreDe = (id: string): string =>
     app.catalogoCompleto.find((i) => i.id === id)?.nombre ?? id
 
@@ -118,6 +129,57 @@
             <h1 id="titulo-conversacion">¿Qué cocinamos hoy?</h1>
             <p>Cuéntame qué tienes, para cuántos y cuánto tiempo. Yo te propongo recetas.</p>
           </section>
+          {#if preguntarIngredientes}
+            <div class="chef">
+              <ChefBlob pose="busto" tamano={46} />
+              <div class="cuerpo">
+                <p>¿Qué ingredientes quieres usar esta vez? En tu despensa ya tienes estos:</p>
+                <ul class="etiquetas" aria-label="Ingredientes de tu despensa">
+                  {#each elegidos as id (id)}
+                    <li>
+                      {nombreDe(id)}
+                      <button
+                        type="button"
+                        aria-label="Quitar {nombreDe(id)}"
+                        disabled={ocupado}
+                        onclick={() => app.quitarIngrediente({ id })}
+                        ><Icono nombre="cerrar" tamano={14} /></button
+                      >
+                    </li>
+                  {/each}
+                  {#each despensa.ingredientesSinIdentificar as libre (libre)}
+                    <li class="libre" title="Fuera del catálogo: alérgenos sin verificar">
+                      {libre}
+                      <button
+                        type="button"
+                        aria-label="Quitar {libre}"
+                        disabled={ocupado}
+                        onclick={() => app.quitarIngrediente({ libre })}
+                        ><Icono nombre="cerrar" tamano={14} /></button
+                      >
+                    </li>
+                  {/each}
+                </ul>
+                <div class="fila" role="group" aria-label="Qué ingredientes usar en este chat">
+                  <button
+                    type="button"
+                    class="accion principal"
+                    disabled={ocupado}
+                    onclick={() => app.seguirConIngredientes()}>Seguir con estos</button
+                  >
+                  <button
+                    type="button"
+                    class="accion"
+                    disabled={ocupado}
+                    onclick={() => {
+                      app.empezarConOtrosIngredientes()
+                      entrada?.focus()
+                    }}>Usar otros ingredientes</button
+                  >
+                </div>
+              </div>
+            </div>
+          {/if}
         {/if}
 
         {#each app.conversacion as turno, n (n)}

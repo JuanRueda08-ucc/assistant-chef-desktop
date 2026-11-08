@@ -21,6 +21,11 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-08 · Chat nuevo: el chef pregunta qué ingredientes usar
+- El autor vio que, en un chat nuevo, «Sorpréndeme» proponía recetas con las papas y albóndigas del chat anterior, porque la despensa es una sola. Ahora, si la despensa tiene ingredientes elegidos, el chat vacío muestra al chef preguntando «¿Qué ingredientes quieres usar esta vez?» con las etiquetas y «Seguir con estos» / «Usar otros ingredientes» (`app.ingredientesDelChatDecididos`, `seguirConIngredientes`, `empezarConOtrosIngredientes` en `estado/app.svelte.ts`). «Usar otros» quita los ingredientes elegidos y los sin identificar; los básicos, porciones, dieta y alergias se quedan.
+- Los 7 commits anteriores se subieron con permiso del autor.
+- Verificado: tipos y lint. En la app compilada, sin sonido, sin micrófono y con `PROVEEDOR_IA=falso`: el primer chat sin despensa no pregunta; tras «tengo pollo y arroz», «Nuevo chat» muestra la pregunta con Arroz blanco y Muslo de pollo; «Usar otros ingredientes» la quita y pone el foco en la caja; tras «tengo papas», otro chat nuevo pregunta solo por Papa, y «Seguir con estos» la oculta sin errores.
+
 ### 2026-11-08 · Chat del chef: mensaje al instante, historial con nombre y volver al chat (46, 0024)
 - El autor probó la app y pidió tres cosas. (1) **Ver su mensaje al enviarlo:** `app.preguntaPendiente` se muestra al momento en la pantalla y en el panel, con el chef «pensando» y tres puntos. (2) **Historial de chats con nombre puesto por la IA:** `app.chats`, una lista a la izquierda con «Nuevo chat», abrir y borrar, y título con `POST /chat/titulo` (`titularChat` en Gemini y en el proveedor de prueba, canal `chef:titular`, `shared/ia/titulo.ts` con test). (3) **Volver de Elegir al chat:** con `app.volverAConversacion`, Elegir muestra «Volver al chat con el chef».
 - **Dónde guardar los chats:** el autor no quiere que se guarden en el equipo. La app se entregará descargable en Windows, Linux y Mac, y cada usuario debe tener sus chats y recetas en la nube. Decisión 0024: Supabase por cuenta con el login (tarea 47); mientras tanto, en memoria.

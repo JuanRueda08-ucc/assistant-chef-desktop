@@ -42,6 +42,7 @@ Sobre los mismos componentes y tokens; sin nuevas maquetas.
 - Al guardar una receta se abre Mis recetas con ella elegida, y «Volver» lleva a Inicio.
 - **Historial de chats** (0024, pedido del autor): una columna blanca de 250 px a la izquierda con «Nuevo chat» (amarillo), «Tus chats» y la lista. El chat abierto lleva fondo amarillo suave y el trazo de tinta; la X para borrarlo aparece al pasar el ratón y en el abierto. El nombre lo pone la IA; mientras llega, el principio de lo que escribiste. Sustituye a «Nueva conversación» de la cabecera.
 - **Tu mensaje aparece al enviarlo**, y debajo el chef con tres puntos que saltan y «El chef está pensando…». En el panel lateral también aparece al momento.
+- **Ingredientes de un chat nuevo** (pedido del autor): si la despensa ya tiene ingredientes elegidos, el chat vacío muestra un mensaje del chef, «¿Qué ingredientes quieres usar esta vez?», con las etiquetas (se pueden quitar) y dos botones: «Seguir con estos» (amarillo) y «Usar otros ingredientes», que quita los elegidos (no los básicos ni las preferencias) y pone el cursor en la caja de texto. Desaparece al responder o al escribir.
 - **Volver al chat:** si llegaste a Elegir desde el chat («Ver receta» o «Ver las N en Elegir»), el enlace de arriba dice «Volver al chat con el chef» en lugar de «Cambiar ingredientes» o «Todas las recetas».
 
 ### Pantallas separadas y menú lateral (2026-11-08, decisión 0022)

@@ -477,6 +477,7 @@ class EstadoApp {
 
   private empezarChatNuevo(): void {
     this.chatActualId = crypto.randomUUID()
+    this.ingredientesDelChatDecididos = false
     this.conversacion = []
     this.turnos = []
     this.confirmacionIngredientes = null
@@ -496,6 +497,27 @@ class EstadoApp {
     if (this.pantalla === 'cocinar') this.pantalla = this.puedeIrA('elegir') ? 'elegir' : 'preparar'
     this.enConversacion = true
     this.volverAConversacion = false
+  }
+
+  /**
+   * En un chat nuevo, el chef pregunta si seguir con los ingredientes que ya hay en la despensa o
+   * empezar con otros (pedido del autor, 2026-11-08), para no proponer recetas con lo del chat
+   * anterior sin preguntar.
+   */
+  ingredientesDelChatDecididos = $state(false)
+
+  /** «Seguir con estos»: el chat nuevo usa la despensa tal como está. */
+  seguirConIngredientes(): void {
+    this.ingredientesDelChatDecididos = true
+  }
+
+  /** «Usar otros»: quita los ingredientes elegidos; los básicos y las preferencias se quedan. */
+  empezarConOtrosIngredientes(): void {
+    if (this.chatOcupado) return
+    const basicos = new Set(this.catalogo.filter((i) => i.esBasicoDespensa).map((i) => i.id))
+    this.preferencias.ingredientes = this.preferencias.ingredientes.filter((id) => basicos.has(id))
+    this.preferencias.ingredientesSinIdentificar = []
+    this.ingredientesDelChatDecididos = true
   }
 
   /** «Nueva conversación»: olvida la conversación, no la despensa ni las recetas encontradas. */
