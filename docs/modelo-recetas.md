@@ -90,7 +90,7 @@ La tabla `preferencias_usuario` guarda por cuenta un objeto `Preferencias` en JS
 | `dietas` | lista | `vegetariana`, `vegana`, `sin_gluten`, `sin_lactosa`… (se recalculan desde ingredientes, ver abajo) |
 | `alergenos` | lista | derivados de los ingredientes; nunca escritos a mano |
 | `equipo` | lista | `horno`, `sarten`, `olla`, `licuadora`… |
-| `imagen` | ruta | foto real licenciada; `null` mientras no exista |
+| `imagen` | ruta | foto real licenciada, relativa a `src/renderer/assets/` (`recetas/arroz_con_pollo.jpg`); `null` si no hay. Créditos en `assets/recetas/creditos.json`, mostrados con `renderer/lib/fotos.ts` |
 | `ingredientes` | `IngredienteReceta[]` | |
 | `pasos` | `Paso[]` | ordenados |
 

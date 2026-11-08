@@ -19,21 +19,21 @@ Para añadir una receta: crea `recetas/<slug>.json`, usa ingredientes y técnica
 
 | Receta | Fuente | Licencia | Foto |
 |---|---|---|---|
-| `arroz-con-pollo` | escrita para este proyecto (ejemplo, `estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `arepas-queso` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `arroz-verduras` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `carne-molida-guisada` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `crema-zanahoria` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `ensalada-atun` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `garbanzos-espinaca` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `huevos-pericos` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `lentejas-guisadas` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `panqueques` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `pasta-atun` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `pasta-tomate` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `pescado-limon` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `pollo-horno-papas` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `pollo-plancha-ensalada` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `quesadillas-queso` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `sopa-pollo` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
-| `tortilla-papa` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | sin foto (`imagen: null`) |
+| `arroz-con-pollo` | escrita para este proyecto (ejemplo, `estadoRevision: borrador`) | propia del proyecto | foto de Andres Alaniz en Pexels (`recetas/arroz_con_pollo.jpg`) |
+| `arepas-queso` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Christian Bolaños en Pexels (`recetas/arepas_queso.jpg`) |
+| `arroz-verduras` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Speak Media Uganda en Pexels (`recetas/arroz_verduras.jpg`) |
+| `carne-molida-guisada` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Laura Oliveira en Pexels (`recetas/carne_molida_guisada.jpg`) |
+| `crema-zanahoria` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Natalie Goodwin en Pexels (`recetas/crema_zanahoria.jpg`) |
+| `ensalada-atun` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Piriyonel Piri en Pexels (`recetas/ensalada_atun.jpg`) |
+| `garbanzos-espinaca` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Iva Tomic en Pexels (`recetas/garbanzos_espinaca.jpg`) |
+| `huevos-pericos` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Markus Winkler en Pexels (`recetas/huevos_pericos.jpg`) |
+| `lentejas-guisadas` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Vural Yavas en Pexels (`recetas/lentejas_guisadas.jpg`) |
+| `panqueques` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de ClickerHappy en Pexels (`recetas/panqueques.jpg`) |
+| `pasta-atun` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Eiliv Aceron en Pexels (`recetas/pasta_atun.jpg`) |
+| `pasta-tomate` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Willians Huerta en Pexels (`recetas/pasta_tomate.jpg`) |
+| `pescado-limon` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Busenur Demirkan en Pexels (`recetas/pescado_limon.jpg`) |
+| `pollo-horno-papas` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Vincent Rivaud en Pexels (`recetas/pollo_horno_papas.jpg`) |
+| `pollo-plancha-ensalada` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Piriyonel Piri en Pexels (`recetas/pollo_plancha_ensalada.jpg`) |
+| `quesadillas-queso` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de The Castlebar en Pexels (`recetas/quesadillas_queso.jpg`) |
+| `sopa-pollo` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de Muhammad Khawar Nazir en Pexels (`recetas/sopa_pollo.jpg`) |
+| `tortilla-papa` | escrita para este proyecto (`estadoRevision: borrador`) | propia del proyecto | foto de MikeGz en Pexels (`recetas/tortilla_papa.jpg`) |

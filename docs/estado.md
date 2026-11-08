@@ -16,6 +16,12 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-08 · Fotos de las 18 recetas (parte de la 18)
+- El autor eligió fotos de bancos gratuitos y autorizó descargarlas. Son 18 fotos de Pexels (licencia libre, sin atribución obligatoria) a 1000×750, unos 2 MB en total, en `src/renderer/assets/recetas/`. Están dentro de la app y no se cargan de internet. La semilla guarda la ruta en `imagen`; `renderer/lib/fotos.ts` la convierte en URL y añade el crédito de `creditos.json`, que se muestra bajo la foto del detalle. Créditos también en `db/seed/README.md`.
+- Se ven en las tarjetas de Elegir y en el detalle. Son platos parecidos, no la receta exacta; cambiar una es sustituir el archivo y su crédito.
+- **Recetas de la IA:** al autor no le convence el plato dibujado. Sigue mostrándose mientras decide; la propuesta es una imagen generada por IA, con su etiqueta, al activar la facturación.
+- Verificado: 516 tests, las 14 tarjetas visibles cargan su foto y el crédito aparece en el detalle.
+
 ### 2026-11-08 · Voz que cambiaba sola y animaciones (43)
 - **El autor notó que la voz cambiaba a mitad de la receta** a una muy robótica. Causa, en los registros del backend: Gemini TTS respondió 429 (`proveedor_sin_cuota`, límite del plan gratuito de Google) y la app pasó en silencio a la voz de Windows. Ahora lo dice («La voz natural de Google llegó a su límite de uso gratuito. Sigo con la voz del sistema.») y no vuelve a pedir la voz natural durante 10 minutos, para no retrasar cada paso. No hay otra voz natural sin pagar: con la facturación sube el límite; también se puede apagar «Voz».
 - Animaciones breves al pasar y pulsar en botones, chips, tarjetas, controles del chef y el botón del chat; el chat entra deslizándose y el micrófono late mientras escucha. Con «reducir movimiento» del sistema no hay animación (`tokens.css`).
