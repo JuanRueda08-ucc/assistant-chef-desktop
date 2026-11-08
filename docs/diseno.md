@@ -18,10 +18,19 @@ Sobre los mismos componentes y tokens; sin nuevas maquetas.
 ### Inicio y avisos de temporizador (2026-11-08)
 
 - **Inicio** (`pantallas/Inicio.svelte`, opción A «Conversación», elegida por el autor; maquetas en `plan/diseno/rediseno-inicio.html`): es la primera pantalla al abrir la app, y se vuelve a ella con «Inicio» en el menú, el logo o «Salir» en Cocinar.
-  - **Arriba:** el chef con un globo que cambia en cada visita (`lib/saludos.ts`), «¿Listo para cocinar hoy?», «¡Sí, vamos!» (a la despensa) y debajo, del mismo alto, «Mis recetas» y «Hablar con el chef» (abre Preparar con el chat).
+  - **Arriba:** el chef con un globo que cambia en cada visita (`lib/saludos.ts`), «¿Listo para cocinar hoy?», «¡Sí, vamos!» (a la despensa) y debajo, del mismo alto, «Mis recetas» y «Hablar con el chef» (abre la conversación con el chef).
   - **Abajo:** «Tienes a medias…» si la hay, y cuatro fotos al azar «Para inspirarte hoy».
-  - **Fondo:** en lugar de un brillo, dibujos de línea de ingredientes a los lados.
-  - **Menú:** Inicio, Tu despensa y Mis recetas.
+  - **Fondo 2 «Más presencia»** (elegido por el autor el 2026-11-08 entre tres; maqueta en `plan/diseno/conversacion-chef.html`): dibujos de línea de ingredientes a los lados, de 76 a 110 px, con el trazo al 34 % y cada uno sobre una mancha redonda `--color-acento-suave`. Nunca detrás del texto ni de los botones.
+  - **Menú:** Inicio, Hablar con el chef, Tu despensa y Mis recetas.
+
+### Conversación con el chef (tarea 44, 2026-11-08)
+
+- **Pantalla aparte** (`pantallas/Conversacion.svelte`, opción A «Chat centrado» elegida por el autor; decisión 0023). Se abre desde «Hablar con el chef» en Inicio y en el menú. El panel lateral sigue en Preparar, Elegir y Cocinar.
+- **Columna central** de 820 px como máximo. Los mensajes de la persona van en globos amarillos a la derecha. Las respuestas del chef llevan su cara a la izquierda, en texto de 19 px.
+- **Al empezar:** el chef grande, «¿Qué cocinamos hoy?» y tres frases para tocar sobre el campo: «Tengo pollo y arroz», «Algo rápido para 2» y «Sorpréndeme».
+- **Respuestas con elementos:** los ingredientes añadidos aparecen como etiquetas blancas con X; los que no están en el catálogo llevan borde discontinuo. Debajo, «Para N» en amarillo suave y «Añadido a tu despensa · Deshacer» en verde. Las recetas van en tarjetas con foto, «Guardada», «De Mis recetas» o «Idea del chef», el tiempo, «Te faltan N» y «Ver receta». Se muestran como máximo tres guardadas, con «Ver las N en Elegir» si hay más, además de «Dame otras».
+- **Campo abajo:** texto, «Hablar» oscuro con micrófono y enviar amarillo. Con el foco, el campo lleva el trazo de tinta.
+- **Cabecera:** «Nueva conversación» a la derecha cuando ya hay mensajes.
 - **Aviso de temporizador** (`componentes/AvisoTemporizador.svelte`): al terminar, en cualquier pantalla, tres pitidos generados en el momento, un aviso con «Entendido» (quita el temporizador) e «Ir a la receta», el globo del chef y una notificación del sistema si la ventana no está a la vista. No usa la voz de Gemini.
 - Al guardar una receta se abre Mis recetas con ella elegida, y «Volver» lleva a Inicio.
 

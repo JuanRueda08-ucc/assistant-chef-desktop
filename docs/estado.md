@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-**Esperando la elección del autor sobre la maqueta de las tareas 44 y 45 y el fondo del inicio (2026-11-08).** Está en `plan/diseno/conversacion-chef.html`, con capturas en `plan/diseno/capturas-conversacion/` (sin versionar, como todo `plan/`). Conversación: A «Chat centrado», B «El chef a un lado», C «Conversación y mesa». Desplegable de «Para inspirarte hoy»: variante 1, que sube sobre el saludo, o variante 2, en la que la foto crece en su sitio. Fondo: 1, el actual; 2, con más presencia; 3, con franja amarilla. **No construir nada hasta que elija.** Después, construir según el pedido completo de `plan-chef-recetas.md`, «Siguiente: conversación con el chef». **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
+**Siguiente: tarea 45, el desplegable de «Para inspirarte hoy». Falta que el autor elija la variante.** La maqueta está en `plan/diseno/conversacion-chef.html`, con capturas en `plan/diseno/capturas-conversacion/`, sin versionar como todo `plan/`. Variante 1: sube sobre el saludo. Variante 2: la foto crece en su sitio. La conversación con el chef (44, opción A) y el fondo 2 ya están hechos; falta que el autor los pruebe. **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
 
 Todo está subido a origin/main hasta este punto. Pendientes del autor: activar la facturación de Gemini (búsqueda en internet, imágenes con IA y más cuota de voz natural), revisar las 18 recetas en borrador (18) y el login con Supabase al final (0017, `despliegue.md`).
 
@@ -20,6 +20,12 @@ Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-11-08 · Conversación con el chef (44) y fondo 2 del inicio
+- El autor eligió la **opción A «Chat centrado»** y el **fondo 2 «Más presencia»**. Hechos según 0023 y `diseno.md`: `Conversacion.svelte`, `lib/conversacion.ts` con su test, `voz/hablar-chat.svelte.ts`, que comparte «Hablar» con el panel, y el estado en `app.svelte.ts`. Inicio y el menú abren la conversación.
+- Sin cambios en el servidor ni en las herramientas: el mismo `enviarChat`. Las etiquetas y tarjetas salen del estado. Si la despensa o las preferencias cambian después de buscar, aparece «Buscar de nuevo», porque cambiar preferencias invalida la búsqueda como antes.
+- Verificado: 524 tests, tipos y lint. En la app compilada, con `CHEF_SIN_SONIDO=1`, `--mute-audio`, sin micrófono, un perfil nuevo y un backend propio con `PROVEEDOR_IA=falso` en el puerto 8791: Inicio con el fondo nuevo; «Hablar con el chef» abre la pantalla vacía con las tres frases; «Tengo pollo y arroz» añade dos etiquetas y ofrece «Buscar recetas con esto», que muestra 6 tarjetas (3 guardadas y 3 ideas); «somos 2» muestra «Para 2» y «Buscar de nuevo»; quitar una etiqueta también lo ofrece; «Ver receta» abre el detalle en Elegir; al volver por el menú la conversación sigue; «elige la primera» pasa a Cocinar; «Nueva conversación» la vacía. Sin errores en pantalla.
+- **No probado:** con Gemini real («Sorpréndeme» y «Algo rápido para 2» dependen del modelo; con el proveedor de prueba no hacen nada útil) ni «Hablar» con micrófono.
 
 ### 2026-11-08 · Maqueta de la conversación con el chef (44), el desplegable de inspiración (45) y el fondo
 - Hechas tres opciones de pantalla de conversación, cada una al empezar y a mitad de conversación: frases sugeridas, ingredientes como etiquetas que se pueden quitar, «Para 2», tarjetas de receta con foto («Guardada» o «Idea del chef»), «Ver receta» y «Dame otras», y el campo con «Hablar».

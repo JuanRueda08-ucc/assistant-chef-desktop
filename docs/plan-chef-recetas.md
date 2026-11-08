@@ -68,7 +68,9 @@ Propuesta aprobada, a llevar primero a maqueta:
   - «Ver receta» abre el detalle en Elegir; «cocinémosla» pasa a Cocinar.
 - **Mismas herramientas y reglas que el chat actual** (`seleccion.ts`, `herramientaIdea`, comprobaciones de alergias). Nada nuevo decide el modelo.
 - **El panel lateral se queda** en Preparar, Elegir y Cocinar, para dudas rápidas.
-- **Pendiente de diseño:** cómo marcar que la conversación cambió la despensa, y qué pasa con la conversación al ir a Elegir y volver.
+- **Resuelto en la construcción (0023):** «Añadido a tu despensa · Deshacer» marca los cambios, y la conversación se conserva al ir a Elegir y volver, hasta «Nueva conversación».
+
+**Hecho el 2026-11-08:** el autor eligió la opción A «Chat centrado» y el fondo 2 «Más presencia». Falta que elija la variante del desplegable de la tarea 45.
 
 Tarea 45, «Para inspirarte hoy» en Inicio: al pulsar una foto, un desplegable (no otra pantalla) con los ingredientes, lo que tienes y lo que falta. Desde ahí se confirma y se va a cocinar, pasando por la confirmación de Elegir.
 
