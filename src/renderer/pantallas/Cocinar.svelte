@@ -261,6 +261,10 @@
 {:else if receta && paso && sesion}
   <main class="cocinar">
     <header class="cabeza">
+      <!-- Cada pantalla tiene su salida (0022): la receta queda guardada para seguir luego. -->
+      <button type="button" class="salir" onclick={() => app.irA('preparar')}
+        ><Icono nombre="atras" tamano={18} />Salir</button
+      >
       <div class="titulo">
         <h1>{receta.titulo}</h1>
         {#if receta.origen === 'generada'}<p class="generada">Receta generada</p>{/if}
@@ -661,6 +665,21 @@
   }
   .titulo {
     min-width: 0;
+  }
+  .salir {
+    flex: none;
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    min-height: var(--alto-control);
+    padding: 0 var(--espacio-3) 0 var(--espacio-2);
+    font: inherit;
+    font-weight: var(--peso-fuerte);
+    color: var(--color-tinta);
+    background: var(--color-relleno);
+    border: 0;
+    border-radius: var(--radio-boton);
+    cursor: pointer;
   }
   .cabeza h1 {
     font-size: var(--texto-l);

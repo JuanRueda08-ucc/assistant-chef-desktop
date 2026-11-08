@@ -16,6 +16,11 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-08 · Pantallas separadas y menú lateral (0022)
+- El autor revisó todos los flujos y le gustan. Pidió quitar los pasos numerados de arriba, porque hacían parecer una sola pantalla, y usar un menú lateral con Mi cuenta y Mis recetas. Hecho según 0022: `MenuLateral.svelte`, «Salir» en Cocinar y «Seguir cocinando» en el menú. Se borró `Momentos.svelte`.
+- Verificado en la app sin sonido: sin pasos arriba, el menú abre y cierra, Mis recetas desde el menú, Cocinar → «Salir» → Preparar → menú «Seguir cocinando» → Cocinar en el mismo paso.
+- **Siguiente, según el autor:** el login, que mostrará la cuenta en el menú (Supabase, 0017, `despliegue.md`).
+
 ### 2026-11-08 · Imagen creada por IA para las recetas de la IA
 - El autor no quería el plato dibujado en las recetas de la IA y eligió una imagen creada por IA. Se comprobó con su clave: los seis modelos de imagen de Gemini dan 429 sin facturación, así que **funcionará al activarla**, igual que la búsqueda. Detalle en `ia-chef.md`.
 - Al escribir la receta, la app pide la imagen aparte; la receta se puede leer y cocinar mientras tanto. Se reduce, se guarda con la receta (sesión y Mis recetas) y se etiqueta «Imagen creada por IA, no es una foto real». Sin imagen, se muestra al chef.

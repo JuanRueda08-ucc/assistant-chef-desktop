@@ -15,6 +15,10 @@ Sobre los mismos componentes y tokens; sin nuevas maquetas.
 - **Elegir:** a la izquierda la lista para comparar (nombre, tiempo, nivel y «Faltan N» o «Tienes todo»; flechas arriba/abajo cambian de receta) y «Cambiar ingredientes». A la derecha la vista previa: plato, título, descripción, píldoras de tiempo/porciones/nivel/equipo, etiquetas de dieta y alérgenos, cobertura («N de M disponibles (X tuyos + Y básicos)») y todos los ingredientes escalados con su estado: Lo tienes, Básico, Falta (con sustituciones) u Opcional. «Cocinar esta receta» queda fijo al pie. Sin cápsulas grandes ni avatar.
 - **Cocinar:** cabecera con título, «Paso N de M» y la barra de pasos; a la derecha «Ingredientes (N porciones)», los temporizadores en marcha y «Temporizadores», todos con texto. «Ver cómo se hace» y el temporizador sugerido van dentro de la tarjeta del paso. Columna derecha (300 px): globo, avatar de 110 px y una caja «Voz» con micrófono, voz del chef y estado. Barra inferior: Atrás y Repetir de 180 px y «Listo, siguiente» grande a la derecha. A 1186×763 ni el paso ni la columna del chef necesitan desplazamiento.
 
+### Pantallas separadas y menú lateral (2026-11-08, decisión 0022)
+
+Sin «1 Preparar · 2 Elegir · 3 Cocinar» en la cabecera. A la izquierda, el botón de menú y la marca; a la derecha, «Pregúntale al chef». El menú lateral se desliza desde la izquierda con «Seguir cocinando» (si hay receta a medias), «Mis recetas» y «Mi cuenta». Cada pantalla tiene su salida: «Cambiar ingredientes» en Elegir, «Salir» en Cocinar y «Volver» en Mis recetas.
+
 ### Rediseño aprobado (tarea 43, 2026-11-08, decisión 0021)
 
 El autor rechazó el primer repaso y aprobó una propuesta de tres pantallas. Se aplicó así:

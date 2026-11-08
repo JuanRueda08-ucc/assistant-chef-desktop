@@ -1,8 +1,7 @@
 <script lang="ts">
   import { onMount } from 'svelte'
-  import { USUARIO_LOCAL } from '@shared/types/cuenta'
   import busto from './assets/chef/chef_busto.png'
-  import Momentos from './componentes/Momentos.svelte'
+  import MenuLateral from './componentes/MenuLateral.svelte'
   import ChatChef from './componentes/ChatChef.svelte'
   import { app } from './estado/app.svelte'
   import Acceso from './pantallas/Acceso.svelte'
@@ -40,14 +39,20 @@
 
 <div class="app">
   <header class="barra">
-    <div class="marca"><img src={busto} alt="" />Chef digital</div>
-    {#if usuario}<Momentos />{:else}<span></span>{/if}
-    <div class="derecha">
-      {#if usuario && app.pantalla !== 'cocinar' && !app.verMisRecetas}
-        <button type="button" class="mis-recetas" onclick={() => app.abrirMisRecetas()}
-          >Mis recetas</button
+    <div class="marca">
+      {#if usuario}
+        <button
+          type="button"
+          class="abrir-menu"
+          aria-label="Abrir el menú"
+          aria-expanded={app.menuAbierto}
+          onclick={() => (app.menuAbierto = true)}><span></span><span></span><span></span></button
         >
       {/if}
+      <img src={busto} alt="" />Chef digital
+    </div>
+    <span></span>
+    <div class="derecha">
       {#if chatDisponible && app.pantalla !== 'cocinar'}
         <button
           type="button"
@@ -58,11 +63,6 @@
             ? 'Cerrar el chat'
             : 'Pregúntale al chef'}</button
         >
-      {/if}
-      <!-- Sin cuenta real (0018) no hay nombre ni «Salir» que mostrar. -->
-      {#if usuario && usuario.id !== USUARIO_LOCAL.id}
-        <span class="usuario" title={usuario.email}>{usuario.nombre}</span>
-        <button type="button" class="salir" onclick={() => app.salir()}>Salir</button>
       {/if}
     </div>
   </header>
@@ -83,6 +83,7 @@
     <Cocinar />
   {/if}
   {#if chatDisponible}<ChatChef />{/if}
+  {#if usuario}<MenuLateral />{/if}
 </div>
 
 <style>
@@ -95,7 +96,7 @@
   }
   .barra {
     display: grid;
-    grid-template-columns: 220px 1fr 360px;
+    grid-template-columns: auto 1fr auto;
     align-items: center;
     justify-items: center;
     padding: 0 var(--espacio-6);
@@ -109,6 +110,30 @@
     font-weight: var(--peso-titulo);
     font-size: 20px;
   }
+  .abrir-menu {
+    width: var(--alto-control);
+    height: var(--alto-control);
+    display: flex;
+    flex-direction: column;
+    justify-content: center;
+    align-items: center;
+    gap: 4px;
+    margin-right: var(--espacio-2);
+    border: 0;
+    border-radius: var(--radio-boton);
+    background: var(--color-relleno);
+    cursor: pointer;
+    transition: transform var(--transicion);
+  }
+  .abrir-menu:hover {
+    transform: translateY(-1px);
+  }
+  .abrir-menu span {
+    width: 20px;
+    height: 2.5px;
+    border-radius: 2px;
+    background: var(--color-tinta);
+  }
   .marca img {
     width: 36px;
     height: 36px;
@@ -119,39 +144,6 @@
     display: flex;
     align-items: center;
     gap: var(--espacio-3);
-  }
-  .usuario {
-    max-width: 120px;
-    overflow: hidden;
-    text-overflow: ellipsis;
-    white-space: nowrap;
-    font-weight: 600;
-    font-size: var(--texto-s);
-    color: var(--color-tinta-suave);
-  }
-  .salir {
-    font: inherit;
-    font-size: var(--texto-s);
-    font-weight: 600;
-    background: none;
-    border: 0;
-    color: var(--color-tinta);
-    text-decoration: underline;
-    text-underline-offset: 3px;
-    padding: var(--espacio-2) 0;
-    cursor: pointer;
-  }
-  .mis-recetas {
-    font: inherit;
-    font-weight: var(--peso-fuerte);
-    font-size: var(--texto-s);
-    min-height: var(--alto-control);
-    padding: 0 var(--espacio-2);
-    border: 0;
-    background: transparent;
-    color: var(--color-tinta);
-    text-decoration: underline;
-    cursor: pointer;
   }
   .abrir-chat {
     font: inherit;

@@ -62,6 +62,8 @@ class EstadoApp {
   pantalla = $state<Pantalla>('preparar')
   /** Al abrir la app con una receta en curso: se muestra Retomar antes de entrar a Cocinar. */
   retomando = $state(false)
+  /** Menú lateral con Mi cuenta y Mis recetas (0022). */
+  menuAbierto = $state(false)
   /** Panel lateral del chat, abierto desde la cabecera. */
   chatAbierto = $state(false)
   catalogo = $state<Ingrediente[]>([])
