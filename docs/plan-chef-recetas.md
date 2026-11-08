@@ -55,6 +55,25 @@ Comprobado el 2026-11-06 con la clave del autor: Gemini responde sin búsqueda, 
 - **Límite que hay que tener presente:** la búsqueda no comprueba reseñas. Gemini resume lo que encuentra y no hay datos fiables de puntuación; solo se puede pedir que prefiera esas fuentes y mostrarlas para que la persona las abra. No afirmar en pantalla «receta verificada» por venir de internet.
 - **Sin decidir:** cómo cumplir las condiciones de Google al pasar de una idea encontrada a una receta completa (ver arriba). Si la receta la escribe Gemini aparte, ya no es la receta famosa encontrada. La fidelidad a la fuente y las condiciones chocan. El autor lo entendió y lo aplazó: al activar la facturación, revisar las condiciones y probar con búsquedas reales cuánto se parece la receta a la fuente, y decidir con eso. Hasta entonces, `DetalleIdea` no ofrece la receta de una idea con `fuente: internet`.
 
+## Siguiente: conversación con el chef (tarea 44, aprobada como idea el 2026-11-08)
+
+Lo que pidió el autor: además del panel lateral «Pregúntale al chef», una **pantalla aparte para conversar con el chef**, como ChatGPT o Claude. Desde Inicio, «Hablar con el chef» debe abrirla (hoy abre Preparar con el panel, y le resulta raro). En ella le dices lo que tienes, el chef te propone recetas, puedes pedir otras y, al elegir una, pasas a Elegir o a cocinar.
+
+Propuesta aprobada, a llevar primero a maqueta:
+- **Pantalla completa:** mensajes grandes, el chef a un lado y abajo el campo para escribir con el micrófono («Hablar», 0020).
+- **Al empezar, frases para tocar:** «Tengo pollo y arroz», «Algo rápido para 2», «Sorpréndeme».
+- **Respuestas con elementos, no solo texto:**
+  - Los ingredientes que reconoce aparecen como etiquetas que se pueden quitar.
+  - Las recetas, guardadas o ideas, aparecen como tarjetas con foto, con «Dame otras» y «Ver receta».
+  - «Ver receta» abre el detalle en Elegir; «cocinémosla» pasa a Cocinar.
+- **Mismas herramientas y reglas que el chat actual** (`seleccion.ts`, `herramientaIdea`, comprobaciones de alergias). Nada nuevo decide el modelo.
+- **El panel lateral se queda** en Preparar, Elegir y Cocinar, para dudas rápidas.
+- **Pendiente de diseño:** cómo marcar que la conversación cambió la despensa, y qué pasa con la conversación al ir a Elegir y volver.
+
+Tarea 45, «Para inspirarte hoy» en Inicio: al pulsar una foto, un desplegable (no otra pantalla) con los ingredientes, lo que tienes y lo que falta. Desde ahí se confirma y se va a cocinar, pasando por la confirmación de Elegir.
+
+Fondo del inicio: el autor preguntó si cambiarlo. Llevar a la maqueta los dibujos actuales y una variante con más presencia.
+
 ## Pendiente con el autor
 
 - **Fecha:** el autor mencionó el **18 de noviembre de 2026** para su entrega o integración (dicho el 2026-11-07); hay tiempo para la interfaz (43).
