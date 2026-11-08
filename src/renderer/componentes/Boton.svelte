@@ -1,10 +1,11 @@
 <script lang="ts">
   import type { Snippet } from 'svelte'
 
-  // Botón principal: píldora amarilla con el trazo del chef. Uno por pantalla.
-  // Secundario: píldora con borde de control, para acciones de menor peso.
+  // Rediseño 43: rectángulos redondeados sin contorno que se ven pulsables.
+  // Principal: amarillo, uno por pantalla. Oscuro: la acción destacada de una franja amarilla.
+  // Secundario: relleno suave, para acciones de menor peso.
   interface Props {
-    variante?: 'principal' | 'secundario'
+    variante?: 'principal' | 'secundario' | 'oscuro'
     /** `submit` para el botón que envía un formulario (Intro en un campo lo pulsa). */
     tipo?: 'button' | 'submit'
     ancho?: boolean
@@ -32,35 +33,46 @@
     font-weight: var(--peso-fuerte);
     font-size: var(--texto-m);
     min-height: 52px;
-    padding: var(--espacio-3) var(--espacio-5);
-    border-radius: var(--radio-pildora);
+    padding: 0 var(--espacio-5);
+    border: 0;
+    border-radius: var(--radio-boton);
     display: inline-flex;
     align-items: center;
     justify-content: center;
     gap: var(--espacio-2);
+    line-height: 1.2;
     cursor: pointer;
   }
   .principal {
     background: var(--color-acento);
     color: var(--color-tinta);
-    border: var(--trazo) solid var(--color-tinta);
+    box-shadow: var(--sombra-boton);
     font-size: 18px;
-    min-height: 58px;
+    min-height: 56px;
+  }
+  .oscuro {
+    background: var(--color-tinta);
+    color: var(--color-superficie);
+    box-shadow: var(--sombra-boton);
   }
   .secundario {
-    background: var(--color-superficie);
+    background: var(--color-relleno);
     color: var(--color-tinta);
-    border: var(--borde) solid var(--color-borde-control);
+  }
+  .boton:not(:disabled):active {
+    box-shadow: none;
+    transform: translateY(2px);
   }
   .ancho {
     width: 100%;
   }
-  /* Desactivado: gris y con borde de puntos, no un amarillo apagado que parezca disponible. */
+  /* Desactivado: sin relleno y con borde de puntos, no un amarillo apagado que parezca disponible. */
   .boton:disabled {
     cursor: default;
-    background: var(--color-panel-suave);
-    border-style: dashed;
-    border-color: var(--color-borde-control);
+    background: transparent;
+    box-shadow: none;
+    outline: 2px dashed var(--color-borde-control);
+    outline-offset: -2px;
     color: var(--color-tinta-suave);
   }
 </style>

@@ -15,33 +15,39 @@
   import Icono from '../componentes/Icono.svelte'
   import { app } from '../estado/app.svelte'
   import { describirIngrediente } from '../lib/medidas'
+  import { unirLista } from '@shared/recetas/lista'
 
-  // Elegir compara recetas en una lista (nombre, tiempo, nivel y lo que falta) y muestra la
-  // elegida en detalle, con una sola acción para empezar (docs/replanteamiento-v1.md).
+  // Elegir (rediseño 43): tarjetas para comparar de un vistazo y, arriba, pedir ideas al chef. Al
+  // pulsar una tarjeta se abre su detalle, con una sola acción para empezar.
   const resultados = $derived(app.busqueda?.resultados ?? [])
-  // Las descartadas por no estar revisadas no se mencionan: el usuario no debe verlas.
-  const ocultas = $derived(
-    (app.busqueda?.descartadas ?? []).filter((d) => !d.motivos.includes('no_revisada')).length
-  )
 
-  const indice = $derived(
-    Math.max(
-      0,
-      resultados.findIndex((r) => r.receta.id === app.recetaVisibleId)
-    )
+  const actual = $derived(
+    resultados.find((r) => r.receta.id === app.recetaVisibleId) ?? resultados[0]
   )
-  const actual = $derived(resultados[Math.min(indice, resultados.length - 1)])
   const ideas = $derived(app.ideas?.lista ?? [])
   const ideaActual = $derived(ideas.find((i) => i.id === app.ideaVisibleId) ?? null)
-  // La opción elegida queda a la vista, también cuando la elige la app.
-  let lista: HTMLUListElement | undefined = $state()
-  $effect(() => {
-    void [app.ideaVisibleId, app.recetaVisibleId]
-    lista?.querySelector('[aria-current="true"]')?.scrollIntoView({ block: 'nearest' })
-  })
   const hayContenido = $derived(
     resultados.length > 0 || ideas.length > 0 || app.ideasCargando || !!app.ideasError
   )
+  const enDetalle = $derived(app.elegirDetalle && (!!ideaActual || !!actual))
+  // Con qué se buscó, en palabras: sustituye a contar resultados y motivos.
+  const conQue = $derived(
+    unirLista([
+      ...app.catalogo
+        .filter((i) => !i.esBasicoDespensa && app.preferencias.ingredientes.includes(i.id))
+        .map((i) => i.nombre.toLocaleLowerCase('es')),
+      ...app.preferencias.ingredientesSinIdentificar
+    ])
+  )
+  function verReceta(id: string): void {
+    app.ideaVisibleId = null
+    app.recetaVisibleId = id
+    app.elegirDetalle = true
+  }
+  function verIdea(id: string): void {
+    app.ideaVisibleId = id
+    app.elegirDetalle = true
+  }
   const porciones = $derived(app.preferencias.porciones)
 
   // Receta completa de la elegida, para mostrar todos sus ingredientes ya escalados.
@@ -102,112 +108,106 @@
     falta: 'Falta',
     opcional: 'Opcional'
   }
-
-  function teclas(evento: KeyboardEvent): void {
-    if (resultados.length < 2) return
-    const paso = evento.key === 'ArrowDown' ? 1 : evento.key === 'ArrowUp' ? -1 : 0
-    if (!paso) return
-    evento.preventDefault()
-    app.ideaVisibleId = null
-    app.recetaVisibleId =
-      resultados[(indice + paso + resultados.length) % resultados.length]!.receta.id
-  }
 </script>
 
-<main class="elegir">
-  {#if hayContenido}
-    <section class="comparar" aria-labelledby="titulo-elegir">
-      <button type="button" class="volver" onclick={() => app.irA('preparar')}
-        ><Icono nombre="atras" tamano={16} />Cambiar ingredientes</button
-      >
-      <h1 id="titulo-elegir">
-        {#if resultados.length > 0}
-          {resultados.length}
-          {resultados.length === 1 ? 'receta' : 'recetas'} para elegir
-        {:else}
-          Ideas del chef
-        {/if}
-      </h1>
-      <p class="subtitulo">
-        {resultados.length > 1 ? 'Primero las que usan más de lo que tienes.' : ''}
-        {#if ocultas > 0}
-          {ocultas} no aparecen por tus restricciones, tu tiempo o tu equipo.
-        {/if}
-      </p>
-      <!-- svelte-ignore a11y_no_noninteractive_element_interactions -->
-      <ul class="opciones" aria-label="Recetas" bind:this={lista} onkeydown={teclas}>
-        {#each resultados as r (r.receta.id)}
-          <li>
-            <button
-              type="button"
-              aria-current={!ideaActual && r.receta.id === actual?.receta.id ? 'true' : undefined}
-              onclick={() => {
-                app.ideaVisibleId = null
-                app.recetaVisibleId = r.receta.id
-              }}
-            >
-              <span class="nombre"
-                >{r.receta.titulo}{#if r.receta.origen === 'generada'}
-                  <small class="sin-revisar">Mis recetas · generada por IA</small>
-                {:else if r.receta.estadoRevision === 'borrador'}
-                  <small class="sin-revisar">Sin revisar</small>{/if}</span
-              >
-              <span class="datos">
-                <span><Icono nombre="reloj" tamano={16} />{r.receta.tiempoTotalMin} min</span>
-                <span>{NOMBRE_DIFICULTAD[r.receta.dificultad]}</span>
-              </span>
-              <span class="faltan" class:completa={r.faltantes.length === 0}
-                >{r.faltantes.length === 0 ? 'Tienes todo' : `Faltan ${r.faltantes.length}`}</span
-              >
-            </button>
-          </li>
-        {/each}
-        {#if ideas.length > 0}
-          <li class="separador">
-            Ideas del chef · {app.ideas?.fuente === 'internet'
-              ? 'de internet'
-              : 'sin buscar en internet'}
-          </li>
-        {/if}
-        {#each ideas as idea (idea.id)}
-          <li>
-            <button
-              type="button"
-              aria-current={idea.id === ideaActual?.id ? 'true' : undefined}
-              onclick={() => (app.ideaVisibleId = idea.id)}
-            >
-              <span class="nombre"
-                >{idea.titulo}<small class="sin-revisar">Generada por IA</small></span
-              >
-              <span class="datos">
-                <span><Icono nombre="reloj" tamano={16} />{idea.tiempoTotalMin} min</span>
-                <span>{NOMBRE_DIFICULTAD[idea.dificultad]}</span>
-              </span>
-              <span class="faltan" class:completa={idea.faltan.length === 0}
-                >{idea.faltan.length === 0 ? 'Tienes todo' : `Faltan ${idea.faltan.length}`}</span
-              >
-            </button>
-          </li>
-        {/each}
-      </ul>
-      <div class="estado-ideas" aria-live="polite">
-        {#if app.ideasCargando}
-          <p>El chef está pensando ideas…</p>
-        {:else if app.ideasError}
-          <p role="alert">{app.ideasError}</p>
-        {/if}
+<main class="elegir" class:detalle-abierto={enDetalle}>
+  {#if !enDetalle}
+    <div class="rejilla-vista">
+      <div class="titulo-fila">
+        <div>
+          <button type="button" class="volver" onclick={() => app.irA('preparar')}
+            ><Icono nombre="atras" tamano={16} />Cambiar ingredientes</button
+          >
+          <h1>¿Qué cocinamos?</h1>
+        </div>
+        {#if conQue}<p class="con-que">Con {conQue}</p>{/if}
       </div>
-      <div class="acciones-lista">
-        <Boton
-          variante="secundario"
-          disabled={app.ideasCargando}
-          onclick={() => app.proponerIdeas()}
-        >
-          {ideas.length > 0 ? 'Dame otras' : 'Pedir ideas al chef'}
-        </Boton>
-      </div>
-    </section>
 
+      <section class="ideas" aria-labelledby="titulo-ideas" aria-live="polite">
+        <ChefBlob pose="hablando" tamano={96} />
+        <div>
+          <h2 id="titulo-ideas">
+            {app.ideasCargando
+              ? 'El chef está pensando…'
+              : ideas.length > 0
+                ? 'Ideas del chef'
+                : resultados.length > 0
+                  ? '¿Ninguna te convence?'
+                  : 'No hay recetas guardadas con esto'}
+          </h2>
+          <p>
+            {#if app.ideasError}{app.ideasError}{:else if ideas.length > 0}Recetas nuevas con lo que
+              tienes, {app.ideas?.fuente === 'internet'
+                ? 'buscadas en internet'
+                : 'creadas sin buscar en internet'}.{:else}El chef inventa recetas con lo que
+              tienes.{/if}
+          </p>
+        </div>
+        <Boton variante="oscuro" disabled={app.ideasCargando} onclick={() => app.proponerIdeas()}>
+          <Icono nombre="chispa" />{ideas.length > 0 ? 'Dame otras' : 'Pedir ideas al chef'}
+        </Boton>
+      </section>
+
+      {#if hayContenido}
+        <ul class="rejilla" aria-label="Recetas">
+          {#each ideas as idea (idea.id)}
+            <li>
+              <button type="button" class="tarjeta idea" onclick={() => verIdea(idea.id)}>
+                <span class="foto"><ChefBlob pose="hablando" tamano={92} /></span>
+                <span class="cuerpo">
+                  <span class="nombre">{idea.titulo}</span>
+                  <span class="datos">
+                    <span><Icono nombre="reloj" tamano={16} />{idea.tiempoTotalMin} min</span>
+                    <span>Idea del chef</span>
+                  </span>
+                  <span class="faltan" class:completa={idea.faltan.length === 0}
+                    >{idea.faltan.length === 0
+                      ? 'Tienes todo'
+                      : `Te ${idea.faltan.length === 1 ? 'falta' : 'faltan'} ${idea.faltan.length}`}</span
+                  >
+                </span>
+              </button>
+            </li>
+          {/each}
+          {#each resultados as r, n (r.receta.id)}
+            <li>
+              <button type="button" class="tarjeta" onclick={() => verReceta(r.receta.id)}>
+                <span class="foto">
+                  {#if r.receta.imagen}<img src={r.receta.imagen} alt="" />{:else}<span
+                      class="comida variante-{n % 3}"
+                    ></span>{/if}
+                </span>
+                <span class="cuerpo">
+                  <span class="nombre">{r.receta.titulo}</span>
+                  {#if r.receta.origen === 'generada'}<small class="sin-revisar"
+                      >De Mis recetas</small
+                    >{:else if r.receta.estadoRevision === 'borrador'}<small class="sin-revisar"
+                      >Sin revisar</small
+                    >{/if}
+                  <span class="datos">
+                    <span><Icono nombre="reloj" tamano={16} />{r.receta.tiempoTotalMin} min</span>
+                    <span
+                      ><Icono nombre="nivel" tamano={16} />{NOMBRE_DIFICULTAD[
+                        r.receta.dificultad
+                      ]}</span
+                    >
+                  </span>
+                  <span class="faltan" class:completa={r.faltantes.length === 0}
+                    >{r.faltantes.length === 0
+                      ? 'Tienes todo'
+                      : `Te ${r.faltantes.length === 1 ? 'falta' : 'faltan'} ${r.faltantes.length}`}</span
+                  >
+                </span>
+              </button>
+            </li>
+          {/each}
+        </ul>
+      {/if}
+    </div>
+  {:else}
+    <button type="button" class="volver" onclick={() => (app.elegirDetalle = false)}
+      ><Icono nombre="atras" tamano={16} />Todas las recetas</button
+    >
     {#if ideaActual && app.ideas}
       <DetalleIdea
         idea={ideaActual}
@@ -216,16 +216,7 @@
         sugerenciasBusqueda={app.ideas.sugerenciasBusqueda}
         tieneAlergias={app.preferencias.alergias.length > 0}
       />
-    {:else if !actual}
-      <section class="esperando">
-        <ChefBlob pose="busto" tamano={120} />
-        <p>
-          {app.ideasCargando
-            ? 'Estoy revisando tu despensa para proponerte recetas.'
-            : 'Elige una idea de la lista o pide otras.'}
-        </p>
-      </section>
-    {:else}
+    {:else if actual}
       <article class="detalle" aria-labelledby="titulo-receta">
         <div class="contenido">
           <header class="cabeza">
@@ -341,89 +332,124 @@
         </footer>
       </article>
     {/if}
-  {:else}
-    <section class="sin-recetas">
-      <ChefBlob pose="busto" tamano={140} />
-      <Globo cola="izquierda">
-        <h1>Con lo que marcaste no encuentro recetas</h1>
-        <p>{app.globo ?? 'Prueba a añadir más ingredientes o a ajustar tus preferencias.'}</p>
-      </Globo>
-      <Boton onclick={() => app.proponerIdeas()}>Pedir ideas al chef</Boton>
-      <Boton variante="secundario" onclick={() => app.irA('preparar')}>Cambiar ingredientes</Boton>
-    </section>
   {/if}
 </main>
 
 <style>
   .elegir {
-    display: grid;
-    grid-template-columns: 340px 1fr;
-    gap: var(--espacio-5);
-    padding: var(--espacio-1) var(--espacio-6) var(--espacio-6);
-    min-height: 0;
-  }
-  .comparar {
     display: flex;
     flex-direction: column;
-    gap: var(--espacio-3);
+    gap: var(--espacio-4);
+    padding: var(--espacio-1) var(--espacio-6) var(--espacio-6);
     min-height: 0;
+    overflow-y: auto;
+  }
+  .elegir.detalle-abierto {
+    overflow: hidden;
+  }
+  .rejilla-vista {
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-5);
+  }
+  .titulo-fila {
+    display: flex;
+    align-items: flex-end;
+    justify-content: space-between;
+    gap: var(--espacio-4);
   }
   h1 {
-    font-size: 26px;
+    font-size: var(--texto-xl);
   }
-  .subtitulo {
+  .con-que {
     margin: 0;
     color: var(--color-tinta-suave);
-    font-size: var(--texto-s);
+    text-align: right;
+    max-width: 50%;
   }
   ul {
     list-style: none;
     margin: 0;
     padding: 0;
   }
-  .opciones {
+  .ideas {
+    display: grid;
+    grid-template-columns: auto 1fr auto;
+    align-items: center;
+    gap: var(--espacio-5);
+    padding: var(--espacio-3) var(--espacio-6) var(--espacio-3) var(--espacio-3);
+    background: var(--color-acento-suave);
+    border-radius: var(--radio-l);
+  }
+  .ideas h2 {
+    font-size: var(--texto-l);
+  }
+  .ideas p {
+    margin: 4px 0 0;
+    color: var(--color-tinta-suave);
+  }
+  .rejilla {
+    display: grid;
+    grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+    gap: var(--espacio-4);
+  }
+  .tarjeta {
+    width: 100%;
+    height: 100%;
+    display: flex;
+    flex-direction: column;
+    padding: 0;
+    font: inherit;
+    text-align: left;
+    color: var(--color-tinta);
+    background: var(--color-superficie);
+    border: 0;
+    border-radius: var(--radio-l);
+    overflow: hidden;
+    cursor: pointer;
+  }
+  .tarjeta:hover {
+    box-shadow: 0 0 0 var(--trazo) var(--color-tinta);
+  }
+  .foto {
+    position: relative;
+    height: 120px;
+    display: grid;
+    place-items: center;
+    background: var(--color-acento-suave);
+    overflow: hidden;
+  }
+  .foto img {
+    width: 100%;
+    height: 100%;
+    object-fit: cover;
+  }
+  .foto .comida {
+    width: 96px;
+    box-shadow: 0 0 0 10px var(--color-superficie);
+  }
+  .foto small {
+    position: absolute;
+    left: var(--espacio-2);
+    bottom: var(--espacio-2);
+    padding: 2px var(--espacio-2);
+    border-radius: var(--radio-m);
+    background: var(--color-superficie);
+    font-size: var(--texto-xs);
+    color: var(--color-tinta-suave);
+  }
+  .cuerpo {
+    flex: 1;
     display: flex;
     flex-direction: column;
     gap: var(--espacio-2);
-    overflow-y: auto;
-    min-height: 0;
-    flex: 1;
-    padding: 4px;
-  }
-  .opciones button {
-    width: 100%;
-    font: inherit;
-    text-align: left;
-    display: grid;
-    grid-template-columns: 1fr auto;
-    gap: 4px var(--espacio-3);
-    padding: var(--espacio-3) var(--espacio-4);
-    border-radius: var(--radio-m);
-    border: var(--borde) solid var(--color-borde-control);
-    background: var(--color-superficie);
-    color: var(--color-tinta);
-    cursor: pointer;
-  }
-  .opciones button[aria-current='true'] {
-    background: var(--color-acento-suave);
-    border: var(--trazo) solid var(--color-tinta);
+    padding: var(--espacio-3) var(--espacio-4) var(--espacio-4);
   }
   .nombre {
     font-family: var(--fuente-titulo);
     font-weight: var(--peso-fuerte);
     font-size: var(--texto-m);
-  }
-  .separador {
-    margin-top: var(--espacio-2);
-    font-size: var(--texto-s);
-    font-weight: var(--peso-fuerte);
-    color: var(--color-tinta-suave);
-  }
-  .estado-ideas p {
-    margin: 0;
-    font-size: var(--texto-s);
-    border-left: 4px solid var(--color-acento);
-    padding-left: var(--espacio-3);
+    line-height: 1.2;
   }
   .volver {
     align-self: flex-start;
@@ -440,29 +466,12 @@
     text-decoration: underline;
     cursor: pointer;
   }
-  .acciones-lista {
-    display: flex;
-    flex-direction: column;
-    gap: var(--espacio-2);
-  }
-  .esperando {
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--espacio-4);
-    text-align: center;
-    color: var(--color-tinta-suave);
-  }
   .sin-revisar {
-    display: block;
-    font-family: var(--fuente-texto);
     font-size: var(--texto-xs);
     font-weight: 600;
     color: var(--color-tinta-suave);
   }
   .datos {
-    grid-column: 1;
     display: flex;
     gap: var(--espacio-3);
     font-size: var(--texto-s);
@@ -474,17 +483,17 @@
     gap: 4px;
   }
   .faltan {
-    grid-column: 2;
-    grid-row: 1 / span 2;
-    align-self: center;
-    font-size: var(--texto-s);
+    margin-top: auto;
+    align-self: flex-start;
+    font-size: var(--texto-xs);
     font-weight: var(--peso-fuerte);
     padding: 4px var(--espacio-3);
-    border-radius: var(--radio-pildora);
-    border: var(--borde) solid var(--color-tinta);
+    border-radius: var(--radio-m);
+    background: var(--color-relleno);
   }
   .faltan.completa {
-    background: var(--color-acento);
+    background: var(--color-hierba-suave);
+    color: var(--color-hierba);
   }
 
   .detalle {
@@ -535,6 +544,25 @@
       radial-gradient(circle at 48% 30%, #7aa04a 0 6%, transparent 7%),
       radial-gradient(circle at 66% 34%, #c9542f 0 7%, transparent 8%),
       repeating-radial-gradient(circle at 50% 50%, #f3d07a 0 3px, #e8b955 3px 6px);
+  }
+  /* Ilustración mientras no haya foto: tres platos distintos para no repetir la misma tarjeta. */
+  .comida.variante-1 {
+    background:
+      radial-gradient(circle at 40% 45%, #9bbf5d 0 14%, transparent 15%),
+      radial-gradient(circle at 62% 58%, #e07a3a 0 11%, transparent 12%),
+      repeating-radial-gradient(circle at 50% 50%, #f2e3c0 0 3px, #e3cd98 3px 6px);
+  }
+  .comida.variante-2 {
+    background:
+      radial-gradient(circle at 50% 50%, #ffe08a 0 22%, transparent 23%),
+      radial-gradient(circle at 36% 40%, #c9542f 0 7%, transparent 8%),
+      repeating-radial-gradient(circle at 50% 50%, #f7e9c6 0 3px, #ecd29a 3px 6px);
+  }
+  .detalle-abierto .detalle {
+    flex: 1;
+    width: 100%;
+    max-width: 1040px;
+    margin: 0 auto;
   }
   h2 {
     font-size: var(--texto-xl);
@@ -677,23 +705,5 @@
     font-size: var(--texto-s);
     border-left: 4px solid var(--color-acento);
     padding-left: var(--espacio-3);
-  }
-  .sin-recetas {
-    grid-column: 1 / -1;
-    display: flex;
-    flex-direction: column;
-    align-items: center;
-    justify-content: center;
-    gap: var(--espacio-5);
-    max-width: 640px;
-    margin: 0 auto;
-    text-align: center;
-  }
-  .sin-recetas h1 {
-    font-size: var(--texto-xl);
-  }
-  .sin-recetas p {
-    margin: var(--espacio-2) 0 0;
-    color: var(--color-tinta-suave);
   }
 </style>

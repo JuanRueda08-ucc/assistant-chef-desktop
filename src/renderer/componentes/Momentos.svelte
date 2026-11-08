@@ -31,44 +31,44 @@
 <style>
   ol {
     display: flex;
-    gap: var(--espacio-2);
+    gap: var(--espacio-5);
     margin: 0;
     padding: 0;
     list-style: none;
   }
   button {
     font: inherit;
-    font-size: var(--texto-s);
-    font-weight: 600;
+    font-size: var(--texto-m);
+    font-weight: var(--peso-fuerte);
     display: flex;
     align-items: center;
     gap: var(--espacio-2);
-    padding: 6px var(--espacio-4) 6px 6px;
-    border-radius: var(--radio-pildora);
-    border: var(--trazo) solid transparent;
+    padding: var(--espacio-2) 0;
+    border: 0;
+    border-bottom: 4px solid transparent;
     background: transparent;
     color: var(--color-tinta-suave);
     cursor: pointer;
   }
   button:disabled {
     cursor: default;
-    opacity: 0.6;
+    opacity: 0.5;
   }
   .numero {
-    width: 28px;
-    height: 28px;
+    width: 24px;
+    height: 24px;
     border-radius: 50%;
     display: grid;
     place-items: center;
-    background: var(--color-panel-suave);
+    background: var(--color-relleno);
     font-size: var(--texto-xs);
   }
   button[aria-current='step'] {
-    background: var(--color-superficie);
-    border-color: var(--color-tinta);
     color: var(--color-tinta);
+    border-bottom-color: var(--color-acento);
   }
   button[aria-current='step'] .numero {
-    background: var(--color-acento);
+    background: var(--color-tinta);
+    color: var(--color-superficie);
   }
 </style>

@@ -54,7 +54,9 @@
           class="abrir-chat"
           aria-expanded={app.chatAbierto}
           onclick={() => (app.chatAbierto = !app.chatAbierto)}
-          >{app.chatAbierto ? 'Cerrar chat' : 'Escribir al chef'}</button
+          ><img src={busto} alt="" />{app.chatAbierto
+            ? 'Cerrar el chat'
+            : 'Pregúntale al chef'}</button
         >
       {/if}
       <!-- Sin cuenta real (0018) no hay nombre ni «Salir» que mostrar. -->
@@ -154,17 +156,30 @@
   .abrir-chat {
     font: inherit;
     font-weight: var(--peso-fuerte);
-    font-size: var(--texto-s);
-    min-height: var(--alto-control);
-    padding: 0 var(--espacio-4);
+    font-size: var(--texto-m);
+    display: inline-flex;
+    align-items: center;
+    gap: var(--espacio-2);
+    min-height: 50px;
+    padding: 4px var(--espacio-5) 4px 4px;
+    border: 0;
     border-radius: var(--radio-pildora);
-    border: var(--trazo) solid var(--color-tinta);
-    background: var(--color-superficie);
-    color: var(--color-tinta);
+    background: var(--color-tinta);
+    color: var(--color-superficie);
+    box-shadow: var(--sombra-boton);
     cursor: pointer;
   }
-  .abrir-chat[aria-expanded='true'] {
+  .abrir-chat img {
+    width: 42px;
+    height: 42px;
+    border-radius: 50%;
     background: var(--color-acento);
+    object-fit: contain;
+  }
+  .abrir-chat[aria-expanded='true'] {
+    background: var(--color-relleno);
+    color: var(--color-tinta);
+    box-shadow: none;
   }
   .app > :global(main) {
     min-height: 0;

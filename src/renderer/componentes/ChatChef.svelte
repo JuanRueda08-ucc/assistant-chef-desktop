@@ -1,4 +1,5 @@
 <script lang="ts">
+  import busto from '../assets/chef/chef_busto.png'
   import { app } from '../estado/app.svelte'
   import { dictar } from '../voz/dictado'
   import Boton from './Boton.svelte'
@@ -85,7 +86,8 @@
 {#if app.chatAbierto}
   <div class="chat-chef" role="dialog" aria-modal="false" aria-labelledby="titulo-chat">
     <header>
-      <h2 id="titulo-chat">Escribir al chef</h2>
+      <img class="cara" src={busto} alt="" />
+      <h2 id="titulo-chat">El chef</h2>
       <button
         type="button"
         class="cerrar"
@@ -142,15 +144,23 @@
         disabled={app.chatOcupado || terminado}
       />
       {#if puedeHablar}
-        <Boton
-          variante="secundario"
+        <button
+          type="button"
+          class="icono"
+          class:escuchando={voz === 'escuchando'}
+          aria-label={voz === 'escuchando' ? 'Escuchando' : 'Hablar'}
+          title="Hablar"
           disabled={voz !== 'apagada' || app.chatOcupado || app.ocupado}
-          onclick={() => void hablar()}>{voz === 'escuchando' ? 'Escuchando…' : 'Hablar'}</Boton
+          onclick={() => void hablar()}><Icono nombre="microfono" /></button
         >
       {/if}
-      <Boton
+      <button
+        type="submit"
+        class="icono enviar"
+        aria-label={app.chatOcupado ? 'Consultando' : 'Enviar'}
+        title="Enviar"
         disabled={!texto.trim() || app.chatOcupado || app.ocupado || terminado}
-        onclick={() => void enviar()}>{app.chatOcupado ? 'Consultando…' : 'Enviar'}</Boton
+        ><Icono nombre="enviar" /></button
       >
     </form>
   </div>
@@ -159,7 +169,7 @@
 <style>
   .chat-chef {
     position: fixed;
-    top: 72px;
+    top: 76px;
     right: var(--espacio-4);
     bottom: var(--espacio-4);
     z-index: 20;
@@ -169,13 +179,23 @@
     gap: var(--espacio-3);
     padding: var(--espacio-5);
     background: var(--color-superficie);
-    border: var(--trazo) solid var(--color-tinta);
     border-radius: var(--radio-xl);
+    box-shadow: 0 20px 50px rgba(0, 0, 0, 0.2);
   }
   header {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    gap: var(--espacio-3);
+  }
+  header h2 {
+    flex: 1;
+  }
+  .cara {
+    width: 44px;
+    height: 44px;
+    border-radius: 50%;
+    background: var(--color-acento);
+    object-fit: contain;
   }
   h2 {
     font-size: var(--texto-l);
@@ -183,9 +203,9 @@
   .cerrar {
     width: var(--alto-control);
     height: var(--alto-control);
-    border-radius: 50%;
-    border: var(--borde) solid var(--color-borde-control);
-    background: var(--color-superficie);
+    border-radius: var(--radio-boton);
+    border: 0;
+    background: var(--color-relleno);
     color: var(--color-tinta);
     display: grid;
     place-items: center;
@@ -221,7 +241,6 @@
     align-self: flex-start;
     max-width: 90%;
     background: var(--color-fondo);
-    border: var(--borde) solid var(--color-separador);
   }
   .quien {
     display: block;
@@ -243,16 +262,39 @@
   }
   form {
     display: flex;
-    flex-wrap: wrap;
-    justify-content: flex-end;
     gap: var(--espacio-2);
   }
+  .icono {
+    flex: none;
+    width: 52px;
+    height: 52px;
+    display: grid;
+    place-items: center;
+    border: 0;
+    border-radius: var(--radio-boton);
+    background: var(--color-relleno);
+    color: var(--color-tinta);
+    cursor: pointer;
+  }
+  .icono.escuchando {
+    background: var(--color-acento);
+  }
+  .icono.enviar {
+    background: var(--color-tinta);
+    color: var(--color-superficie);
+    box-shadow: var(--sombra-boton);
+  }
+  .icono:disabled {
+    cursor: default;
+    opacity: 0.45;
+    box-shadow: none;
+  }
   input {
-    flex: 1 0 100%;
+    flex: 1;
     min-width: 0;
-    min-height: var(--alto-control);
-    border: var(--borde) solid var(--color-borde-control);
-    border-radius: var(--radio-pildora);
+    min-height: 52px;
+    border: 0;
+    border-radius: var(--radio-boton);
     padding: var(--espacio-3) var(--espacio-4);
     font: inherit;
     font-size: var(--texto-s);

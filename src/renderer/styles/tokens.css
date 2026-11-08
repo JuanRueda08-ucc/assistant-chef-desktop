@@ -3,7 +3,7 @@
    Contrastes comprobados (WCAG): ver docs/diseno.md. */
 :root {
   /* Color */
-  --color-fondo: #f6f5f1; /* blanco roto: fondo de las pantallas */
+  --color-fondo: #f3f4ef; /* blanco de azulejo: fondo de las pantallas (rediseño 43) */
   --color-superficie: #ffffff; /* tarjetas, paneles, globo del chef */
   --color-tinta: #1d1d1b; /* texto y trazo, el mismo negro del dibujo del chef */
   --color-tinta-suave: #5f5e5a; /* texto secundario (5,9:1 sobre el fondo) */
@@ -14,6 +14,9 @@
   --color-borde-control: #8c887f; /* borde de controles sin seleccionar (3:1) */
   --color-separador: #e8e6df; /* bordes decorativos de tarjetas, no de controles */
   --color-exito: #2f9e5b; /* micrófono escuchando, temporizador listo */
+  --color-relleno: #e9ebe3; /* botones secundarios y etiquetas, sin contorno (43) */
+  --color-hierba: #2e6b4e; /* «Tienes todo» (texto, 6,4:1 sobre su fondo) */
+  --color-hierba-suave: #e3efe7;
 
   /* Tipografía: Bricolage Grotesque para títulos y números grandes; Figtree para el texto. */
   --fuente-titulo: 'Bricolage Grotesque Variable', system-ui, sans-serif;
@@ -36,6 +39,8 @@
   --radio-l: 24px;
   --radio-m: 16px;
   --radio-pildora: 999px;
+  --radio-boton: 14px; /* botones: rectángulos redondeados que se pulsan (43) */
+  --sombra-boton: inset 0 -4px 0 rgba(0, 0, 0, 0.16);
 
   /* Espacio */
   --espacio-1: 4px;

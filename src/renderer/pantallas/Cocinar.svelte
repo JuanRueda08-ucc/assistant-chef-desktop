@@ -4,12 +4,7 @@
 
 <script lang="ts">
   import { untrack } from 'svelte'
-  import {
-    estaActivo,
-    formatearDuracion,
-    formatearReloj,
-    restanteSeg
-  } from '@shared/cocina/temporizadores'
+  import { estaActivo, formatearReloj, restanteSeg } from '@shared/cocina/temporizadores'
   import { PORCIONES_MAX, PORCIONES_MIN } from '@shared/esquemas/sesion'
   import {
     ARGUMENTOS,
@@ -298,30 +293,6 @@
           ><Icono nombre="personas" />Ingredientes ({sesion.porciones}
           {sesion.porciones === 1 ? 'porción' : 'porciones'})</button
         >
-        {#each temporizadores as t (t.id)}
-          <button
-            type="button"
-            class="temp"
-            class:listo={t.restante === 0}
-            class:pausado={t.estado === 'pausado'}
-            onclick={abrirTemporizadores}
-          >
-            <span
-              class="anillo"
-              style:--progreso="{t.duracionSeg > 0 ? (t.restante / t.duracionSeg) * 100 : 0}%"
-            ></span>
-            <span class="temp-texto">
-              <small>{t.etiqueta}{t.estado === 'pausado' ? ', en pausa' : ''}</small>
-              <b>{t.restante === 0 ? '¡Listo!' : formatearReloj(t.restante)}</b>
-            </span>
-          </button>
-        {/each}
-        <button
-          type="button"
-          class="boton-cabeza"
-          aria-expanded={panel === 'temporizadores'}
-          onclick={abrirTemporizadores}><Icono nombre="reloj" />Temporizadores</button
-        >
       </div>
     </header>
 
@@ -343,17 +314,11 @@
           {#if paso.seguridad}
             <p class="seguridad"><Icono nombre="aviso" /><span>{paso.seguridad}</span></p>
           {/if}
-          {#if sugerido || paso.tecnicaId}
+          {#if paso.tecnicaId}
             <div class="apoyos">
               {#if paso.tecnicaId}
                 <Boton variante="secundario" disabled={app.ocupado} onclick={verTecnica}>
                   <Icono nombre="tecnica" />Ver cómo se hace
-                </Boton>
-              {/if}
-              {#if sugerido}
-                <Boton variante="secundario" onclick={ponerSugerido}>
-                  <Icono nombre="reloj" />
-                  Temporizador de {formatearDuracion(sugerido.segundos)} para {sugerido.etiqueta}
                 </Boton>
               {/if}
             </div>
@@ -500,27 +465,75 @@
       </div>
 
       <div class="chef">
+        <!-- El temporizador va arriba y a la vista: es lo que más se consulta al cocinar (43). -->
+        <section class="reloj" aria-label="Temporizadores">
+          {#each temporizadores as t (t.id)}
+            <button
+              type="button"
+              class="en-marcha"
+              class:listo={t.restante === 0}
+              onclick={abrirTemporizadores}
+            >
+              <span
+                class="esfera"
+                style:--progreso="{t.duracionSeg > 0 ? (t.restante / t.duracionSeg) * 100 : 0}%"
+                ><b>{t.restante === 0 ? '¡Ya!' : formatearReloj(t.restante)}</b></span
+              >
+              <span class="reloj-texto"
+                >{t.etiqueta}<small
+                  >{t.restante === 0
+                    ? 'Terminado'
+                    : t.estado === 'pausado'
+                      ? 'En pausa'
+                      : 'En marcha'}</small
+                ></span
+              >
+            </button>
+          {/each}
+          {#if sugerido}
+            <div class="sugerido">
+              <span class="esfera llena"><b>{formatearReloj(sugerido.segundos)}</b></span>
+              <span class="reloj-texto"
+                >{sugerido.etiqueta}
+                <Boton onclick={ponerSugerido}><Icono nombre="reloj" />Iniciar</Boton></span
+              >
+            </div>
+          {:else if temporizadores.length === 0}
+            <button type="button" class="poner" onclick={abrirTemporizadores}
+              ><Icono nombre="reloj" />Poner un temporizador</button
+            >
+          {/if}
+        </section>
         <Globo cola="abajo"><span class="globo-texto">{textoGlobo}</span></Globo>
-        <Avatar estado={app.avatar} escuchando={estadoVoz === 'escuchando'} tamano={110} />
-        <section class="controles-voz" aria-label="Voz">
-          <Chip
-            seleccionado={microfonoActivo}
-            onclick={() => (microfonoActivo ? voz.detener() : voz.iniciar())}
-          >
-            <Icono nombre="microfono" />Micrófono: {microfonoActivo ? 'sí' : 'no'}
-          </Chip>
-          <Chip
-            seleccionado={narracionActiva}
-            onclick={() => {
-              narracionActiva = !narracionActiva
-              if (!narracionActiva) voz.callar()
-            }}>Voz: {narracionActiva ? 'sí' : 'no'}</Chip
-          >
-          {#if estadoVoz === 'local'}<Chip onclick={() => voz.activar()}>Hablar al chef</Chip>{/if}
+        <Avatar estado={app.avatar} escuchando={estadoVoz === 'escuchando'} tamano={96} />
+        <section class="controles-voz" aria-label="Hablar con el chef">
           <!-- Todo lo del chef en un sitio: hablarle, oírlo y escribirle (pedido del autor, 43). -->
-          <Chip seleccionado={app.chatAbierto} onclick={() => (app.chatAbierto = !app.chatAbierto)}
-            >Escribir al chef</Chip
-          >
+          <div class="controles">
+            <button
+              type="button"
+              class="control"
+              aria-pressed={microfonoActivo}
+              onclick={() => (microfonoActivo ? voz.detener() : voz.iniciar())}
+              ><span class="circulo"><Icono nombre="microfono" /></span>Micrófono</button
+            >
+            <button
+              type="button"
+              class="control"
+              aria-pressed={narracionActiva}
+              onclick={() => {
+                narracionActiva = !narracionActiva
+                if (!narracionActiva) voz.callar()
+              }}><span class="circulo"><Icono nombre="altavoz" /></span>Voz</button
+            >
+            <button
+              type="button"
+              class="control"
+              aria-pressed={app.chatAbierto}
+              onclick={() => (app.chatAbierto = !app.chatAbierto)}
+              ><span class="circulo"><Icono nombre="chat" /></span>Escribir</button
+            >
+          </div>
+          {#if estadoVoz === 'local'}<Chip onclick={() => voz.activar()}>Hablar al chef</Chip>{/if}
           {#if estadoVoz !== 'apagado'}<small role="status"
               >{estadoVoz === 'local'
                 ? 'Órdenes: «listo», «ya terminé», «atrás», «repite». Para preguntar, di «Chef».'
@@ -585,10 +598,38 @@
     justify-content: center;
     gap: var(--espacio-2);
     font-size: var(--texto-s);
-    padding: var(--espacio-3);
-    background: var(--color-superficie);
-    border: var(--borde) solid var(--color-separador);
-    border-radius: var(--radio-l);
+  }
+  .controles {
+    display: flex;
+    justify-content: center;
+    gap: var(--espacio-4);
+  }
+  .control {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 6px;
+    padding: 0;
+    font: inherit;
+    font-size: var(--texto-xs);
+    font-weight: var(--peso-fuerte);
+    color: var(--color-tinta);
+    background: none;
+    border: 0;
+    cursor: pointer;
+  }
+  .circulo {
+    width: 54px;
+    height: 54px;
+    border-radius: 50%;
+    display: grid;
+    place-items: center;
+    background: var(--color-relleno);
+    border: var(--trazo) solid transparent;
+  }
+  .control[aria-pressed='true'] .circulo {
+    background: var(--color-acento);
+    border-color: var(--color-tinta);
   }
   .controles-voz small {
     flex-basis: 100%;
@@ -632,23 +673,22 @@
     gap: 6px;
     min-height: var(--alto-control);
     padding: 0 var(--espacio-4);
-    border-radius: var(--radio-pildora);
-    border: var(--borde) solid var(--color-borde-control);
-    background: var(--color-superficie);
+    border-radius: var(--radio-boton);
+    border: var(--trazo) solid transparent;
+    background: var(--color-relleno);
     color: var(--color-tinta);
     cursor: pointer;
     white-space: nowrap;
   }
   .boton-cabeza[aria-expanded='true'] {
-    border: var(--trazo) solid var(--color-tinta);
+    border-color: var(--color-tinta);
     background: var(--color-acento-suave);
   }
   .progreso {
     display: flex;
-    gap: 6px;
+    gap: 4px;
     flex: 1;
     min-width: 120px;
-    max-width: 360px;
     margin: 0;
     padding: 0;
     list-style: none;
@@ -658,20 +698,18 @@
   }
   .progreso button {
     width: 100%;
-    height: 12px;
+    height: 10px;
     padding: 0;
+    border: 0;
     border-radius: var(--radio-pildora);
-    border: var(--borde) solid var(--color-borde-control);
-    background: var(--color-superficie);
+    background: var(--color-relleno);
     cursor: pointer;
   }
   .progreso .hecho button {
     background: var(--color-tinta);
-    border-color: var(--color-tinta);
   }
   .progreso .actual button {
     background: var(--color-acento);
-    border: var(--trazo) solid var(--color-tinta);
   }
   .herramientas {
     display: flex;
@@ -679,61 +717,78 @@
     gap: var(--espacio-2);
     margin-left: auto;
   }
-  .temp {
-    font: inherit;
+  .reloj {
+    align-self: stretch;
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-2);
+    padding: var(--espacio-3);
+    border-radius: var(--radio-l);
+    background: var(--color-tinta);
+    color: var(--color-superficie);
+  }
+  .en-marcha,
+  .sugerido,
+  .poner {
     display: flex;
     align-items: center;
-    gap: 10px;
-    min-height: 54px;
-    padding: 6px var(--espacio-4) 6px 6px;
-    border-radius: var(--radio-pildora);
-    border: var(--borde) solid var(--color-borde-control);
-    background: var(--color-superficie);
-    color: var(--color-tinta);
-    cursor: pointer;
+    gap: var(--espacio-3);
+    font: inherit;
+    color: inherit;
     text-align: left;
+    background: none;
+    border: 0;
+    padding: 0;
   }
-  .temp.listo {
-    border: var(--trazo) solid var(--color-tinta);
-    background: var(--color-acento);
+  .en-marcha,
+  .poner {
+    cursor: pointer;
   }
-  .anillo {
-    width: 40px;
-    height: 40px;
+  .poner {
+    justify-content: center;
+    min-height: 52px;
+    font-weight: var(--peso-fuerte);
+  }
+  .esfera {
+    flex: none;
+    width: 76px;
+    height: 76px;
     border-radius: 50%;
-    background: conic-gradient(var(--color-acento) 0 var(--progreso), var(--color-panel-suave) 0);
-    border: var(--borde) solid var(--color-tinta);
     display: grid;
     place-items: center;
+    background: conic-gradient(var(--color-acento) 0 var(--progreso), var(--color-tinta-suave) 0);
   }
-  .anillo::after {
-    content: '';
-    width: 26px;
-    height: 26px;
+  .esfera.llena {
+    background: var(--color-acento);
+  }
+  .esfera b {
+    width: 62px;
+    height: 62px;
     border-radius: 50%;
-    background: var(--color-superficie);
-  }
-  .temp.listo .anillo {
-    background: var(--color-superficie);
-  }
-  .temp-texto small {
-    display: block;
-    font-size: 12px;
-    font-weight: 600;
-    color: var(--color-tinta-suave);
-  }
-  .temp.listo .temp-texto small {
-    color: var(--color-tinta);
-  }
-  .temp-texto b {
+    display: grid;
+    place-items: center;
+    background: var(--color-tinta);
     font-family: var(--fuente-titulo);
-    font-size: var(--texto-l);
+    font-size: var(--texto-m);
     font-variant-numeric: tabular-nums;
   }
-  .temp.pausado b {
-    color: var(--color-tinta-suave);
+  .en-marcha.listo .esfera b {
+    background: var(--color-acento);
+    color: var(--color-tinta);
   }
-
+  .reloj-texto {
+    display: flex;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: var(--espacio-1);
+    font-weight: var(--peso-fuerte);
+    min-width: 0;
+  }
+  .reloj-texto small {
+    font-weight: 600;
+    font-size: var(--texto-xs);
+    color: var(--color-separador);
+  }
   .centro {
     display: grid;
     grid-template-columns: 1fr 300px;
@@ -856,21 +911,23 @@
     align-items: center;
     justify-content: center;
     gap: var(--espacio-3);
-    background: var(--color-superficie);
+    background: var(--color-relleno);
     color: var(--color-tinta);
-    border: var(--trazo) solid var(--color-tinta);
+    border: 0;
     cursor: pointer;
   }
   .accion.principal {
     background: var(--color-acento);
+    box-shadow: var(--sombra-boton);
     font-size: 26px;
     min-height: var(--alto-boton-cocina);
   }
   /* Desactivado: gris y con borde de puntos, no un amarillo apagado que parezca disponible. */
   .accion:disabled {
-    background: var(--color-panel-suave);
-    border-style: dashed;
-    border-color: var(--color-borde-control);
+    background: transparent;
+    box-shadow: none;
+    outline: 2px dashed var(--color-borde-control);
+    outline-offset: -2px;
     color: var(--color-tinta-suave);
     cursor: default;
   }

@@ -15,7 +15,16 @@ Sobre los mismos componentes y tokens; sin nuevas maquetas.
 - **Elegir:** a la izquierda la lista para comparar (nombre, tiempo, nivel y «Faltan N» o «Tienes todo»; flechas arriba/abajo cambian de receta) y «Cambiar ingredientes». A la derecha la vista previa: plato, título, descripción, píldoras de tiempo/porciones/nivel/equipo, etiquetas de dieta y alérgenos, cobertura («N de M disponibles (X tuyos + Y básicos)») y todos los ingredientes escalados con su estado: Lo tienes, Básico, Falta (con sustituciones) u Opcional. «Cocinar esta receta» queda fijo al pie. Sin cápsulas grandes ni avatar.
 - **Cocinar:** cabecera con título, «Paso N de M» y la barra de pasos; a la derecha «Ingredientes (N porciones)», los temporizadores en marcha y «Temporizadores», todos con texto. «Ver cómo se hace» y el temporizador sugerido van dentro de la tarjeta del paso. Columna derecha (300 px): globo, avatar de 110 px y una caja «Voz» con micrófono, voz del chef y estado. Barra inferior: Atrás y Repetir de 180 px y «Listo, siguiente» grande a la derecha. A 1186×763 ni el paso ni la columna del chef necesitan desplazamiento.
 
-### Primer repaso de la tarea 43 (2026-11-07)
+### Rediseño aprobado (tarea 43, 2026-11-08, decisión 0021)
+
+El autor rechazó el primer repaso y aprobó una propuesta de tres pantallas. Se aplicó así:
+- **Botones** (`Boton.svelte`): rectángulos con `--radio-boton` y `--sombra-boton`, sin contorno. Variantes `principal` (amarilla), `oscuro` y `secundario` (`--color-relleno`). Desactivado: transparente con borde de puntos. `Chip` sigue el mismo estilo.
+- **Cabecera:** momentos como pestañas subrayadas en amarillo; a la derecha, «Mis recetas» y el botón oscuro «Pregúntale al chef» con la cara del chef (no en Cocinar).
+- **Elegir:** «Cambiar ingredientes», el título «¿Qué cocinamos?», con qué se buscó, una franja amarilla con «Pedir ideas al chef» o «Dame otras», y tarjetas de recetas e ideas. La tarjeta abre el detalle, con «Todas las recetas» para volver. Sin foto, se muestra un plato ilustrado (tres variantes).
+- **Cocinar:** barra de pasos fina y «Ingredientes» arriba. En la columna del chef, primero el temporizador (tarjeta oscura con la cuenta atrás de cada uno o «Iniciar» del paso), después el globo, el chef y tres botones redondos: Micrófono, Voz y Escribir.
+- **Chat:** cabecera con la cara del chef y «El chef»; micrófono y enviar como botones de ícono junto al campo.
+
+### Primer repaso de la tarea 43 (2026-11-07, sustituido por el rediseño)
 
 El autor encontró la interfaz desorganizada y con demasiada información. Primer paso, sin cambiar el estilo:
 - **Cabecera:** sin el nombre «Desarrollo» del modo sin cuenta (0018). En Cocinar solo quedan la marca y los momentos; «Escribir al chef» pasa a la columna del chef.
@@ -36,7 +45,7 @@ Los tokens están en `src/renderer/styles/tokens.css`; los componentes usan solo
 
 | Token | Valor | Uso |
 |---|---|---|
-| `--color-fondo` | `#f6f5f1` | fondo de las pantallas |
+| `--color-fondo` | `#f3f4ef` | fondo de las pantallas (azulejo, 0021) |
 | `--color-superficie` | `#ffffff` | tarjetas, paneles, globo |
 | `--color-tinta` | `#1d1d1b` | texto y trazo (el negro del chef) |
 | `--color-tinta-suave` | `#5f5e5a` | texto secundario |
@@ -47,6 +56,8 @@ Los tokens están en `src/renderer/styles/tokens.css`; los componentes usan solo
 | `--color-borde-control` | `#8c887f` | borde de controles sin seleccionar |
 | `--color-separador` | `#e8e6df` | bordes decorativos (nunca de controles) |
 | `--color-exito` | `#2f9e5b` | micrófono escuchando, temporizador listo |
+| `--color-relleno` | `#e9ebe3` | botones secundarios y etiquetas, sin contorno (0021) |
+| `--color-hierba` / `--color-hierba-suave` | `#2e6b4e` / `#e3efe7` | «Tienes todo» |
 
 Contrastes (WCAG): tinta sobre fondo 15,5:1; tinta suave sobre fondo 5,9:1; tinta sobre amarillo 10,9:1; borde de control sobre fondo 3,2:1. El amarillo sobre el fondo da 1,4:1, así que **nunca es texto ni la única señal**: lo seleccionado lleva además el trazo de tinta y una marca de verificación.
 

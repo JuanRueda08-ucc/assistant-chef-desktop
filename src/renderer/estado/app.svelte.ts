@@ -79,6 +79,8 @@ class EstadoApp {
   ideasCargando = $state(false)
   ideasError = $state<string | null>(null)
   ideaVisibleId = $state<string | null>(null)
+  /** Elegir muestra las tarjetas o, al pulsar una, su detalle (rediseño 43). */
+  elegirDetalle = $state(false)
   /** Recetas completas ya escritas, por id de idea, para no gastar otra petición al volver a ella. */
   recetasDeIdeas = $state.raw<Record<string, RecetaGenerada>>({})
   ideaGenerandoId = $state<string | null>(null)
@@ -296,6 +298,10 @@ class EstadoApp {
               this.busqueda = r.estado.busqueda
               this.recetaVisibleId = r.estado.recetaVisibleId
               this.pantalla = r.estado.pantalla
+              if (nombre === 'ver_receta') {
+                this.ideaVisibleId = null
+                this.elegirDetalle = true
+              }
               if (nombre === 'buscar_recetas' && !mismaBusqueda && this.busqueda?.ofrecerGenerada)
                 void this.proponerIdeas()
               if (r.iniciarRecetaId) {
@@ -535,6 +541,7 @@ class EstadoApp {
       if (this.ideasError) return fallo(this.ideasError)
       const lista = this.ideas?.lista ?? []
       this.ideaVisibleId = lista[0]?.id ?? null
+      this.elegirDetalle = false
       return {
         ok: true,
         decir: `Propuse ${lista.length} ${lista.length === 1 ? 'idea' : 'ideas'}.`,
@@ -553,6 +560,7 @@ class EstadoApp {
     this.ideaVisibleId = idea.id
     this.recetaVisibleId = null
     this.pantalla = 'elegir'
+    this.elegirDetalle = true
     if (nombre === 'cocinar_idea') {
       const generada = this.recetasDeIdeas[idea.id]
       if (!generada) return fallo('Primero hay que escribir la receta con escribir_receta.')
@@ -625,6 +633,7 @@ class EstadoApp {
       return
     }
     this.limpiarIdeas()
+    this.elegirDetalle = false
     // Solo con ingredientes fuera del catálogo no hay recetas guardadas, pero la IA sí puede ayudar.
     if (
       !hayIngredientesSeleccionados(this.preferencias.ingredientes, this.catalogo) &&

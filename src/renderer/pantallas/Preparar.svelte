@@ -293,8 +293,8 @@
         {#if confirmarVaciar && enDespensa > 0}
           <div class="confirmar" role="group" aria-label="Confirmar vaciar la despensa">
             <span>¿Quitar todos los ingredientes?</span>
-            <button type="button" class="mas" onclick={vaciarDespensa}>Sí, vaciar</button>
-            <button type="button" class="mas" onclick={() => (confirmarVaciar = false)}>No</button>
+            <Boton variante="oscuro" onclick={vaciarDespensa}>Sí, vaciar</Boton>
+            <Boton variante="secundario" onclick={() => (confirmarVaciar = false)}>No</Boton>
           </div>
         {/if}
         {#if enDespensa > 0}
