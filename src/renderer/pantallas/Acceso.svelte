@@ -1,8 +1,10 @@
 <script lang="ts">
+  import { REQUISITOS_CONTRASENA } from '@shared/contrasena'
   import { CODIGO_MAX, CODIGO_MIN, CONTRASENA_MIN } from '@shared/esquemas/cuenta'
   import type { ResultadoCuenta } from '@shared/types/cuenta'
   import Boton from '../componentes/Boton.svelte'
   import ChefBlob from '../componentes/ChefBlob.svelte'
+  import Icono from '../componentes/Icono.svelte'
   import { app } from '../estado/app.svelte'
 
   // Entrar, crear cuenta, confirmar el correo con un código y recuperar la contraseña
@@ -148,7 +150,19 @@
           /></label
         >
         {#if modo !== 'entrar'}
-          <p class="nota">Al menos {CONTRASENA_MIN} caracteres.</p>
+          <!-- Mismos requisitos que el proyecto de Supabase; se marcan mientras se escribe. -->
+          <ul class="requisitos" aria-label="La contraseña necesita">
+            {#each REQUISITOS_CONTRASENA as r (r.id)}
+              {@const cumple = r.cumple(contrasena)}
+              <li class:cumple>
+                {#if cumple}<Icono nombre="check" tamano={16} />{:else}<span
+                    class="punto"
+                    aria-hidden="true"
+                  ></span>{/if}
+                <span>{r.texto}<span class="oculto">{cumple ? ': listo' : ': falta'}</span></span>
+              </li>
+            {/each}
+          </ul>
         {/if}
       {/if}
 
@@ -201,6 +215,49 @@
     margin: 0;
     color: var(--color-tinta-suave);
     font-size: var(--texto-s);
+  }
+  .requisitos {
+    margin: 0;
+    padding: 0;
+    list-style: none;
+    display: grid;
+    gap: var(--espacio-1);
+    font-size: var(--texto-s);
+    color: var(--color-tinta-suave);
+  }
+  .requisitos li {
+    display: flex;
+    align-items: center;
+    gap: var(--espacio-2);
+  }
+  .requisitos li.cumple {
+    color: var(--color-tinta);
+    font-weight: 600;
+  }
+  .requisitos li.cumple :global(svg) {
+    color: var(--color-exito);
+  }
+  .punto {
+    width: 16px;
+    height: 16px;
+    flex: none;
+    display: grid;
+    place-items: center;
+  }
+  .punto::before {
+    content: '';
+    width: 6px;
+    height: 6px;
+    border-radius: 50%;
+    background: var(--color-borde-control);
+  }
+  .oculto {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    overflow: hidden;
+    clip-path: inset(50%);
+    white-space: nowrap;
   }
   h1 {
     font-size: var(--texto-xl);

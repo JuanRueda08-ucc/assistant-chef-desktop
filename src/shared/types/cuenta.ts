@@ -23,6 +23,7 @@ export interface EstadoCuenta {
 
 export const CODIGOS_ERROR_CUENTA = [
   'datos_invalidos',
+  'contrasena_debil',
   'credenciales',
   'correo_sin_verificar',
   'correo_en_uso',

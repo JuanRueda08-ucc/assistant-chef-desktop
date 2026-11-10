@@ -3,6 +3,7 @@
 // que caduque y lo añade a las llamadas al backend. El renderer solo recibe `EstadoCuenta`.
 
 import { z } from 'zod'
+import { MENSAJE_CONTRASENA_DEBIL } from '@shared/contrasena'
 import { esquemaUsuario } from '@shared/esquemas/cuenta'
 import type {
   CodigoErrorCuenta,
@@ -54,6 +55,7 @@ const esquemaUsuarioSupabase = z.object({
 
 const MENSAJES: Record<CodigoErrorCuenta, string> = {
   datos_invalidos: 'Revisa los datos del formulario.',
+  contrasena_debil: MENSAJE_CONTRASENA_DEBIL,
   credenciales: 'El correo o la contraseña no coinciden.',
   correo_sin_verificar: 'Confirma tu correo con el código que te enviamos.',
   correo_en_uso: 'Ya hay una cuenta con ese correo. Entra o recupera tu contraseña.',
@@ -72,7 +74,7 @@ const POR_CODIGO_SUPABASE: Record<string, CodigoErrorCuenta> = {
   otp_disabled: 'servicio',
   over_email_send_rate_limit: 'demasiados_intentos',
   over_request_rate_limit: 'demasiados_intentos',
-  weak_password: 'datos_invalidos',
+  weak_password: 'contrasena_debil',
   validation_failed: 'datos_invalidos',
   email_address_invalid: 'datos_invalidos',
   same_password: 'datos_invalidos',

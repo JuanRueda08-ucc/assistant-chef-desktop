@@ -12,20 +12,23 @@ import {
   type ResultadoCuenta,
   type Usuario
 } from '../types/cuenta'
+import { CONTRASENA_MAX, CONTRASENA_MIN, mensajeContrasena } from '../contrasena'
 import type { Afirmar, Igual } from './coincidencia'
 
-/** Límites de los formularios; Supabase Auth exige como mínimo 6 caracteres de contraseña. */
-export const CONTRASENA_MIN = 8
-export const CONTRASENA_MAX = 128
+export { CONTRASENA_MAX, CONTRASENA_MIN }
 /** Supabase genera códigos de 6 a 10 cifras según la configuración del proyecto. */
 export const CODIGO_MIN = 6
 export const CODIGO_MAX = 10
 
 const email = z.email('Escribe un correo válido.').trim().toLowerCase().max(254)
+/** Contraseña nueva: los mismos requisitos que el proyecto de Supabase, con lo que falta. */
 const contrasena = z
   .string()
-  .min(CONTRASENA_MIN, `La contraseña necesita al menos ${CONTRASENA_MIN} caracteres.`)
   .max(CONTRASENA_MAX)
+  .superRefine((valor, ctx) => {
+    const mensaje = mensajeContrasena(valor)
+    if (mensaje) ctx.addIssue({ code: 'custom', message: mensaje })
+  })
 const codigo = z
   .string()
   .trim()

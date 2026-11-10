@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest'
 import { crearCuenta, crearCuentaLocal, type AlmacenSesion, type SesionGuardada } from './cuenta'
+import { MENSAJE_CONTRASENA_DEBIL } from '@shared/contrasena'
 
 // Supabase Auth simulado: solo lo que usa main (/signup, /verify, /token, /user, /logout,
 // /recover, /resend), con la forma de sus respuestas y `error_code`.
@@ -44,6 +45,8 @@ function supabaseFalso(): {
     const bearer = cabeceras.get('authorization')?.replace('Bearer ', '') ?? ''
     switch (ruta) {
       case '/signup': {
+        // Como un proyecto que exige minúsculas, mayúsculas, números y símbolos.
+        if (!/[^a-zA-Z0-9]/.test(cuerpo.password)) return errorCodigo('weak_password', 422)
         if (!usuarios.has(cuerpo.email))
           usuarios.set(cuerpo.email, {
             id: `u${++n}`,
@@ -127,7 +130,7 @@ function almacen(): AlmacenSesion & { valor: SesionGuardada | null } {
   }
 }
 
-const datos = { nombre: 'Luis', email: 'luis@example.com', contrasena: 'sarten-2026' }
+const datos = { nombre: 'Luis', email: 'luis@example.com', contrasena: 'Sarten-2026' }
 
 describe('cuenta local de desarrollo', () => {
   it('siempre está dentro, sin token, y salir no la cierra', async () => {
@@ -170,6 +173,21 @@ describe('cuenta en main con Supabase Auth', () => {
       solicitar: sb.solicitar
     })
     expect((await otra.iniciar()).usuario?.email).toBe(datos.email)
+  })
+
+  it('si Supabase rechaza la contraseña por débil, lo dice en lugar de un error genérico', async () => {
+    const sb = supabaseFalso()
+    const cuenta = crearCuenta({
+      supabaseUrl: URL_SB,
+      clavePublica: CLAVE,
+      almacen: almacen(),
+      solicitar: sb.solicitar
+    })
+    const r = await cuenta.registrar({ ...datos, contrasena: 'Sarten2026' })
+    expect(r.ok || r.error).toEqual({
+      codigo: 'contrasena_debil',
+      mensaje: MENSAJE_CONTRASENA_DEBIL
+    })
   })
 
   it('renueva el JWT antes de que caduque, una sola vez aunque lo pidan a la vez', async () => {

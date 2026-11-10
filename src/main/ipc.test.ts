@@ -234,6 +234,17 @@ describe('cuenta IPC', () => {
           contrasena: 'larga-1234'
         })
       ).toMatchObject({ ok: false, error: { codigo: 'datos_invalidos' } })
+      // La contraseña dice qué le falta, sin llegar a Supabase.
+      expect(
+        await canal(CANALES_IPC.cuentaRegistrar)(null, {
+          nombre: 'Ana',
+          email: 'ana@x.es',
+          contrasena: 'larga-1234'
+        })
+      ).toMatchObject({
+        ok: false,
+        error: { mensaje: 'A tu contraseña le falta: una letra mayúscula (A-Z).' }
+      })
       expect(cuenta.registrar).not.toHaveBeenCalled()
       expect(
         await canal(CANALES_IPC.cuentaVerificar)(null, { email: 'ana@x.es', codigo: '12345' })

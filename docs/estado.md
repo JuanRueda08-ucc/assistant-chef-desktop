@@ -21,6 +21,13 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-09 · Despliegue en Supabase, guiado con el autor (en curso)
+- El autor creó el proyecto (`cbnsxmucrapuuprkwpxc`); su URL y su clave publicable están en el `.env` local. Desde ahora `npm run dev` y `npm run server:dev` piden cuenta.
+- Gmail no ofreció contraseña de aplicación, así que el correo de los códigos va por **Brevo** (SMTP en Supabase). `despliegue.md` paso 2 lo explica.
+- El autor eligió exigir minúsculas, mayúsculas, números y símbolos. La app los comprueba antes de enviar, con `src/shared/contrasena.ts` (con test). Mientras se escribe, marca cada requisito en Crear cuenta y Contraseña nueva, y si falta algo dice qué es. Si Supabase rechaza la contraseña de todos modos, `weak_password` da el error `contrasena_debil` con un mensaje claro en lugar de «Revisa los datos».
+- Quedan: plantillas con `{{ .Token }}`, probar el registro real, `db push`, secretos y desplegar la función (pasos 2 a 5 de `despliegue.md`).
+- Verificado: tipos, lint y 540 tests. En la app compilada y sin sonido, «cocina2026» marca lo que cumple y, al enviar, dice «A tu contraseña le falta: una letra mayúscula (A-Z) y un símbolo…» sin llegar a Supabase.
+
 ### 2026-11-08 · Chat nuevo: el chef pregunta qué ingredientes usar
 - El autor vio que, en un chat nuevo, «Sorpréndeme» proponía recetas con las papas y albóndigas del chat anterior, porque la despensa es una sola. Ahora, si la despensa tiene ingredientes elegidos, el chat vacío muestra al chef preguntando «¿Qué ingredientes quieres usar esta vez?» con las etiquetas y «Seguir con estos» / «Usar otros ingredientes» (`app.ingredientesDelChatDecididos`, `seguirConIngredientes`, `empezarConOtrosIngredientes` en `estado/app.svelte.ts`). «Usar otros» quita los ingredientes elegidos y los sin identificar; los básicos, porciones, dieta y alergias se quedan.
 - Los 7 commits anteriores se subieron con permiso del autor.

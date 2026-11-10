@@ -10,11 +10,25 @@ Cuentas y backend del chef en un solo proyecto gratuito de Supabase (decisión 0
    - la **publishable key** (`sb_publishable_…`), pública por diseño.
    No copies la **secret key** a ningún sitio: la función la recibe sola.
 
-## 2. Correo de los códigos (Gmail)
+## 2. Correo de los códigos (Brevo)
 
-1. En tu cuenta de Google activa la verificación en dos pasos y crea una **contraseña de aplicación** (Seguridad → Contraseñas de aplicaciones).
-2. En Supabase, **Authentication → Emails → SMTP Settings**: activa el SMTP propio con host `smtp.gmail.com`, puerto `465`, usuario y remitente = tu Gmail, contraseña = la de aplicación, nombre del remitente «Chef digital». Sube el límite de correos por hora si lo necesitas (por defecto es bajo).
-3. **Authentication → Sign In / Providers → Email**: activado, con **Confirm email** activado.
+El correo propio de Supabase solo envía unos pocos por hora. Se usa **Brevo** (gratis, 300 correos al día, sin dominio propio). Gmail con contraseña de aplicación no sirvió: Google no ofreció la opción en la cuenta del autor (2026-11-09).
+
+1. Crea una cuenta en [brevo.com](https://www.brevo.com) (plan Free).
+2. **Remitentes, dominios e IP dedicadas → Remitentes → Añadir remitente**: nombre «Chef digital» y tu Gmail; confírmalo con el correo que te llega. Los avisos de DKIM y DMARC salen por usar un `@gmail.com`: funciona, pero algunos códigos pueden caer en spam hasta tener un dominio propio.
+3. **SMTP y API → SMTP → Generar una nueva clave SMTP**: la **estándar** (64 caracteres). Se muestra una sola vez; guárdala en tu gestor de contraseñas.
+4. En Supabase, **Authentication → Emails → SMTP Settings**, activa **Enable custom SMTP**:
+
+   | Campo | Valor |
+   |---|---|
+   | Sender email | el Gmail verificado en Brevo |
+   | Sender name | `Chef digital` |
+   | Host | `smtp-relay.brevo.com` |
+   | Port number | `587` |
+   | Username | el **Login** de la pestaña SMTP de Brevo (`…@smtp-brevo.com`, no tu Gmail) |
+   | Password | la clave SMTP |
+
+5. **Authentication → Sign In / Providers**: en **User Signups**, **Allow new users to sign up** y **Confirm email** activados. En **Email**: proveedor activado, **Minimum password length** `8`, **Password requirements** «Lowercase, uppercase letters, digits and symbols», **Email OTP length** `6`. La app comprueba esos mismos requisitos (`src/shared/contrasena.ts`) y dice qué falta; si cambias la configuración, cambia también ese archivo.
 4. **Authentication → Emails → Templates**: en **Confirm signup** y **Reset Password** sustituye el enlace por el código:
 
    ```html
