@@ -29,13 +29,7 @@ El correo propio de Supabase solo envía unos pocos por hora. Se usa **Brevo** (
    | Password | la clave SMTP |
 
 5. **Authentication → Sign In / Providers**: en **User Signups**, **Allow new users to sign up** y **Confirm email** activados. En **Email**: proveedor activado, **Minimum password length** `8`, **Password requirements** «Lowercase, uppercase letters, digits and symbols», **Email OTP length** `6`. La app comprueba esos mismos requisitos (`src/shared/contrasena.ts`) y dice qué falta; si cambias la configuración, cambia también ese archivo.
-4. **Authentication → Emails → Templates**: en **Confirm signup** y **Reset Password** sustituye el enlace por el código:
-
-   ```html
-   <h2>Chef digital</h2>
-   <p>Tu código es: <strong>{{ .Token }}</strong></p>
-   <p>Caduca pronto. Si no lo pediste, ignora este correo.</p>
-   ```
+6. **Authentication → Emails → Templates**: en **Confirm signup** y **Reset Password** pega el asunto y el cuerpo de `supabase/correos/` (ver su `README.md`). Llevan el código (`{{ .Token }}`) en vez del enlace y el dibujo del chef.
 
 ## 3. App y backend local
 
