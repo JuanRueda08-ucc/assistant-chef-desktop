@@ -71,7 +71,7 @@ Al pedir «Ver receta completa» se escribe la receta (`RecetaGenerada`: `receta
 
 ## Mis recetas
 
-La tabla `recetas_usuario` guarda por cuenta un objeto `RecetaGenerada` en JSON (`db/mis-recetas.ts`). Al leerlas se recalculan las etiquetas con el catálogo actual. `buscarEnBase` las añade a las de esa cuenta y omite las que no pasan `problemasRecetaGenerada`. `ingredientesConLibres()` reconoce como suyo un ingrediente escrito a mano («yuca» → `nuevo_yuca`).
+Con cuenta en Supabase, la tabla `mis_recetas` de la nube guarda por cuenta un objeto `RecetaGenerada` en JSON (`main/datos-cuenta.ts`, decisión 0025); main las lee al entrar y las tiene en memoria. La tabla local `recetas_usuario` (`db/mis-recetas.ts`) solo se usa sin Supabase (0018) y, con cuenta, para subir a la nube las que quedaran en el equipo, que después se borran. Al leerlas se recalculan las etiquetas con el catálogo actual. `buscarEnBase` las añade a las de esa cuenta y omite las que no pasan `problemasRecetaGenerada`. `ingredientesConLibres()` reconoce como suyo un ingrediente escrito a mano («yuca» → `nuevo_yuca`).
 
 ## Despensa y preferencias
 

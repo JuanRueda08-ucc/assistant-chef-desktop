@@ -9,6 +9,7 @@ import type { AudioNarracion, RespuestaTokenVoz, ResultadoVosk, ResultadoVozLoca
 import type { PeticionChatIpc, RespuestaChat } from '../ia/chat'
 import type { PeticionTitulo } from '../ia/titulo'
 import type { UsoDiario } from '../ia/uso'
+import type { ChatChef } from './chats'
 import type {
   DatosCodigo,
   DatosEntrar,
@@ -42,6 +43,9 @@ export const CANALES_IPC = {
   misRecetasListar: 'mis-recetas:listar',
   misRecetasGuardar: 'mis-recetas:guardar',
   misRecetasQuitar: 'mis-recetas:quitar',
+  chatsListar: 'chats:listar',
+  chatsGuardar: 'chats:guardar',
+  chatsBorrar: 'chats:borrar',
   preferenciasLeer: 'preferencias:leer',
   preferenciasGuardar: 'preferencias:guardar',
   sesionRetomar: 'sesion:retomar',
@@ -166,6 +170,12 @@ export interface ApiChef {
     /** Guarda la receta de esa sesión de cocina de la cuenta. */
     guardar(datos: { sesionId: string }): Promise<RecetaGenerada[]>
     quitar(datos: { recetaId: string }): Promise<RecetaGenerada[]>
+  }
+  /** Chats con el chef de la cuenta, guardados en la nube (0025); los más recientes primero. */
+  chats: {
+    listar(): Promise<ChatChef[]>
+    guardar(chat: ChatChef): Promise<void>
+    borrar(datos: { id: string }): Promise<void>
   }
   /** Despensa, preferencias y alergias guardadas de la cuenta (decisión 0019). */
   preferencias: {

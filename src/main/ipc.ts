@@ -26,11 +26,12 @@ import { buscarEnBase, evaluarEnBase } from './db/busqueda'
 import { listarIngredientes, listarTecnicas } from './db/catalogo'
 import type { BaseDatos } from './db/conexion'
 import {
-  guardarMiReceta,
-  listarMisRecetas,
-  obtenerMiReceta,
-  quitarMiReceta
+  borrarMisRecetasLocales,
+  leerMisRecetasGuardadas,
+  prepararMisRecetas
 } from './db/mis-recetas'
+import type { DatosCuenta } from './datos-cuenta'
+import { esquemaChatChef } from '@shared/esquemas/chats'
 import { listarRecetas, obtenerReceta } from './db/recetas'
 import { guardarPreferencias, leerPreferencias } from './db/preferencias'
 import { obtenerSesion, obtenerSesionCocinando } from './db/sesiones'
@@ -74,7 +75,11 @@ export function registrarIpc(
   voz: VozLocal,
   lector: ReturnType<typeof crearLectorLocal>,
   cuenta: Cuenta,
-  opciones: { verBorradores: boolean } = { verBorradores: false }
+  datos: DatosCuenta,
+  opciones: { verBorradores: boolean; datosEnLaNube: boolean } = {
+    verBorradores: false,
+    datosEnLaNube: false
+  }
 ): void {
   let propietario: number | null = null
   // --- Cuenta (0016) ------------------------------------------------------------------------
@@ -123,6 +128,27 @@ export function registrarIpc(
     if (!usuario) throw new Error('Inicia sesión para continuar.')
     return usuario.id
   }
+  // --- Mis recetas y chats de la cuenta (0025) --------------------------------------------------
+  // Mis recetas se leen de la nube al entrar y se guardan en memoria: la búsqueda y el chat las
+  // usan sin esperar a la red. Con cuenta en la nube nunca se escriben en el equipo.
+  let misRecetas: { usuarioId: string; lista: RecetaGenerada[] } | null = null
+  const misRecetasDe = (usuarioId: string | null | undefined): RecetaGenerada[] =>
+    usuarioId && misRecetas?.usuarioId === usuarioId ? misRecetas.lista : []
+  async function cargarMisRecetas(usuarioId: string): Promise<RecetaGenerada[]> {
+    if (opciones.datosEnLaNube) {
+      // Las que se guardaron en este equipo antes de la nube suben a la cuenta y se borran de aquí.
+      const locales = leerMisRecetasGuardadas(db, usuarioId)
+      for (const generada of locales) await datos.guardarMiReceta(usuarioId, generada, Date.now())
+      if (locales.length) borrarMisRecetasLocales(db, usuarioId)
+    }
+    const lista = prepararMisRecetas(
+      await datos.listarMisRecetas(usuarioId),
+      listarIngredientes(db)
+    )
+    misRecetas = { usuarioId, lista }
+    return lista
+  }
+
   const cocinando = (): ReturnType<typeof obtenerSesionCocinando> => {
     const usuario = cuenta.estado().usuario
     return usuario ? obtenerSesionCocinando(db, usuario.id) : null
@@ -156,7 +182,7 @@ export function registrarIpc(
         db,
         peticion.preferencias,
         opciones.verBorradores,
-        usuario?.id ?? null
+        misRecetasDe(usuario?.id)
       )
       contexto = JSON.stringify({
         preferencias: peticion.preferencias,
@@ -168,12 +194,10 @@ export function registrarIpc(
           .slice(0, 10)
           .map((r) => ({ ...r.receta, faltantes: r.faltantes })),
         ideasDelChef: peticion.ideas,
-        misRecetas: usuario
-          ? listarMisRecetas(db, usuario.id).map(({ receta }) => ({
-              id: receta.id,
-              titulo: receta.titulo
-            }))
-          : [],
+        misRecetas: misRecetasDe(usuario?.id).map(({ receta }) => ({
+          id: receta.id,
+          titulo: receta.titulo
+        })),
         aviso:
           'Las recetas son candidatas calculadas. Usa buscar_recetas para abrir los resultados antes de ver o elegir. Una lista vacía no autoriza a inventar recetas: pide ideas con proponer_ideas.'
       })
@@ -306,7 +330,8 @@ export function registrarIpc(
       const usuario = cuenta.estado().usuario
       return (
         obtenerReceta(db, recetaId) ??
-        (usuario ? (obtenerMiReceta(db, usuario.id, recetaId)?.receta ?? null) : null)
+        misRecetasDe(usuario?.id).find((g) => g.receta.id === recetaId)?.receta ??
+        null
       )
     }
   )
@@ -318,7 +343,7 @@ export function registrarIpc(
         db,
         esquemaPreferencias.parse(preferencias),
         opciones.verBorradores,
-        cuenta.estado().usuario?.id ?? null
+        misRecetasDe(cuenta.estado().usuario?.id)
       )
   )
 
@@ -438,30 +463,49 @@ export function registrarIpc(
     ventana?.flashFrame(true)
   })
 
-  ipcMain.handle(CANALES_IPC.misRecetasListar, (): Resultado<ApiChef['misRecetas']['listar']> =>
-    listarMisRecetas(db, usuarioId())
+  ipcMain.handle(
+    CANALES_IPC.misRecetasListar,
+    (): Promise<Resultado<ApiChef['misRecetas']['listar']>> => cargarMisRecetas(usuarioId())
   )
 
   ipcMain.handle(
     CANALES_IPC.misRecetasGuardar,
-    (_evento, datos: unknown): Resultado<ApiChef['misRecetas']['guardar']> => {
-      const { sesionId } = z.strictObject({ sesionId: z.string().min(1) }).parse(datos)
+    async (_evento, entrada: unknown): Promise<Resultado<ApiChef['misRecetas']['guardar']>> => {
+      const { sesionId } = z.strictObject({ sesionId: z.string().min(1) }).parse(entrada)
       const usuario = usuarioId()
       // La receta sale de la sesión de la cuenta: el renderer nunca la envía.
       const generada = obtenerSesion(db, sesionId, usuario)?.recetaGenerada
       if (!generada) throw new Error('Esta receta no se puede guardar.')
-      guardarMiReceta(db, usuario, generada, Date.now())
-      return listarMisRecetas(db, usuario)
+      await datos.guardarMiReceta(usuario, generada, Date.now())
+      return cargarMisRecetas(usuario)
     }
   )
 
   ipcMain.handle(
     CANALES_IPC.misRecetasQuitar,
-    (_evento, datos: unknown): Resultado<ApiChef['misRecetas']['quitar']> => {
-      const { recetaId } = z.strictObject({ recetaId: esquemaId }).parse(datos)
+    async (_evento, entrada: unknown): Promise<Resultado<ApiChef['misRecetas']['quitar']>> => {
+      const { recetaId } = z.strictObject({ recetaId: esquemaId }).parse(entrada)
       const usuario = usuarioId()
-      quitarMiReceta(db, usuario, recetaId)
-      return listarMisRecetas(db, usuario)
+      await datos.quitarMiReceta(usuario, recetaId)
+      return cargarMisRecetas(usuario)
+    }
+  )
+
+  ipcMain.handle(CANALES_IPC.chatsListar, (): Promise<Resultado<ApiChef['chats']['listar']>> =>
+    datos.listarChats(usuarioId())
+  )
+  ipcMain.handle(
+    CANALES_IPC.chatsGuardar,
+    async (_evento, entrada: unknown): Promise<Resultado<ApiChef['chats']['guardar']>> => {
+      const chat = esquemaChatChef.parse(entrada)
+      await datos.guardarChat(usuarioId(), chat)
+    }
+  )
+  ipcMain.handle(
+    CANALES_IPC.chatsBorrar,
+    async (_evento, entrada: unknown): Promise<Resultado<ApiChef['chats']['borrar']>> => {
+      const { id } = z.strictObject({ id: z.uuid() }).parse(entrada)
+      await datos.borrarChat(usuarioId(), id)
     }
   )
 
@@ -486,7 +530,7 @@ export function registrarIpc(
       const generada =
         guardada?.usuarioId === usuario
           ? guardada.generada
-          : obtenerMiReceta(db, usuario, peticion.recetaId)
+          : (misRecetasDe(usuario).find((g) => g.receta.id === peticion.recetaId) ?? null)
       // Las alergias o la dieta pueden haber cambiado desde que se escribió.
       if (
         generada &&

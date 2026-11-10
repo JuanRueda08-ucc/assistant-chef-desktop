@@ -7,15 +7,10 @@ export interface DespensaTurno {
   porciones: number
 }
 
+import type { CambiosTurno } from '@shared/types/chats'
+
 /** Lo que el turno cambió en la despensa, para mostrarlo como etiquetas en la respuesta. */
-export interface CambiosTurno {
-  /** Ingredientes del catálogo añadidos en este turno. */
-  ingredientes: string[]
-  /** Ingredientes fuera del catálogo añadidos en este turno. */
-  sinIdentificar: string[]
-  /** Porciones nuevas, o `null` si no cambiaron. */
-  porciones: number | null
-}
+export type { CambiosTurno }
 
 export const SIN_CAMBIOS: CambiosTurno = { ingredientes: [], sinIdentificar: [], porciones: null }
 

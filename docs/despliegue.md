@@ -58,7 +58,7 @@ npx supabase link --project-ref <ref>
 npx supabase db push
 ```
 
-`db push` crea la tabla `uso_diario`, la función `consumir_cupo` y sus permisos para la función del servidor (`service_role`). Los proyectos nuevos de Supabase no dan esos permisos solos: sin la segunda migración, el chat responde «El servicio de IA no pudo responder» y los registros de la función dicen «No se pudo contar el uso (HTTP 403)». Para comprobar qué migraciones están aplicadas: `npx supabase migration list`. Después, los secretos de la función. La clave de Gemini la escribes tú en el comando o en el panel (**Edge Functions → Secrets**):
+`db push` crea la tabla `uso_diario`, la función `consumir_cupo` y sus permisos para la función del servidor (`service_role`). Los proyectos nuevos de Supabase no dan esos permisos solos: sin la segunda migración, el chat responde «El servicio de IA no pudo responder» y los registros de la función dicen «No se pudo contar el uso (HTTP 403)». Para comprobar qué migraciones están aplicadas: `npx supabase migration list`. La tercera migración (`20261110000000_chats_y_mis_recetas.sql`, decisión 0025) crea las tablas `chats` y `mis_recetas`, donde cada cuenta solo ve lo suyo; sin ella, la app avisa de que no pudo traer o guardar los chats. Después, los secretos de la función. La clave de Gemini la escribes tú en el comando o en el panel (**Edge Functions → Secrets**):
 
 ```bash
 npx supabase secrets set PROVEEDOR_IA=gemini

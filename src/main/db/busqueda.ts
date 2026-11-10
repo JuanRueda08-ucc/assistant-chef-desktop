@@ -1,11 +1,11 @@
 import { buscarRecetas, evaluarReceta } from '@shared/recetas/busqueda'
 import { hayIngredientesSeleccionados } from '@shared/recetas/disponibilidad'
 import type { EvaluacionReceta, ResultadoBusqueda } from '@shared/types/busqueda'
+import type { RecetaGenerada } from '@shared/types/receta'
 import type { Preferencias } from '@shared/types/sesion'
 import { listarIngredientes, listarSustituciones } from './catalogo'
 import type { BaseDatos } from './conexion'
 import { problemasRecetaGenerada, ingredientesConLibres } from '@shared/recetas/receta-generada'
-import { listarMisRecetas } from './mis-recetas'
 import { listarRecetasCompletas, obtenerReceta } from './recetas'
 
 /** Ejecuta la búsqueda pura sobre los datos de la base y, con cuenta, sobre sus recetas guardadas. */
@@ -13,13 +13,13 @@ export function buscarEnBase(
   db: BaseDatos,
   preferencias: Preferencias,
   incluirBorradores = false,
-  usuarioId: string | null = null
+  misRecetas: readonly RecetaGenerada[] = []
 ): ResultadoBusqueda {
   const catalogo = listarIngredientes(db)
   if (!hayIngredientesSeleccionados(preferencias.ingredientes, catalogo))
     return { resultados: [], descartadas: [], ofrecerGenerada: false }
   // Las palabras cuentan también: un ingrediente sin verificar no tiene alérgenos conocidos.
-  const mias = (usuarioId ? listarMisRecetas(db, usuarioId) : []).filter(
+  const mias = misRecetas.filter(
     (g) => problemasRecetaGenerada(g, preferencias, catalogo).length === 0
   )
   return buscarRecetas(

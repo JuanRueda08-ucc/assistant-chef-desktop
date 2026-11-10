@@ -10,6 +10,7 @@ import { obtenerIdInstalacion } from './instalacion'
 import { crearClienteBackend, validarApiUrl } from './backend'
 import { crearAlmacenSesion } from './almacen-sesion'
 import { crearCuenta, crearCuentaLocal, type Cuenta } from './cuenta'
+import { crearDatosLocales, crearDatosNube } from './datos-cuenta'
 import { crearVozLocal } from './voz/local'
 import { crearLectorLocal } from './voz/lector'
 import { obtenerSesionCocinando } from './db/sesiones'
@@ -139,7 +140,21 @@ app.whenReady().then(() => {
       app.isPackaged ? join(process.resourcesPath, 'voz') : join(app.getAppPath(), 'resources/voz')
     )
     // Las recetas sin revisar solo se ven en desarrollo (0018).
-    registrarIpc(db, backend, voz, lector, sesionCuenta, { verBorradores: !app.isPackaged })
+    // Chats y Mis recetas de la cuenta (0025): en Supabase; sin él, en memoria y en el SQLite local.
+    const datosEnLaNube = Boolean(supabaseUrl && clavePublica)
+    const datosCuenta =
+      supabaseUrl && clavePublica
+        ? crearDatosNube({
+            supabaseUrl: validarApiUrl(supabaseUrl),
+            clavePublica,
+            token: sesionCuenta.token,
+            caducada: sesionCuenta.caducada
+          })
+        : crearDatosLocales(db)
+    registrarIpc(db, backend, voz, lector, sesionCuenta, datosCuenta, {
+      verBorradores: !app.isPackaged,
+      datosEnLaNube
+    })
   } catch (error) {
     dialog.showErrorBox(
       'No se pudo preparar la app',

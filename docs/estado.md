@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-**Hecho el 2026-11-09: cuentas reales con Supabase y backend desplegado como Edge Function (registro y chat probados por el autor). Siguiente: pantalla «Mi cuenta», guardar chats y Mis recetas por cuenta (47) e instaladores (19), según pida el autor.** Después, lo que pida. **Requisito de entrega (2026-11-08):** app descargable en Windows, Linux y Mac (tarea 19), y chats y Mis recetas guardados por cuenta en Supabase (0024, tarea 47, con el login). Quedan pendientes los «Próximos pasos propuestos» de más abajo. **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
+**Hecho: cuentas reales con Supabase y backend en Edge Function (2026-11-09), uso de hoy en el menú (48) y chats y Mis recetas guardados por cuenta (47, 2026-11-10). Siguiente: que el autor aplique la migración `20261110000000_chats_y_mis_recetas.sql` (`npx supabase db push`) y pruebe que sus chats siguen al cerrar y abrir la app; después, pantalla «Mi cuenta» e instaladores (19).** Después, lo que pida. **Requisito de entrega (2026-11-08):** app descargable en Windows, Linux y Mac (tarea 19), y chats y Mis recetas guardados por cuenta en Supabase (0024, tarea 47, con el login). Quedan pendientes los «Próximos pasos propuestos» de más abajo. **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
 
 Todo está subido a origin/main hasta este punto. Pendientes del autor: activar la facturación de Gemini (búsqueda en internet, imágenes con IA y más cuota de voz natural), revisar las 18 recetas en borrador (18) y el login con Supabase al final (0017, `despliegue.md`).
 
@@ -20,6 +20,12 @@ Para probar ahora: `npm run voz:preparar`, backend con `npm run server:dev`, app
 La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api.sesion.iniciar({ recetaId: 'arroz_con_pollo', … })` y recargando, sin modificarla.
 
 ## Registro
+
+### 2026-11-10 · Chats y Mis recetas guardados en la cuenta (47, 0025)
+- Tablas `chats` y `mis_recetas` en Supabase con RLS por `auth.uid()` (migración `20261110000000_chats_y_mis_recetas.sql`). Main las lee y escribe por PostgREST con la clave publicable y el JWT de la cuenta (`main/datos-cuenta.ts`); sin Supabase, chats en memoria y Mis recetas en el SQLite local (`crearDatosLocales`).
+- Chats: canales `chats:listar/guardar/borrar`, tipos y esquemas en `shared/types/chats.ts` y `shared/esquemas/chats.ts` (los tipos `ChatChef`, `TurnoConversacion` y `CambiosTurno` salen del renderer a shared). La app carga los chats al entrar, guarda el chat tras cada turno y al llegar su nombre, y borra en la nube antes de quitarlo de la lista. Si falla, avisa debajo de la lista de chats.
+- Mis recetas: main las lee de la nube al entrar y las tiene en memoria para la búsqueda, el chat, `recetas:obtener` y `sesion:iniciar`; `buscarEnBase` recibe la lista en vez de leer SQLite. Las guardadas antes en el equipo suben a la cuenta y se borran de aquí.
+- Verificado: tipos, lint y 552 tests (Supabase simulado: cabeceras con JWT y clave publicable, sin `usuario_id`, upsert, duplicados, 401, sin red; IPC que sube las recetas locales y valida chats). En la app compilada, sin sonido, sin cuenta y con el chef de prueba: el chat sigue en la lista tras recargar la ventana, se reabre con su mensaje y se borra. **No probado con Supabase real:** falta aplicar la migración; las políticas RLS no se han comprobado contra la base.
 
 ### 2026-11-09 · Uso de hoy a la vista (48)
 - El autor pidió ver lo que queda de los límites. Nueva ruta `POST /uso` (no gasta nada; `Limitador.uso` y `AlmacenUso.leer`, que en Supabase lee `uso_diario` con una sola consulta), canal `chef:uso` y `shared/ia/uso.ts` con test.

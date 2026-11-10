@@ -3,32 +3,46 @@
 
 import { esquemaRecetaGenerada } from '@shared/esquemas/receta'
 import { conEtiquetas } from '@shared/recetas/etiquetas'
-import type { RecetaGenerada } from '@shared/types/receta'
+import type { Ingrediente, RecetaGenerada } from '@shared/types/receta'
 import { listarIngredientes } from './catalogo'
 import type { BaseDatos } from './conexion'
 
-/** Las más recientes primero. Las etiquetas se recalculan con el catálogo de hoy. */
-export function listarMisRecetas(db: BaseDatos, usuarioId: string): RecetaGenerada[] {
+/** Las guardadas en este equipo, las más recientes primero, sin recalcular etiquetas. */
+export function leerMisRecetasGuardadas(db: BaseDatos, usuarioId: string): RecetaGenerada[] {
   const filas = db
     .prepare('SELECT datos FROM recetas_usuario WHERE usuario_id = ? ORDER BY guardada_en DESC, id')
     .all(usuarioId) as { datos: string }[]
-  const catalogo = listarIngredientes(db)
   return filas.flatMap((fila) => {
     const guardada = esquemaRecetaGenerada.safeParse(JSON.parse(fila.datos))
-    if (!guardada.success) return []
-    const { receta, ingredientesNuevos } = guardada.data
+    return guardada.success ? [guardada.data] : []
+  })
+}
+
+/** Etiquetas recalculadas con el catálogo de hoy; se omiten las que ya no se pueden calcular. */
+export function prepararMisRecetas(
+  guardadas: readonly RecetaGenerada[],
+  catalogo: readonly Ingrediente[]
+): RecetaGenerada[] {
+  return guardadas.flatMap(({ receta, ingredientesNuevos }) => {
     try {
       return [
-        {
-          receta: conEtiquetas(receta, [...catalogo, ...ingredientesNuevos]),
-          ingredientesNuevos
-        }
+        { receta: conEtiquetas(receta, [...catalogo, ...ingredientesNuevos]), ingredientesNuevos }
       ]
     } catch {
       // Usa un ingrediente retirado del catálogo: sin él no se pueden calcular sus alérgenos.
       return []
     }
   })
+}
+
+/** Las más recientes primero. Las etiquetas se recalculan con el catálogo de hoy. */
+export function listarMisRecetas(db: BaseDatos, usuarioId: string): RecetaGenerada[] {
+  return prepararMisRecetas(leerMisRecetasGuardadas(db, usuarioId), listarIngredientes(db))
+}
+
+/** Tras subirlas a la cuenta en la nube (0025), se borran del equipo. */
+export function borrarMisRecetasLocales(db: BaseDatos, usuarioId: string): void {
+  db.prepare('DELETE FROM recetas_usuario WHERE usuario_id = ?').run(usuarioId)
 }
 
 export function obtenerMiReceta(

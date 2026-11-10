@@ -111,13 +111,19 @@
               aria-label="Borrar el chat «{chat.titulo}»"
               title="Borrar"
               disabled={app.chatOcupado}
-              onclick={() => app.borrarChat(chat.id)}><Icono nombre="cerrar" tamano={16} /></button
+              onclick={() => void app.borrarChat(chat.id)}
+              ><Icono nombre="cerrar" tamano={16} /></button
             >
           </li>
         {/each}
       </ul>
     {:else}
-      <p class="sin-chats">Aquí aparecerán tus chats, cada uno con su nombre.</p>
+      <p class="sin-chats">
+        Aquí aparecerán tus chats, cada uno con su nombre. Se guardan en tu cuenta.
+      </p>
+    {/if}
+    {#if app.avisoDatosCuenta}
+      <p class="aviso-datos" role="status">{app.avisoDatosCuenta}</p>
     {/if}
   </nav>
 
@@ -544,6 +550,14 @@
   .borrar:hover {
     background: var(--color-superficie);
     color: var(--color-tinta);
+  }
+  .aviso-datos {
+    margin: var(--espacio-3) 0 0;
+    font-size: var(--texto-s);
+    font-weight: 600;
+    line-height: 1.4;
+    padding-left: var(--espacio-3);
+    border-left: 4px solid var(--color-acento);
   }
   .sin-chats {
     margin: var(--espacio-2) 0 0;

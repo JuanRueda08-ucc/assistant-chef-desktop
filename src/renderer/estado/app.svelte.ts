@@ -20,7 +20,7 @@ import { resumenRecetaGenerada } from '@shared/recetas/receta-generada'
 import type { ContenidoChat } from '@shared/ia/chat'
 import { tituloProvisional } from '@shared/ia/titulo'
 import { ejecutarTurnoChat } from '../lib/chat'
-import { cambiosDelTurno, SIN_CAMBIOS, type CambiosTurno } from '../lib/conversacion'
+import { cambiosDelTurno, SIN_CAMBIOS } from '../lib/conversacion'
 import { notaPreferencias } from '@shared/ia/nota-preferencias'
 import { interpretarOrden } from '@shared/ia/ordenes'
 import { unirLista } from '@shared/recetas/lista'
@@ -33,37 +33,15 @@ import {
 import type { ResultadoBusqueda, ResultadoReceta } from '@shared/types/busqueda'
 import type { EstadoCuenta } from '@shared/types/cuenta'
 import type { UsoDiario } from '@shared/ia/uso'
+import type { ChatChef, TurnoConversacion } from '@shared/types/chats'
 import type { FuenteIdea, FuenteWeb, IdeaReceta } from '@shared/types/ideas'
 import type { Ingrediente, RecetaGenerada } from '@shared/types/receta'
 import type { EstadoAvatar, Preferencias, SesionCocina } from '@shared/types/sesion'
 
 export type Pantalla = 'preparar' | 'elegir' | 'cocinar'
 
-/** Un turno de la conversación con el chef, en el panel y en la pantalla de conversación (44). */
-export interface TurnoConversacion {
-  /** `null` cuando lo inicia un botón de la app, como «Buscar recetas con esto». */
-  pregunta: string | null
-  respuesta: string
-  /** Lo que el turno añadió a la despensa, calculado desde el estado. */
-  cambios: CambiosTurno
-  /** El turno buscó recetas o pidió ideas: la respuesta lleva tarjetas. */
-  recetas: boolean
-}
-
-/**
- * Un chat con el chef, con su nombre (pedido del autor, 2026-11-08). Por ahora viven en memoria
- * (0010); se guardarán por cuenta en Supabase al hacer el login (0024).
- */
-export interface ChatChef {
-  id: string
-  /** Provisional (lo escrito por la persona) hasta que llega el de la IA. */
-  titulo: string
-  tituloDeIA: boolean
-  turnos: TurnoConversacion[]
-  /** Contexto que se manda al modelo, para seguir el chat al volver a él. */
-  contexto: ContenidoChat[][]
-  actualizado: number
-}
+// Turnos y chats con el chef: tipos compartidos con main, que los guarda por cuenta (0025).
+export type { ChatChef, TurnoConversacion } from '@shared/types/chats'
 
 export const PREFERENCIAS_INICIALES: Preferencias = {
   ingredientes: [],
@@ -440,8 +418,23 @@ class EstadoApp {
       actualizado: Date.now()
     }
     this.chats = [chat, ...this.chats.filter((c) => c.id !== id)]
+    void this.subirChat(chat)
     if (pregunta && !chat.tituloDeIA && !this.titulando.has(id))
       void this.ponerTitulo(id, pregunta, respuesta)
+  }
+
+  /** Aviso si los chats o Mis recetas no se pudieron leer o guardar en la cuenta. */
+  avisoDatosCuenta = $state<string | null>(null)
+
+  /** Guarda el chat en la cuenta (0025). Si falla, sigue en pantalla y se avisa. */
+  private async subirChat(chat: ChatChef): Promise<void> {
+    try {
+      await window.api.chats.guardar($state.snapshot(chat) as ChatChef)
+      if (this.avisoDatosCuenta?.startsWith('No pude guardar')) this.avisoDatosCuenta = null
+    } catch {
+      this.avisoDatosCuenta =
+        'No pude guardar este chat en tu cuenta. Se intentará de nuevo con tu próximo mensaje.'
+    }
   }
 
   private titulando = new Set<string>()
@@ -457,6 +450,8 @@ class EstadoApp {
       return
     }
     this.chats = this.chats.map((c) => (c.id === id ? { ...c, titulo, tituloDeIA: true } : c))
+    const chat = this.chats.find((c) => c.id === id)
+    if (chat) void this.subirChat(chat)
   }
 
   /** Vuelve a un chat anterior de la lista. */
@@ -473,8 +468,14 @@ class EstadoApp {
   }
 
   /** Quita un chat de la lista; si es el actual, empieza uno nuevo. */
-  borrarChat(id: string): void {
+  async borrarChat(id: string): Promise<void> {
     if (this.chatOcupado) return
+    try {
+      await window.api.chats.borrar({ id })
+    } catch {
+      this.avisoDatosCuenta = 'No pude borrar el chat de tu cuenta. Inténtalo de nuevo.'
+      return
+    }
     this.chats = this.chats.filter((c) => c.id !== id)
     if (id === this.chatActualId) this.empezarChatNuevo()
   }
@@ -747,7 +748,17 @@ class EstadoApp {
         }
       }
       this.preferenciasCargadas = true
-      this.misRecetas = await window.api.misRecetas.listar()
+      // Mis recetas y los chats están en la cuenta (0025): sin red, la app sigue y lo avisa.
+      const [mias, chats] = await Promise.allSettled([
+        window.api.misRecetas.listar(),
+        window.api.chats.listar()
+      ])
+      if (mias.status === 'fulfilled') this.misRecetas = mias.value
+      if (chats.status === 'fulfilled') this.chats = chats.value
+      this.avisoDatosCuenta =
+        mias.status === 'rejected' || chats.status === 'rejected'
+          ? 'No pude traer tus chats o tus recetas de la cuenta. Comprueba tu conexión.'
+          : null
       const sesion = await window.api.sesion.retomar()
       if (sesion) {
         this.sesion = sesion

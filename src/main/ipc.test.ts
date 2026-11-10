@@ -4,7 +4,10 @@ import { CANALES_IPC } from '@shared/types/ipc'
 import type { ResultadoCuenta, Usuario } from '@shared/types/cuenta'
 import { preferencias, sesionNueva } from '@shared/cocina/fixtures.test-utils'
 import { abrirBase } from './db/conexion'
-import { listarMisRecetas } from './db/mis-recetas'
+import { guardarMiReceta, leerMisRecetasGuardadas, listarMisRecetas } from './db/mis-recetas'
+import { arrozConPollo } from '@shared/recetas/fixtures.test-utils'
+import { datosNubeFalsos, supabaseFalso } from './datos-cuenta.test-utils'
+import { crearDatosLocales } from './datos-cuenta'
 import { descartarSesionCocinando, guardarSesion } from './db/sesiones'
 import { cargarSemilla, leerSemilla } from './db/semillas'
 
@@ -64,7 +67,8 @@ describe('voz:token IPC', () => {
         },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
-        cuentaFalsa()
+        cuentaFalsa(),
+        crearDatosLocales(db)
       )
       const handler = handle.mock.calls.find(([c]) => c === CANALES_IPC.chefConversar)![1] as (
         _e: unknown,
@@ -116,7 +120,8 @@ describe('voz:token IPC', () => {
         },
         voz,
         lector,
-        cuentaFalsa()
+        cuentaFalsa(),
+        crearDatosLocales(db)
       )
       const handler = (canal: string): ((evento: unknown, dato: unknown) => Promise<unknown>) =>
         handle.mock.calls.find(([c]) => c === canal)![1]
@@ -176,7 +181,8 @@ describe('voz:token IPC', () => {
         },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
         { leer: vi.fn(), detener: vi.fn() },
-        cuentaFalsa()
+        cuentaFalsa(),
+        crearDatosLocales(db)
       )
       const handler = handle.mock.calls.find(([canal]) => canal === CANALES_IPC.vozToken)![1] as (
         _evento: unknown,
@@ -229,7 +235,8 @@ describe('cuenta IPC', () => {
         },
         voz,
         { leer: vi.fn(), detener: vi.fn() },
-        cuenta
+        cuenta,
+        crearDatosLocales(db)
       )
       expect(
         await canal(CANALES_IPC.cuentaRegistrar)(null, {
@@ -473,6 +480,65 @@ describe('cuenta IPC', () => {
       await expect(
         Promise.resolve().then(() => canal(CANALES_IPC.sesionRetomar)(null))
       ).rejects.toThrow('Inicia sesión')
+    } finally {
+      db.close()
+    }
+  })
+})
+
+describe('chats y Mis recetas de la cuenta en la nube (0025)', () => {
+  it('sube a la cuenta las recetas guardadas en el equipo, las borra de aquí y valida los chats', async () => {
+    const db = abrirBase(':memory:')
+    const sb = supabaseFalso()
+    try {
+      cargarSemilla(db, leerSemilla())
+      const generada = { receta: { ...arrozConPollo(), id: 'gen_local' }, ingredientesNuevos: [] }
+      guardarMiReceta(db, 'u1', generada, 0)
+      registrarIpc(
+        db,
+        {
+          pedirTokenVoz: vi.fn(),
+          narrar: vi.fn(),
+          conversar: vi.fn(),
+          proponerRecetas: vi.fn(),
+          generarReceta: vi.fn(),
+          transcribir: vi.fn(),
+          generarImagen: vi.fn(),
+          titularChat: vi.fn(),
+          uso: vi.fn()
+        },
+        { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
+        { leer: vi.fn(), detener: vi.fn() },
+        cuentaFalsa(),
+        datosNubeFalsos(sb),
+        { verBorradores: false, datosEnLaNube: true }
+      )
+      const canal = (nombre: string): ((evento: unknown, datos?: unknown) => Promise<unknown>) =>
+        handle.mock.calls.find(([c]) => c === nombre)![1]
+
+      const mias = (await canal(CANALES_IPC.misRecetasListar)(null)) as { receta: { id: string } }[]
+      expect(mias.map((g) => g.receta.id)).toEqual(['gen_local'])
+      expect(sb.tablas.mis_recetas.map((f) => f.id)).toEqual(['gen_local'])
+      expect(leerMisRecetasGuardadas(db, 'u1')).toEqual([])
+      // Ya en memoria: obtener la receta no espera a la red.
+      expect(await canal(CANALES_IPC.recetasObtener)(null, 'gen_local')).toMatchObject({
+        id: 'gen_local'
+      })
+
+      const chat = {
+        id: '6f1c2c1e-6a43-4f2a-9a33-0a1b2c3d4e5f',
+        titulo: 'Arroz con pollo',
+        tituloDeIA: false,
+        turnos: [],
+        contexto: [],
+        actualizado: 1
+      }
+      await canal(CANALES_IPC.chatsGuardar)(null, chat)
+      expect(await canal(CANALES_IPC.chatsListar)(null)).toEqual([chat])
+      await expect(canal(CANALES_IPC.chatsGuardar)(null, { ...chat, id: 'x' })).rejects.toThrow()
+      await expect(canal(CANALES_IPC.chatsBorrar)(null, { id: 'x' })).rejects.toThrow()
+      await canal(CANALES_IPC.chatsBorrar)(null, { id: chat.id })
+      expect(sb.tablas.chats).toEqual([])
     } finally {
       db.close()
     }
