@@ -91,7 +91,11 @@ function supabaseFalso(): {
         if (!email) return errorCodigo('bad_jwt', 401)
         const usuario = usuarios.get(email)!
         if (init?.method === 'PUT') {
-          usuario.password = cuerpo.password
+          if (cuerpo.password !== undefined) {
+            if (cuerpo.password === usuario.password) return errorCodigo('same_password', 422)
+            usuario.password = cuerpo.password
+          }
+          if (cuerpo.data?.nombre !== undefined) usuario.nombre = cuerpo.data.nombre
           return json({ id: usuario.id })
         }
         return json({
@@ -188,6 +192,47 @@ describe('cuenta en main con Supabase Auth', () => {
       codigo: 'contrasena_debil',
       mensaje: MENSAJE_CONTRASENA_DEBIL
     })
+  })
+
+  it('Mi cuenta: cambia el nombre y la contraseña comprobando la actual (0026)', async () => {
+    const sb = supabaseFalso()
+    const guardado = almacen()
+    const cuenta = crearCuenta({
+      supabaseUrl: URL_SB,
+      clavePublica: CLAVE,
+      almacen: guardado,
+      solicitar: sb.solicitar
+    })
+    await cuenta.registrar(datos)
+    await cuenta.verificar({ email: datos.email, codigo: '111111' })
+
+    const nombre = await cuenta.cambiarNombre({ nombre: 'Luis Felipe' })
+    expect(nombre.ok && nombre.estado.usuario?.nombre).toBe('Luis Felipe')
+    expect(guardado.valor?.usuario.nombre).toBe('Luis Felipe')
+
+    const mal = await cuenta.cambiarContrasena({ actual: 'otra', nueva: 'Nueva#2026' })
+    expect(mal.ok || mal.error).toEqual({
+      codigo: 'credenciales',
+      mensaje: 'La contraseña actual no es correcta.'
+    })
+    const igual = await cuenta.cambiarContrasena({
+      actual: datos.contrasena,
+      nueva: datos.contrasena
+    })
+    expect(igual.ok || igual.error.mensaje).toMatch(/igual a la actual/)
+    const bien = await cuenta.cambiarContrasena({
+      actual: datos.contrasena,
+      nueva: 'Nueva#2026'
+    })
+    expect(bien.ok).toBe(true)
+    // La sesión sigue abierta y ya se entra con la nueva.
+    expect(cuenta.estado().usuario?.email).toBe(datos.email)
+    expect((await cuenta.comprobarContrasena('Nueva#2026')).ok).toBe(true)
+    expect((await cuenta.comprobarContrasena(datos.contrasena)).ok).toBe(false)
+
+    cuenta.olvidar()
+    expect(cuenta.estado().usuario).toBeNull()
+    expect(guardado.valor).toBeNull()
   })
 
   it('renueva el JWT antes de que caduque, una sola vez aunque lo pidan a la vez', async () => {

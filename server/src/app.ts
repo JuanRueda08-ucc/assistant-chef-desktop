@@ -40,6 +40,11 @@ export interface Dependencias {
   nuevoId?: () => string
   /** Dónde se anotan los fallos del proveedor; por defecto `console.error`. */
   registrarError?: (mensaje: string, error: unknown) => void
+  /**
+   * Borra la cuenta en Supabase con la clave secreta (0026). Solo en la Edge Function; sin ella,
+   * `/cuenta/borrar` responde que no está disponible.
+   */
+  borrarCuenta?: (usuarioId: string) => Promise<void>
 }
 
 export const CODIGOS_ERROR_API = [
@@ -53,7 +58,9 @@ export const CODIGOS_ERROR_API = [
   'limite_superado',
   'proveedor_fallo',
   ...esquemaCodigoErrorProveedor.options,
-  'receta_invalida'
+  'receta_invalida',
+  'no_disponible',
+  'cuenta_no_borrada'
 ] as const
 export type CodigoErrorApi = (typeof CODIGOS_ERROR_API)[number]
 
@@ -109,6 +116,22 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
       esquema: z.strictObject({}),
       manejar: async (_cuerpo: Record<string, never>, _instalacion: string, usuarioId: string) =>
         dep.limitador.uso(`usuario:${usuarioId}`, ahora())
+    },
+    // Borra la cuenta, sus chats y sus recetas (0026). La app comprueba antes la contraseña.
+    '/cuenta/borrar': {
+      grupo: null,
+      esquema: z.strictObject({}),
+      manejar: async (_cuerpo: Record<string, never>, _instalacion: string, usuarioId: string) => {
+        if (!dep.borrarCuenta)
+          throw new ErrorApi(501, 'no_disponible', 'Borrar la cuenta solo funciona en la nube.')
+        try {
+          await dep.borrarCuenta(usuarioId)
+        } catch (error) {
+          registrarError('No se pudo borrar la cuenta', error)
+          throw new ErrorApi(502, 'cuenta_no_borrada', 'No se pudo borrar la cuenta.')
+        }
+        return { borrada: true }
+      }
     },
     '/chat': {
       grupo: 'chat',

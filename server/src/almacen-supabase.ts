@@ -57,6 +57,37 @@ export class AlmacenSupabase implements AlmacenUso {
   }
 }
 
+/**
+ * Borra una cuenta de Supabase Auth con la clave secreta (0026). Sus chats y recetas se van con
+ * ella (`on delete cascade`); los contadores de uso se borran antes, porque no tienen esa relación.
+ */
+export function crearBorrarCuenta(
+  supabaseUrl: string,
+  claveSecreta: string,
+  solicitar: typeof fetch = fetch
+): (usuarioId: string) => Promise<void> {
+  const base = supabaseUrl.replace(/\/$/, '')
+  const cabeceras: Record<string, string> = {
+    apikey: claveSecreta,
+    // Las claves heredadas son JWT y van también como Bearer; las nuevas (sb_secret_) no.
+    ...(!claveSecreta.startsWith('sb_secret_') && { authorization: `Bearer ${claveSecreta}` })
+  }
+  return async (usuarioId) => {
+    if (!/^[0-9a-f-]{36}$/i.test(usuarioId)) throw new Error('Id de cuenta no válido.')
+    const uso = new URL(`${base}/rest/v1/uso_diario`)
+    uso.searchParams.set('clave', `like.*:usuario:${usuarioId}`)
+    const r1 = await solicitar(uso, { method: 'DELETE', headers: cabeceras })
+    if (!r1.ok) throw new Error(`No se pudo borrar el uso (HTTP ${r1.status}).`)
+    const r2 = await solicitar(`${base}/auth/v1/admin/users/${usuarioId}`, {
+      method: 'DELETE',
+      headers: cabeceras
+    })
+    // Si ya no existía, el resultado es el mismo: la cuenta no está.
+    if (!r2.ok && r2.status !== 404)
+      throw new Error(`No se pudo borrar la cuenta (HTTP ${r2.status}).`)
+  }
+}
+
 /** La clave secreta que Supabase da a las Edge Functions (nueva o heredada). */
 export function claveSecretaDesdeEntorno(env: Record<string, string | undefined>): string {
   try {

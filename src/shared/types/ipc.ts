@@ -15,6 +15,9 @@ import type {
   DatosEntrar,
   DatosRegistro,
   DatosRestablecer,
+  DatosBorrarCuenta,
+  DatosCambiarContrasena,
+  DatosCambiarNombre,
   EstadoCuenta,
   ResultadoCuenta
 } from './cuenta'
@@ -28,6 +31,9 @@ export const CANALES_IPC = {
   cuentaSalir: 'cuenta:salir',
   cuentaRecuperar: 'cuenta:recuperar',
   cuentaRestablecer: 'cuenta:restablecer',
+  cuentaCambiarNombre: 'cuenta:cambiar-nombre',
+  cuentaCambiarContrasena: 'cuenta:cambiar-contrasena',
+  cuentaBorrar: 'cuenta:borrar',
   chefConversar: 'chef:conversar',
   chefTitular: 'chef:titular',
   chefUso: 'chef:uso',
@@ -103,6 +109,10 @@ export interface ApiChef {
     salir(): Promise<ResultadoCuenta>
     recuperar(datos: { email: string }): Promise<ResultadoCuenta>
     restablecer(datos: DatosRestablecer): Promise<ResultadoCuenta>
+    cambiarNombre(datos: DatosCambiarNombre): Promise<ResultadoCuenta>
+    cambiarContrasena(datos: DatosCambiarContrasena): Promise<ResultadoCuenta>
+    /** Borra la cuenta, sus chats y recetas en la nube y sus datos en el equipo; cierra la sesión. */
+    borrar(datos: DatosBorrarCuenta): Promise<ResultadoCuenta>
   }
   chef: {
     conversar(datos: PeticionChatIpc): Promise<RespuestaChat>

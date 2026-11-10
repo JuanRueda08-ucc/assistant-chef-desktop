@@ -7,6 +7,8 @@ import { MENSAJE_CONTRASENA_DEBIL } from '@shared/contrasena'
 import { esquemaUsuario } from '@shared/esquemas/cuenta'
 import type {
   CodigoErrorCuenta,
+  DatosCambiarContrasena,
+  DatosCambiarNombre,
   DatosCodigo,
   DatosEntrar,
   DatosRegistro,
@@ -108,9 +110,15 @@ export function crearCuentaLocal(): Cuenta {
     salir: ok,
     recuperar: ok,
     restablecer: ok,
+    cambiarNombre: async () => fallo('servicio', SIN_CUENTA),
+    cambiarContrasena: async () => fallo('servicio', SIN_CUENTA),
+    comprobarContrasena: ok,
+    olvidar: () => {},
     caducada: () => {}
   }
 }
+
+const SIN_CUENTA = 'Sin cuenta de Supabase (modo de desarrollo) no se puede cambiar.'
 
 export function crearCuenta(opciones: {
   /** URL del proyecto de Supabase (https://<ref>.supabase.co). */
@@ -132,6 +140,14 @@ export function crearCuenta(opciones: {
   salir(): Promise<ResultadoCuenta>
   recuperar(email: string): Promise<ResultadoCuenta>
   restablecer(datos: DatosRestablecer): Promise<ResultadoCuenta>
+  /** «Mi cuenta» (0026): cambia el nombre en los datos de la cuenta. */
+  cambiarNombre(datos: DatosCambiarNombre): Promise<ResultadoCuenta>
+  /** «Mi cuenta» (0026): comprueba la actual, cambia la contraseña y sigue con la sesión. */
+  cambiarContrasena(datos: DatosCambiarContrasena): Promise<ResultadoCuenta>
+  /** Comprueba la contraseña de la cuenta abierta, por ejemplo antes de borrarla. */
+  comprobarContrasena(contrasena: string): Promise<ResultadoCuenta>
+  /** Olvida la sesión sin avisar a Supabase (la cuenta ya no existe). */
+  olvidar(): void
   /** El backend rechazó el token (401): se olvida la sesión. */
   caducada(): void
 } {
@@ -176,6 +192,8 @@ export function crearCuenta(opciones: {
       .object({ error_code: z.string().optional(), error: z.string().optional() })
       .safeParse(await respuesta.json().catch(() => null))
     const clave = cuerpo.success ? (cuerpo.data.error_code ?? cuerpo.data.error) : undefined
+    if (clave === 'same_password')
+      return fallo('datos_invalidos', 'La contraseña nueva es igual a la actual. Elige otra.')
     const codigo = clave ? POR_CODIGO_SUPABASE[clave] : undefined
     if (codigo) return fallo(codigo)
     if (respuesta.status === 429) return fallo('demasiados_intentos')
@@ -209,6 +227,30 @@ export function crearCuenta(opciones: {
     if (!(r instanceof Response)) return r
     return r.ok ? ok() : error(r)
   }
+  /**
+   * Entra otra vez con el correo de la sesión y esa contraseña. Devuelve los tokens nuevos o el
+   * error: una contraseña que no coincide se dice como tal, no como «credenciales».
+   */
+  async function entrarDeNuevo(
+    contrasena: string
+  ): Promise<z.output<typeof esquemaTokens> | ResultadoCuenta> {
+    if (!sesion) return fallo('credenciales', 'Inicia sesión para continuar.')
+    const r = await pedir('/token?grant_type=password', {
+      cuerpo: { email: sesion.usuario.email, password: contrasena }
+    })
+    if (!(r instanceof Response)) return r
+    if (!r.ok) {
+      const e = await error(r)
+      return !e.ok && e.error.codigo === 'credenciales'
+        ? fallo('credenciales', 'La contraseña actual no es correcta.')
+        : e
+    }
+    const tokens = esquemaTokens.safeParse(await r.json().catch(() => null))
+    return tokens.success ? tokens.data : fallo('servicio')
+  }
+  const esResultado = (x: unknown): x is ResultadoCuenta =>
+    typeof x === 'object' && x !== null && 'ok' in x
+
   /** Cambia el refresh token por un JWT nuevo. Una sola renovación a la vez. */
   function renovar(): Promise<string | null> {
     renovando ??= (async () => {
@@ -299,6 +341,48 @@ export function crearCuenta(opciones: {
       await pedir('/logout?scope=local', { token: tokens.data.access_token })
       return ok()
     },
+    async cambiarNombre(d) {
+      const token =
+        sesion && sesion.caducaEn - ahora() > MARGEN_RENOVAR_MS ? sesion.acceso : await renovar()
+      if (!sesion || !token) return fallo('credenciales', 'Inicia sesión para continuar.')
+      const r = await pedir('/user', {
+        metodo: 'PUT',
+        cuerpo: { data: { nombre: d.nombre } },
+        token
+      })
+      if (!(r instanceof Response)) return r
+      if (!r.ok) return error(r)
+      guardar({ ...sesion, usuario: { ...sesion.usuario, nombre: d.nombre } })
+      return ok()
+    },
+    async cambiarContrasena(d) {
+      const tokens = await entrarDeNuevo(d.actual)
+      if (esResultado(tokens)) return tokens
+      const r = await pedir('/user', {
+        metodo: 'PUT',
+        cuerpo: { password: d.nueva },
+        token: tokens.access_token
+      })
+      if (!(r instanceof Response)) return r
+      if (!r.ok) return error(r)
+      // La sesión sigue con los tokens recién emitidos.
+      if (sesion)
+        guardar({
+          ...sesion,
+          acceso: tokens.access_token,
+          renovacion: tokens.refresh_token,
+          caducaEn: ahora() + tokens.expires_in * 1000
+        })
+      return ok()
+    },
+    async comprobarContrasena(contrasena) {
+      const tokens = await entrarDeNuevo(contrasena)
+      if (esResultado(tokens)) return tokens
+      // Se cierra la sesión extra que abrió la comprobación.
+      await pedir('/logout?scope=local', { token: tokens.access_token })
+      return ok()
+    },
+    olvidar: () => guardar(null),
     caducada: () => guardar(null)
   }
 }

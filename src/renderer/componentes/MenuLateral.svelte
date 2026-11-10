@@ -1,5 +1,4 @@
 <script lang="ts">
-  import { textoReinicio, USO_VISIBLE } from '@shared/ia/uso'
   import { USUARIO_LOCAL } from '@shared/types/cuenta'
   import busto from '../assets/chef/chef_busto.png'
   import { app } from '../estado/app.svelte'
@@ -23,10 +22,6 @@
   let panel: HTMLElement | undefined = $state()
   $effect(() => {
     if (app.menuAbierto) panel?.querySelector<HTMLElement>('button')?.focus()
-  })
-  // Al abrir el menú se vuelve a preguntar cuánto queda: la voz y las ideas también gastan.
-  $effect(() => {
-    if (app.menuAbierto) void app.actualizarUso()
   })
   const cerrar = (): void => {
     app.menuAbierto = false
@@ -104,28 +99,13 @@
       {#if usuario && !sinCuenta}
         <p class="nombre">{usuario.nombre}</p>
         <p class="correo">{usuario.email}</p>
-        {#if app.uso}
-          {@const uso = app.uso}
-          <div class="uso">
-            <h3>Tu uso de hoy</h3>
-            <ul>
-              {#each USO_VISIBLE as v (v.grupo)}
-                {@const g = uso.grupos[v.grupo]}
-                <li class:agotado={g.restantes === 0}>
-                  <span class="fila"
-                    ><span>{v.nombre}</span><span class="cifra"
-                      >quedan <strong>{g.restantes}</strong> de {g.limite}</span
-                    ></span
-                  >
-                  <span class="barra" aria-hidden="true"
-                    ><span style:width="{(g.restantes / g.limite) * 100}%"></span></span
-                  >
-                </li>
-              {/each}
-            </ul>
-            <p class="reinicio">{textoReinicio(uso.reinicioEn, Date.now())}</p>
-          </div>
-        {/if}
+        <button
+          type="button"
+          class="opcion"
+          aria-current={app.verMiCuenta ? 'page' : undefined}
+          onclick={() => app.abrirMiCuenta()}
+          ><Icono nombre="personas" /><span>Ver mi cuenta</span></button
+        >
         <button
           type="button"
           class="opcion"
@@ -136,9 +116,16 @@
         >
       {:else}
         <p class="correo">
-          Estás usando la app sin cuenta. Iniciar sesión y registrarse llegan pronto; tu despensa y
-          tus recetas se guardan en este equipo.
+          Modo de desarrollo sin cuenta de Supabase: tu despensa y tus recetas se guardan en este
+          equipo.
         </p>
+        <button
+          type="button"
+          class="opcion"
+          aria-current={app.verMiCuenta ? 'page' : undefined}
+          onclick={() => app.abrirMiCuenta()}
+          ><Icono nombre="personas" /><span>Ver mi cuenta</span></button
+        >
       {/if}
     </section>
   </nav>
@@ -259,57 +246,5 @@
     font-size: var(--texto-s);
     color: var(--color-tinta-suave);
     line-height: 1.4;
-  }
-  .uso {
-    margin: var(--espacio-2) 0 var(--espacio-3);
-  }
-  .uso h3 {
-    margin: 0 0 var(--espacio-2);
-    font-size: var(--texto-s);
-  }
-  .uso ul {
-    margin: 0;
-    padding: 0;
-    list-style: none;
-    display: grid;
-    gap: var(--espacio-2);
-  }
-  .uso li {
-    display: grid;
-    gap: var(--espacio-1);
-    font-size: var(--texto-s);
-  }
-  .fila {
-    display: flex;
-    justify-content: space-between;
-    gap: var(--espacio-2);
-  }
-  .cifra {
-    color: var(--color-tinta-suave);
-    white-space: nowrap;
-  }
-  .cifra strong {
-    color: var(--color-tinta);
-  }
-  .barra {
-    height: 6px;
-    border-radius: 999px;
-    background: var(--color-relleno);
-    overflow: hidden;
-  }
-  .barra span {
-    display: block;
-    height: 100%;
-    border-radius: inherit;
-    background: var(--color-acento);
-  }
-  .agotado .cifra {
-    color: var(--color-tinta);
-    font-weight: 600;
-  }
-  .uso .reinicio {
-    margin: var(--espacio-2) 0 0;
-    font-size: var(--texto-s);
-    color: var(--color-tinta-suave);
   }
 </style>

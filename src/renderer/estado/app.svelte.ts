@@ -113,6 +113,8 @@ class EstadoApp {
   /** Recetas de la IA que guardó la cuenta (tarea 41). */
   misRecetas = $state.raw<RecetaGenerada[]>([])
   verMisRecetas = $state(false)
+  /** Pantalla «Mi cuenta» (0026), encima de lo demás como Mis recetas. */
+  verMiCuenta = $state(false)
   /** El catálogo más los ingredientes propios de las recetas guardadas, para mostrar sus nombres. */
   catalogoCompleto = $derived([
     ...this.catalogo,
@@ -493,6 +495,7 @@ class EstadoApp {
   abrirConversacion(): void {
     this.enInicio = false
     this.verMisRecetas = false
+    this.verMiCuenta = false
     this.retomando = false
     this.menuAbierto = false
     this.chatAbierto = false
@@ -715,6 +718,7 @@ class EstadoApp {
     this.uso = null
     this.misRecetas = []
     this.verMisRecetas = false
+    this.verMiCuenta = false
     this.cocinarOtra()
     this.enInicio = true
     this.avisos = []
@@ -785,6 +789,7 @@ class EstadoApp {
   irAlInicio(): void {
     this.retomando = false
     this.verMisRecetas = false
+    this.verMiCuenta = false
     this.chatAbierto = false
     this.menuAbierto = false
     this.enConversacion = false
@@ -1074,6 +1079,7 @@ class EstadoApp {
       this.enInicio = false
       this.enConversacion = false
       this.verMisRecetas = false
+      this.verMiCuenta = false
       this.retomando = false
       this.globo = null
       this.resultadoChef = null
@@ -1086,12 +1092,31 @@ class EstadoApp {
     this.enConversacion = false
     this.miRecetaElegidaId = recetaId
     this.verMisRecetas = true
+    this.verMiCuenta = false
+  }
+
+  /** «Mi cuenta» desde el menú lateral. */
+  abrirMiCuenta(): void {
+    this.error = null
+    this.chatAbierto = false
+    this.menuAbierto = false
+    this.verMiCuenta = true
+  }
+
+  cerrarMiCuenta(): void {
+    this.verMiCuenta = false
+  }
+
+  /** La cuenta ya no existe: se olvida todo lo de la interfaz, como al cerrar sesión. */
+  alBorrarCuenta(): void {
+    void this.salir()
   }
 
   /** Volver: a la pantalla anterior, o a Inicio si la receta ya terminó. */
   cerrarMisRecetas(): void {
     this.error = null
     this.verMisRecetas = false
+    this.verMiCuenta = false
     if (this.sesion?.fase === 'terminado') {
       this.cocinarOtra()
       this.enInicio = true
@@ -1195,6 +1220,7 @@ class EstadoApp {
       this.volverAConversacion = false
       this.menuAbierto = false
       this.verMisRecetas = false
+      this.verMiCuenta = false
       this.retomando = false
       if (pantalla !== this.pantalla) this.resultadoChef = null
       this.pantalla = pantalla

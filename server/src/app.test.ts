@@ -476,3 +476,30 @@ describe('POST /uso', () => {
     expect(sinSesion.status).toBe(401)
   })
 })
+
+const manejarCon = (
+  borrarCuenta?: (usuarioId: string) => Promise<void>
+): ((peticion: Request) => Promise<Response>) =>
+  banco({}, {}, borrarCuenta ? { borrarCuenta } : {}).manejar
+
+describe('POST /cuenta/borrar', () => {
+  it('sin borrador responde que no está disponible; con él borra la cuenta de quien llama', async () => {
+    const sinNube = await manejarCon()(post('/cuenta/borrar'))
+    expect(sinNube.status).toBe(501)
+    const borradas: string[] = []
+    const r = await manejarCon(async (id) => {
+      borradas.push(id)
+    })(post('/cuenta/borrar'))
+    expect(await r.json()).toEqual({ borrada: true })
+    expect(borradas).toHaveLength(1)
+    const falla = await manejarCon(async () => {
+      throw new Error('HTTP 500')
+    })(post('/cuenta/borrar'))
+    expect(falla.status).toBe(502)
+    expect((await falla.json()).error.codigo).toBe('cuenta_no_borrada')
+    const sinSesion = await manejarCon(async () => {})(
+      post('/cuenta/borrar', {}, { 'x-instalacion': INSTALACION })
+    )
+    expect(sinSesion.status).toBe(401)
+  })
+})

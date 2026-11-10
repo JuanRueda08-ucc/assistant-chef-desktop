@@ -85,7 +85,8 @@ export interface Banco {
 /** App con proveedor falso, límites a medida y reloj controlable. */
 export function banco(
   opciones: OpcionesProveedorFalso = {},
-  limites: Partial<Record<Grupo, number>> = {}
+  limites: Partial<Record<Grupo, number>> = {},
+  extra: Partial<Dependencias> = {}
 ): Banco {
   const proveedor = new ProveedorFalso({ ahora: () => reloj.ahora, ...opciones })
   const reloj = { ahora: T0 }
@@ -97,7 +98,8 @@ export function banco(
     cuentas: cuentasFalsas,
     ahora: () => reloj.ahora,
     nuevoId: () => `gen_${String(++n).padStart(4, '0')}`,
-    registrarError: (mensaje) => errores.push(mensaje)
+    registrarError: (mensaje) => errores.push(mensaje),
+    ...extra
   }
   return { manejar: crearApp(dep), proveedor, errores, reloj }
 }

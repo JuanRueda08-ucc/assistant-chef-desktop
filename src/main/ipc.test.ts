@@ -39,6 +39,10 @@ function cuentaFalsa(
     }),
     recuperar: ok,
     restablecer: ok,
+    cambiarNombre: ok,
+    cambiarContrasena: ok,
+    comprobarContrasena: ok,
+    olvidar: vi.fn(),
     caducada: vi.fn()
   }
 }
@@ -63,6 +67,7 @@ describe('voz:token IPC', () => {
           transcribir: vi.fn(),
           generarImagen: vi.fn(),
           titularChat: vi.fn(),
+          borrarCuenta: vi.fn(),
           uso: vi.fn()
         },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
@@ -116,6 +121,7 @@ describe('voz:token IPC', () => {
           transcribir: vi.fn(),
           generarImagen: vi.fn(),
           titularChat: vi.fn(),
+          borrarCuenta: vi.fn(),
           uso: vi.fn()
         },
         voz,
@@ -177,6 +183,7 @@ describe('voz:token IPC', () => {
           transcribir: vi.fn(),
           generarImagen: vi.fn(),
           titularChat: vi.fn(),
+          borrarCuenta: vi.fn(),
           uso: vi.fn()
         },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
@@ -231,6 +238,7 @@ describe('cuenta IPC', () => {
           transcribir,
           generarImagen: vi.fn(),
           titularChat,
+          borrarCuenta: vi.fn(),
           uso: vi.fn()
         },
         voz,
@@ -505,6 +513,7 @@ describe('chats y Mis recetas de la cuenta en la nube (0025)', () => {
           transcribir: vi.fn(),
           generarImagen: vi.fn(),
           titularChat: vi.fn(),
+          borrarCuenta: vi.fn(),
           uso: vi.fn()
         },
         { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
@@ -539,6 +548,67 @@ describe('chats y Mis recetas de la cuenta en la nube (0025)', () => {
       await expect(canal(CANALES_IPC.chatsBorrar)(null, { id: 'x' })).rejects.toThrow()
       await canal(CANALES_IPC.chatsBorrar)(null, { id: chat.id })
       expect(sb.tablas.chats).toEqual([])
+    } finally {
+      db.close()
+    }
+  })
+})
+
+describe('borrar la cuenta (0026)', () => {
+  it('comprueba la contraseña, borra en la nube y después lo del equipo, y cierra la sesión', async () => {
+    const db = abrirBase(':memory:')
+    try {
+      cargarSemilla(db, leerSemilla())
+      const cuenta = cuentaFalsa()
+      const borrarCuenta = vi.fn().mockResolvedValue({ ok: true, datos: { borrada: true } })
+      cuenta.olvidar = vi.fn(() => {
+        cuenta.estado().usuario = null
+      })
+      registrarIpc(
+        db,
+        {
+          pedirTokenVoz: vi.fn(),
+          narrar: vi.fn(),
+          conversar: vi.fn(),
+          proponerRecetas: vi.fn(),
+          generarReceta: vi.fn(),
+          transcribir: vi.fn(),
+          generarImagen: vi.fn(),
+          titularChat: vi.fn(),
+          borrarCuenta,
+          uso: vi.fn()
+        },
+        { iniciar: vi.fn(), reconocer: vi.fn(), reset: vi.fn(), detener: vi.fn() },
+        { leer: vi.fn(), detener: vi.fn() },
+        cuenta,
+        crearDatosLocales(db)
+      )
+      const borrar = handle.mock.calls.find(([c]) => c === CANALES_IPC.cuentaBorrar)![1] as (
+        e: unknown,
+        d: unknown
+      ) => Promise<ResultadoCuenta>
+      guardarSesion(db, sesionNueva(), 'u1')
+
+      // Sin escribir BORRAR no se hace nada.
+      expect(await borrar(null, { contrasena: 'x', confirmacion: 'borrar' })).toMatchObject({
+        ok: false,
+        error: { mensaje: 'Escribe BORRAR para confirmar.' }
+      })
+      // Con la contraseña mal, tampoco.
+      cuenta.comprobarContrasena = vi.fn().mockResolvedValue({
+        ok: false,
+        error: { codigo: 'credenciales', mensaje: 'La contraseña actual no es correcta.' }
+      })
+      expect((await borrar(null, { contrasena: 'x', confirmacion: 'BORRAR' })).ok).toBe(false)
+      expect(borrarCuenta).not.toHaveBeenCalled()
+
+      cuenta.comprobarContrasena = vi.fn().mockResolvedValue({ ok: true, estado: cuenta.estado() })
+      const r = await borrar(null, { contrasena: 'Buena#2026', confirmacion: 'BORRAR' })
+      expect(r).toEqual({ ok: true, estado: { usuario: null, sinConexion: false } })
+      expect(borrarCuenta).toHaveBeenCalledOnce()
+      expect(
+        db.prepare('SELECT COUNT(*) AS n FROM sesiones WHERE usuario_id = ?').get('u1')
+      ).toEqual({ n: 0 })
     } finally {
       db.close()
     }

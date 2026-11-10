@@ -89,5 +89,5 @@ Reinicia `npm run dev`. Ya no hace falta `npm run server:dev`; sigue sirviendo p
 - **Ver errores de la función:** Supabase → **Edge Functions → chef → Logs**. Las líneas rojas dicen qué falló, sin claves ni contraseñas.
 
 - **Pausa por inactividad:** el plan gratuito pausa el proyecto tras una semana sin uso. Antes de una demostración, entra en el panel y reactívalo si está pausado (tarda unos minutos).
-- **Cambiar el backend:** después de modificar `server/src/`, vuelve a ejecutar `npm run supabase:desplegar`.
+- **Cambiar el backend:** después de modificar `server/src/`, vuelve a ejecutar `npm run supabase:desplegar`. Borrar la cuenta desde «Mi cuenta» (0026) necesita una función desplegada a partir del 2026-11-10.
 - **Límites diarios:** `LIMITE_CHAT`, `LIMITE_VOZ`, `LIMITE_RECETAS`, `LIMITE_SUSTITUCIONES` y `LIMITE_IMAGENES` se cambian como secretos de la función (`npx supabase secrets set LIMITE_CHAT=200`). Por defecto: chat 120, voz 40, ideas y recetas 20, sustituciones 60, imágenes 20 al día por cuenta (día UTC). La app los muestra en el menú, en «Mi cuenta → Tu uso de hoy». Ponerle nombre a un chat gasta un mensaje del chat.

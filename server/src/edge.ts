@@ -3,7 +3,7 @@
 // `npx supabase functions deploy chef --no-verify-jwt` (la verificación del JWT la hace app.ts).
 
 import type { JSONWebKeySet } from 'jose'
-import { AlmacenSupabase, claveSecretaDesdeEntorno } from './almacen-supabase'
+import { AlmacenSupabase, claveSecretaDesdeEntorno, crearBorrarCuenta } from './almacen-supabase'
 import { crearApp } from './app'
 import { crearCuentas } from './cuentas'
 import { Limitador, limitesDesdeEntorno } from './limite'
@@ -31,7 +31,8 @@ const manejar = crearApp({
     new AlmacenSupabase(supabaseUrl, claveSecretaDesdeEntorno(env)),
     limitesDesdeEntorno(env)
   ),
-  cuentas: crearCuentas({ supabaseUrl, jwks })
+  cuentas: crearCuentas({ supabaseUrl, jwks }),
+  borrarCuenta: crearBorrarCuenta(supabaseUrl, claveSecretaDesdeEntorno(env))
 })
 
 Deno.serve((peticion) => manejar(new Request(rutaSinFuncion(peticion.url), peticion)))

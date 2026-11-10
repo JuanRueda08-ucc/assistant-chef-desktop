@@ -12,7 +12,10 @@ const api: ApiChef = {
     entrar: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaEntrar, datos),
     salir: () => ipcRenderer.invoke(CANALES_IPC.cuentaSalir),
     recuperar: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaRecuperar, datos),
-    restablecer: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaRestablecer, datos)
+    restablecer: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaRestablecer, datos),
+    cambiarNombre: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaCambiarNombre, datos),
+    cambiarContrasena: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaCambiarContrasena, datos),
+    borrar: (datos) => ipcRenderer.invoke(CANALES_IPC.cuentaBorrar, datos)
   },
   chef: {
     conversar: (datos) => ipcRenderer.invoke(CANALES_IPC.chefConversar, datos),

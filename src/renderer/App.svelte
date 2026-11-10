@@ -11,6 +11,7 @@
   import Conversacion from './pantallas/Conversacion.svelte'
   import AvisoTemporizador from './componentes/AvisoTemporizador.svelte'
   import MisRecetas from './pantallas/MisRecetas.svelte'
+  import MiCuenta from './pantallas/MiCuenta.svelte'
   import Preparar from './pantallas/Preparar.svelte'
   import Retomar from './pantallas/Retomar.svelte'
 
@@ -43,6 +44,7 @@
       !app.enInicio &&
       !app.enConversacion &&
       !app.verMisRecetas &&
+      !app.verMiCuenta &&
       !app.retomando &&
       !(app.pantalla === 'cocinar' && app.sesion?.fase === 'terminado')
   )
@@ -84,6 +86,8 @@
     <main></main>
   {:else if !usuario}
     <Acceso />
+  {:else if app.verMiCuenta}
+    <MiCuenta />
   {:else if app.verMisRecetas}
     <MisRecetas />
   {:else if app.retomando}

@@ -65,6 +65,8 @@ export function crearClienteBackend(
   generarReceta: (peticion: PeticionRecetaGenerada) => Promise<Respuesta<RecetaGenerada>>
   transcribir: (audio: string) => Promise<Respuesta<{ texto: string }>>
   titularChat: (peticion: PeticionTitulo) => Promise<Respuesta<{ titulo: string | null }>>
+  /** Borra la cuenta en Supabase (con sus chats y recetas); lo hace la función con su clave secreta. */
+  borrarCuenta: () => Promise<Respuesta<{ borrada: true }>>
   /** Lo que queda hoy de cada límite de la cuenta; no gasta nada. */
   uso: () => Promise<Respuesta<UsoDiario>>
   generarImagen: (peticion: {
@@ -157,6 +159,12 @@ export function crearClienteBackend(
           invalida: 'No se pudo crear la imagen.'
         }
       ),
+    borrarCuenta: () =>
+      pedirDatos('cuenta/borrar', {}, 20_000, z.strictObject({ borrada: z.literal(true) }), {
+        limite: 'No se pudo borrar la cuenta. Inténtalo más tarde.',
+        fallo: 'No se pudo borrar la cuenta. Inténtalo de nuevo.',
+        invalida: 'No se pudo confirmar el borrado de la cuenta.'
+      }),
     uso: () =>
       pedirDatos('uso', {}, 10_000, esquemaUsoDiario, {
         limite: 'No se pudo consultar tu uso de hoy.',

@@ -1,5 +1,5 @@
 import { describe, expect, it, vi } from 'vitest'
-import { AlmacenSupabase, claveSecretaDesdeEntorno } from './almacen-supabase'
+import { AlmacenSupabase, claveSecretaDesdeEntorno, crearBorrarCuenta } from './almacen-supabase'
 import { Limitador } from './limite'
 
 describe('contadores de uso en Supabase', () => {
@@ -62,5 +62,32 @@ describe('contadores de uso en Supabase', () => {
       'jwt-heredado'
     )
     expect(() => claveSecretaDesdeEntorno({})).toThrow('clave secreta')
+  })
+})
+
+describe('borrar una cuenta (0026)', () => {
+  const ID = '0b4f4a3e-9c7d-4c55-8a7e-3c2b1a0f9e8d'
+  it('borra sus contadores y la cuenta con la clave secreta', async () => {
+    const solicitar = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 200 }))
+    await crearBorrarCuenta('https://p.supabase.co', 'sb_secret_x', solicitar)(ID)
+    const [uso, cuenta] = solicitar.mock.calls
+    const u = new URL(String(uso![0]))
+    expect(u.pathname).toBe('/rest/v1/uso_diario')
+    expect(u.searchParams.get('clave')).toBe(`like.*:usuario:${ID}`)
+    expect(String(cuenta![0])).toBe(`https://p.supabase.co/auth/v1/admin/users/${ID}`)
+    expect(cuenta![1]).toMatchObject({ method: 'DELETE', headers: { apikey: 'sb_secret_x' } })
+  })
+
+  it('rechaza ids raros y falla si Supabase no la borra', async () => {
+    const ok = vi.fn<typeof fetch>().mockResolvedValue(new Response(null, { status: 200 }))
+    await expect(crearBorrarCuenta('https://p.supabase.co', 'k', ok)('a*b')).rejects.toThrow()
+    expect(ok).not.toHaveBeenCalled()
+    const falla = vi
+      .fn<typeof fetch>()
+      .mockResolvedValueOnce(new Response(null, { status: 200 }))
+      .mockResolvedValueOnce(new Response('{}', { status: 500 }))
+    await expect(crearBorrarCuenta('https://p.supabase.co', 'k', falla)(ID)).rejects.toThrow(
+      'HTTP 500'
+    )
   })
 })

@@ -45,6 +45,11 @@ Sobre los mismos componentes y tokens; sin nuevas maquetas.
 - **Ingredientes de un chat nuevo** (pedido del autor): si la despensa ya tiene ingredientes elegidos, el chat vacío muestra un mensaje del chef, «¿Qué ingredientes quieres usar esta vez?», con las etiquetas (se pueden quitar) y dos botones: «Seguir con estos» (amarillo) y «Usar otros ingredientes», que quita los elegidos (no los básicos ni las preferencias) y pone el cursor en la caja de texto. Desaparece al responder o al escribir.
 - **Volver al chat:** si llegaste a Elegir desde el chat («Ver receta» o «Ver las N en Elegir»), el enlace de arriba dice «Volver al chat con el chef» en lugar de «Cambiar ingredientes» o «Todas las recetas».
 
+### «Mi cuenta» (2026-11-10, decisión 0026, opción C «Una columna»)
+- Columna de 640 px: «Volver», el chef saludando, «Hola, Juan» y debajo el correo con cuántos chats y recetas guarda la cuenta. Luego una fila blanca por opción (título en Bricolage, explicación en gris y «Cambiar ›» o «›» a la derecha) que se despliega en el sitio: nombre, uso de hoy (con tres barras pequeñas en la fila y las cuatro grandes al abrirla), contraseña (con los requisitos marcados), cerrar sesión y borrar la cuenta.
+- **Borrar mi cuenta** va en una zona con borde discontinuo y texto en `--color-tomate`. El botón final es tomate con letra blanca y solo se activa con la contraseña y BORRAR escrito. Tokens nuevos: `--color-tomate` (#b8442f, 5,6:1 sobre blanco), `--color-tomate-fondo` y `--color-tomate-borde` (decorativo).
+- El menú lateral cambia el uso de hoy por «Ver mi cuenta».
+
 ### Pantallas separadas y menú lateral (2026-11-08, decisión 0022)
 
 Sin «1 Preparar · 2 Elegir · 3 Cocinar» en la cabecera. A la izquierda, el botón de menú y la marca; a la derecha, «Pregúntale al chef». El menú lateral se desliza desde la izquierda con «Seguir cocinando» (si hay receta a medias), «Mis recetas» y «Mi cuenta». Cada pantalla tiene su salida: «Cambiar ingredientes» en Elegir, «Salir» en Cocinar y «Volver» en Mis recetas.

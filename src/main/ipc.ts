@@ -17,7 +17,10 @@ import {
   esquemaEmail,
   esquemaEntrar,
   esquemaRegistro,
-  esquemaRestablecer
+  esquemaRestablecer,
+  esquemaBorrarCuenta,
+  esquemaCambiarContrasena,
+  esquemaCambiarNombre
 } from '@shared/esquemas/cuenta'
 import type { ResultadoCuenta } from '@shared/types/cuenta'
 import { CANALES_IPC, type ApiChef } from '@shared/types/ipc'
@@ -34,6 +37,7 @@ import type { DatosCuenta } from './datos-cuenta'
 import { esquemaChatChef } from '@shared/esquemas/chats'
 import { listarRecetas, obtenerReceta } from './db/recetas'
 import { guardarPreferencias, leerPreferencias } from './db/preferencias'
+import { borrarDatosDeCuenta } from './db/cuenta-local'
 import { obtenerSesion, obtenerSesionCocinando } from './db/sesiones'
 import type { crearClienteBackend } from './backend'
 import { fallo, type Cuenta } from './cuenta'
@@ -121,6 +125,31 @@ export function registrarIpc(
     conDatos(esquemaEmail, (d) => cuenta.recuperar(d.email))
   )
   ipcMain.handle(CANALES_IPC.cuentaRestablecer, conDatos(esquemaRestablecer, cuenta.restablecer))
+  ipcMain.handle(
+    CANALES_IPC.cuentaCambiarNombre,
+    conDatos(esquemaCambiarNombre, cuenta.cambiarNombre)
+  )
+  ipcMain.handle(
+    CANALES_IPC.cuentaCambiarContrasena,
+    conDatos(esquemaCambiarContrasena, cuenta.cambiarContrasena)
+  )
+  // Borrar la cuenta (0026): contraseña comprobada, borrado en la nube por el backend (que tiene
+  // la clave secreta) y, solo si salió bien, borrado de lo que quedaba en este equipo.
+  ipcMain.handle(
+    CANALES_IPC.cuentaBorrar,
+    conDatos(esquemaBorrarCuenta, async (d): Promise<ResultadoCuenta> => {
+      const usuario = cuenta.estado().usuario
+      if (!usuario) return fallo('credenciales', 'Inicia sesión para continuar.')
+      const comprobada = await cuenta.comprobarContrasena(d.contrasena)
+      if (!comprobada.ok) return comprobada
+      const borrada = await backend.borrarCuenta()
+      if (!borrada.ok) return fallo('servicio', borrada.mensaje)
+      borrarDatosDeCuenta(db, usuario.id)
+      misRecetas = null
+      cuenta.olvidar()
+      return { ok: true, estado: cuenta.estado() }
+    })
+  )
 
   /** Id de la cuenta con sesión; sin cuenta no se lee ni se cambia ninguna cocina. */
   const usuarioId = (): string => {

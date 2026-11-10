@@ -56,3 +56,20 @@ export interface DatosRestablecer {
   codigo: string
   contrasena: string
 }
+
+/** «Mi cuenta» (0026): nombre que se muestra en la app. */
+export interface DatosCambiarNombre {
+  nombre: string
+}
+
+/** «Mi cuenta» (0026): se pide la actual para que nadie la cambie con la app abierta. */
+export interface DatosCambiarContrasena {
+  actual: string
+  nueva: string
+}
+
+/** «Mi cuenta» (0026): borrar la cuenta exige la contraseña y escribir BORRAR. */
+export interface DatosBorrarCuenta {
+  contrasena: string
+  confirmacion: 'BORRAR'
+}

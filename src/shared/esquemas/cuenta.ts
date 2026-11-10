@@ -8,6 +8,9 @@ import {
   type DatosEntrar,
   type DatosRegistro,
   type DatosRestablecer,
+  type DatosBorrarCuenta,
+  type DatosCambiarContrasena,
+  type DatosCambiarNombre,
   type EstadoCuenta,
   type ResultadoCuenta,
   type Usuario
@@ -64,6 +67,18 @@ export const esquemaEntrar = z.strictObject({
 export const esquemaCodigo = z.strictObject({ email, codigo })
 export const esquemaEmail = z.strictObject({ email })
 export const esquemaRestablecer = z.strictObject({ email, codigo, contrasena })
+export const esquemaCambiarNombre = z.strictObject({
+  nombre: z.string().trim().min(1, 'Escribe tu nombre.').max(60)
+})
+const contrasenaActual = z.string().min(1, 'Escribe tu contraseña actual.').max(CONTRASENA_MAX)
+export const esquemaCambiarContrasena = z.strictObject({
+  actual: contrasenaActual,
+  nueva: contrasena
+})
+export const esquemaBorrarCuenta = z.strictObject({
+  contrasena: contrasenaActual,
+  confirmacion: z.literal('BORRAR', 'Escribe BORRAR para confirmar.')
+})
 
 export type _ComprobarUsuario = Afirmar<Igual<z.output<typeof esquemaUsuario>, Usuario>>
 export type _ComprobarEstadoCuenta = Afirmar<
@@ -77,4 +92,13 @@ export type _ComprobarEntrar = Afirmar<Igual<z.output<typeof esquemaEntrar>, Dat
 export type _ComprobarCodigo = Afirmar<Igual<z.output<typeof esquemaCodigo>, DatosCodigo>>
 export type _ComprobarRestablecer = Afirmar<
   Igual<z.output<typeof esquemaRestablecer>, DatosRestablecer>
+>
+export type _ComprobarCambiarNombre = Afirmar<
+  Igual<z.output<typeof esquemaCambiarNombre>, DatosCambiarNombre>
+>
+export type _ComprobarCambiarContrasena = Afirmar<
+  Igual<z.output<typeof esquemaCambiarContrasena>, DatosCambiarContrasena>
+>
+export type _ComprobarBorrarCuenta = Afirmar<
+  Igual<z.output<typeof esquemaBorrarCuenta>, DatosBorrarCuenta>
 >

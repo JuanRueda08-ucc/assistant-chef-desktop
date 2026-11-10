@@ -17,6 +17,9 @@
   --color-relleno: #e9ebe3; /* botones secundarios y etiquetas, sin contorno (43) */
   --color-hierba: #2e6b4e; /* «Tienes todo» (texto, 6,4:1 sobre su fondo) */
   --color-hierba-suave: #e3efe7;
+  --color-tomate: #b8442f; /* acciones que no se deshacen, como borrar la cuenta (5,6:1 sobre blanco) */
+  --color-tomate-fondo: #fffaf8; /* zona de borrar la cuenta */
+  --color-tomate-borde: #e3b3a6; /* borde discontinuo de esa zona (decorativo) */
 
   /* Tipografía: Bricolage Grotesque para títulos y números grandes; Figtree para el texto. */
   --fuente-titulo: 'Bricolage Grotesque Variable', system-ui, sans-serif;
