@@ -4,7 +4,7 @@ Bitácora para continuar entre sesiones y entre agentes (Claude Code, Codex). Ac
 
 ## Siguiente tarea
 
-**Siguiente: que el autor pruebe con Gemini real los cambios del chat (46): el mensaje al instante, el historial de chats con nombre y la vuelta de Elegir al chat.** Después, lo que pida. **Requisito de entrega (2026-11-08):** app descargable en Windows, Linux y Mac (tarea 19), y chats y Mis recetas guardados por cuenta en Supabase (0024, tarea 47, con el login). Quedan pendientes los «Próximos pasos propuestos» de más abajo. **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
+**Hecho el 2026-11-09: cuentas reales con Supabase y backend desplegado como Edge Function (registro y chat probados por el autor). Siguiente: pantalla «Mi cuenta», guardar chats y Mis recetas por cuenta (47) e instaladores (19), según pida el autor.** Después, lo que pida. **Requisito de entrega (2026-11-08):** app descargable en Windows, Linux y Mac (tarea 19), y chats y Mis recetas guardados por cuenta en Supabase (0024, tarea 47, con el login). Quedan pendientes los «Próximos pasos propuestos» de más abajo. **Antes de cambios grandes de interfaz, enseñar opciones en maqueta** (`plan/diseno/`, servidas con la entrada «maquetas» de `.claude/launch.json` o renderizadas con Electron) y esperar su elección.
 
 Todo está subido a origin/main hasta este punto. Pendientes del autor: activar la facturación de Gemini (búsqueda en internet, imágenes con IA y más cuota de voz natural), revisar las 18 recetas en borrador (18) y el login con Supabase al final (0017, `despliegue.md`).
 
@@ -21,11 +21,14 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
-### 2026-11-09 · Despliegue en Supabase, guiado con el autor (en curso)
+### 2026-11-09 · Despliegue en Supabase, guiado con el autor (hecho)
 - El autor creó el proyecto (`cbnsxmucrapuuprkwpxc`); su URL y su clave publicable están en el `.env` local. Desde ahora `npm run dev` y `npm run server:dev` piden cuenta.
 - Gmail no ofreció contraseña de aplicación, así que el correo de los códigos va por **Brevo** (SMTP en Supabase). `despliegue.md` paso 2 lo explica.
 - El autor eligió exigir minúsculas, mayúsculas, números y símbolos. La app los comprueba antes de enviar, con `src/shared/contrasena.ts` (con test). Mientras se escribe, marca cada requisito en Crear cuenta y Contraseña nueva, y si falta algo dice qué es. Si Supabase rechaza la contraseña de todos modos, `weak_password` da el error `contrasena_debil` con un mensaje claro en lugar de «Revisa los datos».
-- Quedan: plantillas con `{{ .Token }}`, probar el registro real, `db push`, secretos y desplegar la función (pasos 2 a 5 de `despliegue.md`).
+- **Correos con código** en estilo «Libreta», elegido por el autor entre tres maquetas: `supabase/correos/` (con `README.md`) y el dibujo del chef servido desde GitHub. El autor confirmó que llegan en menos de un minuto con el dibujo.
+- **Registro real probado por el autor:** crear cuenta, recibir el código, confirmarlo y entrar. El menú muestra su nombre, su correo y «Cerrar sesión».
+- **Función `chef` desplegada** con `PROVEEDOR_IA=gemini` y la clave como secretos; `CHEF_API_URL` del `.env` apunta a `https://cbnsxmucrapuuprkwpxc.supabase.co/functions/v1/chef`, y `npm run server:dev` ya no hace falta para usar la app. El primer chat falló con HTTP 403 al contar el uso: el proyecto nuevo no daba permisos sobre `uso_diario`. Se añadió la migración `20261109000000_permisos_uso_diario.sql` y el autor la aplicó; el chat respondió con Gemini y la IA puso nombre al chat.
+- **Pendiente:** una pantalla «Mi cuenta» con opciones (cambiar nombre o contraseña, borrar la cuenta), que el autor echó en falta; guardar chats y Mis recetas por cuenta (47); instaladores (19). Recuperar contraseña con el correo real no se ha probado.
 - Verificado: tipos, lint y 540 tests. En la app compilada y sin sonido, «cocina2026» marca lo que cumple y, al enviar, dice «A tu contraseña le falta: una letra mayúscula (A-Z) y un símbolo…» sin llegar a Supabase.
 
 ### 2026-11-08 · Chat nuevo: el chef pregunta qué ingredientes usar

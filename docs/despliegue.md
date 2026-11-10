@@ -58,7 +58,7 @@ npx supabase link --project-ref <ref>
 npx supabase db push
 ```
 
-`db push` crea la tabla `uso_diario` y la función `consumir_cupo`. Después, los secretos de la función. La clave de Gemini la escribes tú en el comando o en el panel (**Edge Functions → Secrets**):
+`db push` crea la tabla `uso_diario`, la función `consumir_cupo` y sus permisos para la función del servidor (`service_role`). Los proyectos nuevos de Supabase no dan esos permisos solos: sin la segunda migración, el chat responde «El servicio de IA no pudo responder» y los registros de la función dicen «No se pudo contar el uso (HTTP 403)». Para comprobar qué migraciones están aplicadas: `npx supabase migration list`. Después, los secretos de la función. La clave de Gemini la escribes tú en el comando o en el panel (**Edge Functions → Secrets**):
 
 ```bash
 npx supabase secrets set PROVEEDOR_IA=gemini
@@ -85,6 +85,8 @@ CHEF_API_URL=https://<ref>.supabase.co/functions/v1/chef
 Reinicia `npm run dev`. Ya no hace falta `npm run server:dev`; sigue sirviendo para desarrollar el backend en local.
 
 ## Mantenimiento
+
+- **Ver errores de la función:** Supabase → **Edge Functions → chef → Logs**. Las líneas rojas dicen qué falló, sin claves ni contraseñas.
 
 - **Pausa por inactividad:** el plan gratuito pausa el proyecto tras una semana sin uso. Antes de una demostración, entra en el panel y reactívalo si está pausado (tarda unos minutos).
 - **Cambiar el backend:** después de modificar `server/src/`, vuelve a ejecutar `npm run supabase:desplegar`.
