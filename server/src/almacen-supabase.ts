@@ -17,14 +17,7 @@ export class AlmacenSupabase implements AlmacenUso {
       `${this.supabaseUrl.replace(/\/$/, '')}/rest/v1/rpc/consumir_cupo`,
       {
         method: 'POST',
-        headers: {
-          'content-type': 'application/json',
-          apikey: this.claveSecreta,
-          // Las claves heredadas son JWT y van también como Bearer; las nuevas (sb_secret_) no.
-          ...(!this.claveSecreta.startsWith('sb_secret_') && {
-            authorization: `Bearer ${this.claveSecreta}`
-          })
-        },
+        headers: { 'content-type': 'application/json', ...this.cabeceras() },
         body: JSON.stringify({ p_clave: clave, p_dia: dia })
       }
     )
@@ -32,6 +25,35 @@ export class AlmacenSupabase implements AlmacenUso {
     const usadas: unknown = await r.json()
     if (typeof usadas !== 'number') throw new Error('Respuesta inesperada al contar el uso.')
     return usadas
+  }
+
+  async leer(claves: readonly string[], dia: string): Promise<Record<string, number>> {
+    if (claves.length === 0) return {}
+    const url = new URL(`${this.supabaseUrl.replace(/\/$/, '')}/rest/v1/uso_diario`)
+    url.searchParams.set('select', 'clave,usadas')
+    url.searchParams.set('dia', `eq.${dia}`)
+    // Las claves llevan «:», así que van entre comillas dobles dentro de `in.(…)`.
+    url.searchParams.set('clave', `in.(${claves.map((c) => `"${c.replace(/"/g, '')}"`).join(',')})`)
+    const r = await this.solicitar(url, { method: 'GET', headers: this.cabeceras() })
+    if (!r.ok) throw new Error(`No se pudo leer el uso (HTTP ${r.status}).`)
+    const filas: unknown = await r.json()
+    if (!Array.isArray(filas)) throw new Error('Respuesta inesperada al leer el uso.')
+    const uso: Record<string, number> = {}
+    for (const fila of filas as { clave?: unknown; usadas?: unknown }[]) {
+      if (typeof fila.clave === 'string' && typeof fila.usadas === 'number')
+        uso[fila.clave] = fila.usadas
+    }
+    return uso
+  }
+
+  private cabeceras(): Record<string, string> {
+    return {
+      apikey: this.claveSecreta,
+      // Las claves heredadas son JWT y van también como Bearer; las nuevas (sb_secret_) no.
+      ...(!this.claveSecreta.startsWith('sb_secret_') && {
+        authorization: `Bearer ${this.claveSecreta}`
+      })
+    }
   }
 }
 

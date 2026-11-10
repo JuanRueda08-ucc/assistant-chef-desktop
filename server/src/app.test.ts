@@ -450,3 +450,29 @@ describe('POST /chat/titulo', () => {
     expect(mal.estado).toBe(400)
   })
 })
+
+describe('POST /uso', () => {
+  it('dice lo que queda de cada límite sin gastar nada, y exige sesión', async () => {
+    const { manejar } = banco({}, { chat: 5 })
+    await manejar(post('/chat/titulo', { pregunta: 'tengo pollo', respuesta: 'Bien.' }))
+    await manejar(post('/chat/titulo', { pregunta: 'tengo arroz', respuesta: 'Bien.' }))
+    const r = await leer(await manejar(post('/uso')))
+    expect(r.estado).toBe(200)
+    expect(r.cuerpo).toMatchObject({
+      grupos: {
+        chat: { limite: 5, usadas: 2, restantes: 3 },
+        voz: { limite: 40, usadas: 0, restantes: 40 }
+      },
+      reinicioEn: Date.UTC(
+        new Date(T0).getUTCFullYear(),
+        new Date(T0).getUTCMonth(),
+        new Date(T0).getUTCDate() + 1
+      )
+    })
+    // Consultarlo no gasta: sigue igual.
+    const otra = await leer(await manejar(post('/uso')))
+    expect(otra.cuerpo).toMatchObject({ grupos: { chat: { usadas: 2 } } })
+    const sinSesion = await manejar(post('/uso', {}, { 'x-instalacion': INSTALACION }))
+    expect(sinSesion.status).toBe(401)
+  })
+})

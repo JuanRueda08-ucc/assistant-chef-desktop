@@ -21,6 +21,12 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-09 · Uso de hoy a la vista (48)
+- El autor pidió ver lo que queda de los límites. Nueva ruta `POST /uso` (no gasta nada; `Limitador.uso` y `AlmacenUso.leer`, que en Supabase lee `uso_diario` con una sola consulta), canal `chef:uso` y `shared/ia/uso.ts` con test.
+- El menú lateral muestra, bajo el nombre y el correo, «Tu uso de hoy»: chat, voz, ideas y recetas, y sustituciones, con «quedan N de M», una barra y cuándo se renuevan. Se actualiza al abrir el menú y tras cada mensaje. Las imágenes no se muestran hasta activar la facturación.
+- Con 10 mensajes o menos, los dos chats avisan encima de la caja: «Te quedan N mensajes del chef hoy.».
+- Verificado: tipos, lint y 545 tests. En la app compilada, sin sonido y con el chef de prueba y `LIMITE_CHAT=12`: sin aviso al empezar; tras un mensaje, «Te quedan 10 mensajes del chef hoy.» (el mensaje y el nombre del chat gastan uno cada uno). **No visto en pantalla:** el bloque del menú, que solo aparece con cuenta real; hay que desplegar la función (`npm run supabase:desplegar`) para que la nube tenga `/uso`.
+
 ### 2026-11-09 · Despliegue en Supabase, guiado con el autor (hecho)
 - El autor creó el proyecto (`cbnsxmucrapuuprkwpxc`); su URL y su clave publicable están en el `.env` local. Desde ahora `npm run dev` y `npm run server:dev` piden cuenta.
 - Gmail no ofreció contraseña de aplicación, así que el correo de los códigos va por **Brevo** (SMTP en Supabase). `despliegue.md` paso 2 lo explica.

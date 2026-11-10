@@ -32,6 +32,7 @@ import {
 } from '@shared/recetas/disponibilidad'
 import type { ResultadoBusqueda, ResultadoReceta } from '@shared/types/busqueda'
 import type { EstadoCuenta } from '@shared/types/cuenta'
+import type { UsoDiario } from '@shared/ia/uso'
 import type { FuenteIdea, FuenteWeb, IdeaReceta } from '@shared/types/ideas'
 import type { Ingrediente, RecetaGenerada } from '@shared/types/receta'
 import type { EstadoAvatar, Preferencias, SesionCocina } from '@shared/types/sesion'
@@ -89,6 +90,8 @@ const mensaje = (e: unknown): string =>
 class EstadoApp {
   /** `null` mientras main comprueba la sesión guardada; sin usuario se muestra Acceso (0016). */
   cuenta = $state.raw<EstadoCuenta | null>(null)
+  /** Lo que queda hoy de cada límite de la cuenta; `null` mientras no se sabe. */
+  uso = $state.raw<UsoDiario | null>(null)
   pantalla = $state<Pantalla>('preparar')
   /** Al abrir la app con una receta en curso: se muestra Retomar antes de entrar a Cocinar. */
   retomando = $state(false)
@@ -397,6 +400,7 @@ class EstadoApp {
     } finally {
       this.chatOcupado = false
       this.preguntaPendiente = null
+      void this.actualizarUso()
     }
   }
 
@@ -681,13 +685,23 @@ class EstadoApp {
   /** Al abrir la app: primero la cuenta; sin sesión se queda en Acceso. */
   async arrancar(): Promise<void> {
     this.cuenta = await window.api.cuenta.estado()
-    if (this.cuenta.usuario) await this.cargar()
+    if (this.cuenta.usuario) {
+      await this.cargar()
+      void this.actualizarUso()
+    }
+  }
+
+  /** Pregunta al backend cuánto queda hoy; si no responde, se deja de mostrar. */
+  async actualizarUso(): Promise<void> {
+    if (!this.cuenta?.usuario) return
+    this.uso = await window.api.chef.uso().catch(() => null)
   }
 
   /** Tras entrar o verificar el correo, con la sesión ya guardada en main. */
   async alEntrar(estado: EstadoCuenta): Promise<void> {
     this.cuenta = estado
     await this.cargar()
+    void this.actualizarUso()
   }
 
   /** Cierra la sesión y olvida todo lo de la cuenta anterior que hay en la interfaz. */
@@ -697,6 +711,7 @@ class EstadoApp {
       ? { usuario: null, sinConexion: false }
       : await window.api.cuenta.estado()
     this.preferencias = structuredClone(PREFERENCIAS_INICIALES)
+    this.uso = null
     this.misRecetas = []
     this.verMisRecetas = false
     this.cocinarOtra()

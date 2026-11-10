@@ -6,6 +6,7 @@
   import { etiquetasVigentes, hayCambios, textoFaltan } from '../lib/conversacion'
   import { fotoDe } from '../lib/fotos'
   import { DictadoChat } from '../voz/hablar-chat.svelte'
+  import { avisoUsoChat } from '@shared/ia/uso'
 
   // Conversación con el chef a pantalla completa (tarea 44, opción A «Chat centrado», elegida por el
   // autor el 2026-11-08). Usa el mismo turno de chat, herramientas y reglas que el panel lateral:
@@ -387,6 +388,7 @@
     </div>
 
     <div class="pie">
+      {#if avisoUsoChat(app.uso)}<p class="aviso-uso" role="status">{avisoUsoChat(app.uso)}</p>{/if}
       {#if app.conversacion.length === 0 && !app.chatOcupado && !app.preguntaPendiente}
         <div class="sugerencias" aria-label="Frases para empezar">
           {#each SUGERENCIAS as s (s.texto)}
@@ -851,6 +853,14 @@
     background: var(--color-superficie);
     border-left: 4px solid var(--color-acento);
     border-radius: var(--radio-m);
+  }
+  .aviso-uso {
+    margin: 0;
+    align-self: center;
+    font-size: var(--texto-s);
+    font-weight: 600;
+    padding-left: var(--espacio-3);
+    border-left: 4px solid var(--color-acento);
   }
   .sugerencias {
     display: flex;

@@ -69,9 +69,10 @@ class ErrorApi extends Error {
 }
 
 interface Ruta {
-  grupo: Grupo
+  /** Límite diario que gasta; `null` en las rutas que no llaman al proveedor (`/uso`). */
+  grupo: Grupo | null
   esquema: z.ZodType
-  manejar: (cuerpo: never, instalacion: string) => Promise<unknown>
+  manejar: (cuerpo: never, instalacion: string, usuarioId: string) => Promise<unknown>
 }
 
 const json = (estado: number, cuerpo: unknown, cabeceras: Record<string, string> = {}): Response =>
@@ -102,6 +103,13 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
   }
 
   const rutas: Record<string, Ruta> = {
+    // Lo que queda de cada límite hoy, para mostrarlo en la app. No gasta nada.
+    '/uso': {
+      grupo: null,
+      esquema: z.strictObject({}),
+      manejar: async (_cuerpo: Record<string, never>, _instalacion: string, usuarioId: string) =>
+        dep.limitador.uso(`usuario:${usuarioId}`, ahora())
+    },
     '/chat': {
       grupo: 'chat',
       esquema: esquemaPeticionChat,
@@ -286,6 +294,9 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
 
       // Se cuenta solo lo que llega bien formado, antes de gastar en el proveedor.
       // Los límites diarios son por cuenta: cambiar de instalación no los reinicia.
+      if (ruta.grupo === null) {
+        return json(200, await ruta.manejar(cuerpo.data as never, instalacion.data, usuario.id))
+      }
       const consumo = await dep.limitador.consumir(`usuario:${usuario.id}`, ruta.grupo, ahora())
       if (!consumo.permitido) {
         throw new ErrorApi(
@@ -296,7 +307,7 @@ export function crearApp(dep: Dependencias): (peticion: Request) => Promise<Resp
         )
       }
 
-      const respuesta = await ruta.manejar(cuerpo.data as never, instalacion.data)
+      const respuesta = await ruta.manejar(cuerpo.data as never, instalacion.data, usuario.id)
       return json(200, respuesta, { 'x-limite-restantes': String(consumo.restantes) })
     } catch (error) {
       if (error instanceof ErrorApi) {

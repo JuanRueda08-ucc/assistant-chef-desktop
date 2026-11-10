@@ -1,4 +1,5 @@
 import { esquemaRespuestaTitulo, type PeticionTitulo } from '@shared/ia/titulo'
+import { esquemaUsoDiario, type UsoDiario } from '@shared/ia/uso'
 import { esquemaRespuestaIdeas } from '@shared/esquemas/ideas'
 import { esquemaRecetaGenerada } from '@shared/esquemas/receta'
 import type { IdeaModelo, PeticionIdeas, RespuestaIdeas } from '@shared/types/ideas'
@@ -64,6 +65,8 @@ export function crearClienteBackend(
   generarReceta: (peticion: PeticionRecetaGenerada) => Promise<Respuesta<RecetaGenerada>>
   transcribir: (audio: string) => Promise<Respuesta<{ texto: string }>>
   titularChat: (peticion: PeticionTitulo) => Promise<Respuesta<{ titulo: string | null }>>
+  /** Lo que queda hoy de cada límite de la cuenta; no gasta nada. */
+  uso: () => Promise<Respuesta<UsoDiario>>
   generarImagen: (peticion: {
     titulo: string
     descripcion: string
@@ -154,6 +157,12 @@ export function crearClienteBackend(
           invalida: 'No se pudo crear la imagen.'
         }
       ),
+    uso: () =>
+      pedirDatos('uso', {}, 10_000, esquemaUsoDiario, {
+        limite: 'No se pudo consultar tu uso de hoy.',
+        fallo: 'No se pudo consultar tu uso de hoy.',
+        invalida: 'No se pudo consultar tu uso de hoy.'
+      }),
     titularChat: (peticion) =>
       pedirDatos('chat/titulo', peticion, 15_000, esquemaRespuestaTitulo, {
         limite: 'Has llegado al límite del chat de hoy.',

@@ -16,7 +16,8 @@ const api: ApiChef = {
   },
   chef: {
     conversar: (datos) => ipcRenderer.invoke(CANALES_IPC.chefConversar, datos),
-    titular: (datos) => ipcRenderer.invoke(CANALES_IPC.chefTitular, datos)
+    titular: (datos) => ipcRenderer.invoke(CANALES_IPC.chefTitular, datos),
+    uso: () => ipcRenderer.invoke(CANALES_IPC.chefUso)
   },
   voz: {
     token: (datos) => ipcRenderer.invoke(CANALES_IPC.vozToken, datos),

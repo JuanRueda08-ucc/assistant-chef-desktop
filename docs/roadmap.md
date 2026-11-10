@@ -31,6 +31,7 @@ La repetición de la prueba personal (34) queda aplazada por decisión del autor
 - [x] 44. Pantalla de conversación con el chef, como un chat a pantalla completa con tarjetas de ingredientes y recetas (pedido del autor, 2026-11-08; maqueta primero; ver `plan-chef-recetas.md`)
 - [x] 45. «Para inspirarte hoy»: al pulsar una foto, un desplegable con ingredientes y lo que falta, y de ahí a cocinarla
 - [x] 46. Chat del chef: el mensaje aparece al enviarlo, historial de chats con nombre puesto por la IA y «volver» de Elegir al chat (pedido del autor, 2026-11-08; 0024). Por ahora en memoria. Al abrir un chat con ingredientes en la despensa, el chef pregunta si seguir con ellos o usar otros
+- [x] 48. Mostrar el uso de hoy: el menú dice lo que queda de cada límite y el chat avisa con 10 mensajes o menos (pedido del autor, 2026-11-09)
 - [ ] 47. Guardar los chats y Mis recetas por cuenta en Supabase, con el login (0017, 0024). La app debe instalarse en Windows, Linux y Mac (tarea 19)
 - [ ] 43. Simplificar la interfaz: solo lo principal en cada pantalla, botones más notorios y flujos más claros (pedido del autor, 2026-11-07; rediseño aprobado y aplicado el 2026-11-08, 0021; Preparar rehecho el mismo día; falta la opinión del autor sobre el conjunto)
 

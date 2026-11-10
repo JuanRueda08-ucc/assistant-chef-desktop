@@ -137,6 +137,11 @@ export function registrarIpc(
       return respuesta.ok ? respuesta.datos.titulo : null
     }
   )
+  ipcMain.handle(CANALES_IPC.chefUso, async (): Promise<Resultado<ApiChef['chef']['uso']>> => {
+    usuarioId()
+    const respuesta = await backend.uso()
+    return respuesta.ok ? respuesta.datos : null
+  })
   ipcMain.handle(CANALES_IPC.chefConversar, async (_evento, datos: unknown) => {
     const peticion = esquemaChatIpc.parse(datos)
     let contexto: string

@@ -163,6 +163,7 @@ El proveedor de IA queda detrás de una interfaz (`ProveedorIA`) para poder camb
   | `/voz/token` | `{}` | `{ token, expiraEn }` |
   | `/voz/narrar` | `{ texto }` (máx. 2000 caracteres) | `{ audio: { datos, mimeType: 'audio/wav' } \| null }` |
   | `/chat` | `{ pantalla, contexto, mensajes }` | `{ contenido: { role: 'model', parts }, simulado }` |
+  | `/uso` | `{}` | `{ grupos: { chat, voz, recetas, sustituciones, imagenes: { limite, usadas, restantes } }, reinicioEn }`. No gasta nada: lee `uso_diario` de la cuenta. Canal `chef:uso` y `shared/ia/uso.ts` |
   | `/chat/titulo` | `{ pregunta, respuesta }` (primer intercambio) | `{ titulo }`, limpio y de 40 caracteres como máximo, o `null` (0024). Grupo de límite del chat |
   | `/recetas/generar` | `{ preferencias, catalogo, tecnicas?, idea? }` | `{ receta, ingredientesNuevos }` |
   | `/recetas/proponer` | `{ ingredientes, porciones, restricciones, alergias, tiempoMaxMin, nivel, equipo, excluir }` | `{ ideas, fuente, fuentes, sugerenciasBusqueda }` |

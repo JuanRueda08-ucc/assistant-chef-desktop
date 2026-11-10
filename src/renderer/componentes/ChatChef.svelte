@@ -2,6 +2,7 @@
   import busto from '../assets/chef/chef_busto.png'
   import { app } from '../estado/app.svelte'
   import { DictadoChat } from '../voz/hablar-chat.svelte'
+  import { avisoUsoChat } from '@shared/ia/uso'
   import Boton from './Boton.svelte'
   import Icono from './Icono.svelte'
 
@@ -96,6 +97,7 @@
         <p class="estado" role="status">Entendiendo lo que dijiste…</p>
       {/if}
       {#if app.chatError}<p class="error" role="alert">{app.chatError}</p>{/if}
+      {#if avisoUsoChat(app.uso)}<p class="aviso-uso" role="status">{avisoUsoChat(app.uso)}</p>{/if}
       {#if vozError}<p class="error" role="alert">{vozError}</p>{/if}
     </div>
     <form
@@ -238,6 +240,13 @@
     display: flex;
     flex-wrap: wrap;
     gap: var(--espacio-2);
+  }
+  .aviso-uso {
+    margin: 0;
+    font-size: var(--texto-s);
+    font-weight: 600;
+    padding-left: var(--espacio-3);
+    border-left: 4px solid var(--color-acento);
   }
   form {
     display: flex;
