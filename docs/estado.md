@@ -22,6 +22,7 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 ## Registro
 
 ### 2026-11-17 · Acceso con color y animación (50, 0027)
+- Después, el autor pidió quitar las etiquetas de ingredientes (y su sombra) de entrar, crear cuenta y recuperar: quedan solo el chef y la frase. Comparó tipografías (`plan/diseno/tipografias.html`: actual, Fraunces + Figtree, Fredoka + Nunito, Unbounded + Plus Jakarta Sans) y decidió **mantener Bricolage Grotesque + Figtree**.
 - El autor pidió dar color y animación a entrar y crear cuenta. `Acceso.svelte` pasa a dos mitades. A la izquierda va un bloque amarillo con una frase por modo, la palabra resaltada en un bloque negro (sin partirse), una pose del chef por modo (hablando, celebrando, escuchando, esperando) y etiquetas flotando. A la derecha, la tarjeta con pie amarillo y pestañas «Entrar / Crear cuenta» con indicador deslizante. El contenido cambia con una transición y los campos entran escalonados. Los 2 commits anteriores se subieron con permiso del autor.
 - Verificado: tipos y lint. En la app compilada con la configuración real de cuentas y un perfil vacío (sin enviar nada a Supabase), sin sonido: entrar, crear cuenta y recuperar en claro, y crear cuenta en oscuro, con capturas.
 
