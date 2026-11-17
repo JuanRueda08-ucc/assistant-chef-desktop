@@ -50,6 +50,7 @@ Sobre los mismos componentes y tokens; sin nuevas maquetas.
 - **Modo claro «Girasol»:** menú lateral amarillo, opción activa negra. **Modo oscuro «Tinta y girasol»:** fondo casi negro, superficies grafito, menú negro con la opción activa amarilla. Lo amarillo no cambia. Interruptor «Claro / Oscuro» en el menú.
 - **Fichas de la despensa:** blancas con el «+» en un círculo amarillo; al pasar el ratón, pie amarillo; marcadas, amarillas con ✓ negro. Categorías en amarillo suave.
 - **Movimiento:** pantallas que suben al entrar, elementos escalonados (`.entra` con `--i`), chef que respira y dibujos que flotan; carga que sube al terminar. Sin movimiento con «reducir movimiento».
+- **Acceso (entrar y crear cuenta):** a la izquierda, un bloque amarillo con una frase por modo («Hola otra vez, ¡a cocinar!», «Tu cocina, a tu medida»…), su pose del chef y etiquetas flotando; a la derecha, la tarjeta del formulario con pie amarillo, pestañas «Entrar / Crear cuenta» con indicador amarillo que se desliza, campos que entran escalonados y botón amarillo.
 - **Bienvenida:** tres pasos en amarillo con una pose distinta del chef y etiquetas blancas con sombra negra; la palabra resaltada va en un bloque negro con letra amarilla, inclinado y con su propio interlineado.
 
 ### «Mi cuenta» (2026-11-10, decisión 0026, opción C «Una columna»)

@@ -21,6 +21,10 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-17 · Acceso con color y animación (50, 0027)
+- El autor pidió dar color y animación a entrar y crear cuenta. `Acceso.svelte` pasa a dos mitades. A la izquierda va un bloque amarillo con una frase por modo, la palabra resaltada en un bloque negro (sin partirse), una pose del chef por modo (hablando, celebrando, escuchando, esperando) y etiquetas flotando. A la derecha, la tarjeta con pie amarillo y pestañas «Entrar / Crear cuenta» con indicador deslizante. El contenido cambia con una transición y los campos entran escalonados. Los 2 commits anteriores se subieron con permiso del autor.
+- Verificado: tipos y lint. En la app compilada con la configuración real de cuentas y un perfil vacío (sin enviar nada a Supabase), sin sonido: entrar, crear cuenta y recuperar en claro, y crear cuenta en oscuro, con capturas.
+
 ### 2026-11-17 · Más amarillo, modo claro y oscuro, carga, bienvenida y animaciones (50, 0027)
 - Día de la entrega. El autor pidió más «punch» visual: el amarillo como protagonista, una pantalla de carga, una bienvenida y animaciones. Revisó las maquetas `plan/diseno/punch-visual.html` y eligió tener las dos direcciones como modo claro (A «Girasol») y oscuro (B «Tinta y girasol»). Descartó la carga «C(O)CINANDO».
 - Hecho: tokens nuevos y modo oscuro en `tokens.css` (`data-tema` en `<html>`, `app.tema`, `localStorage`), clase `.sobre-amarillo`, `Carga.svelte`, `Bienvenida.svelte` (`app.bienvenidaPendiente`), Inicio con bloque amarillo, menú lateral rehecho con interruptor de modo y tarjeta de cuenta, despensa con panel amarillo y fichas cálidas, columna de chats y cabecera de «Mi cuenta» en amarillo, variantes `negro` y `blanco` de `Boton` y animaciones de entrada.
