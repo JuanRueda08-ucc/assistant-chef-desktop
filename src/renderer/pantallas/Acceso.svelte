@@ -31,7 +31,7 @@
     recuperar: 'Recupera tu contraseña',
     restablecer: 'Elige una contraseña nueva'
   }
-  // Lado amarillo (0027): frase, palabra resaltada, pose del chef y etiquetas para cada modo.
+  // Lado amarillo (0027): frase, palabra resaltada y pose del chef para cada modo.
   const ESCENA: Record<Modo, { antes: string; resalta: string; texto: string; imagen: string }> = {
     entrar: {
       antes: 'Hola otra vez,',
@@ -64,7 +64,6 @@
       imagen: esperando
     }
   }
-  const ETIQUETAS = ['Tomate', 'Huevo', 'Arroz', 'Pollo'] as const
   const escena = $derived(ESCENA[modo])
 
   const BOTONES: Record<Modo, string> = {
@@ -137,9 +136,6 @@
 <main class="acceso">
   <section class="escena" aria-hidden="true">
     <div class="circulo"></div>
-    {#each ETIQUETAS as etiqueta, i (etiqueta)}
-      <span class="etiqueta e{i}">{etiqueta}</span>
-    {/each}
     {#key modo}
       <div class="frase" in:fly={{ y: 24, duration: 450, easing: cubicOut }}>
         <p class="marca">Chef digital</p>
@@ -344,41 +340,6 @@
     width: min(300px, 24vw);
     animation: respirar 3.2s ease-in-out infinite;
   }
-  .etiqueta {
-    position: absolute;
-    z-index: 2;
-    padding: 8px 16px;
-    border-radius: var(--radio-pildora);
-    border: 3px solid var(--color-sobre-acento);
-    background: var(--color-pegatina);
-    color: var(--color-sobre-acento);
-    font-weight: var(--peso-titulo);
-    box-shadow: 0 5px 0 var(--color-sobre-acento);
-    animation: flotar 3.4s ease-in-out infinite;
-  }
-  .e0 {
-    --giro: -8deg;
-    left: 8%;
-    bottom: 26%;
-  }
-  .e1 {
-    --giro: 6deg;
-    left: 30%;
-    bottom: 10%;
-    animation-delay: 500ms;
-  }
-  .e2 {
-    --giro: -4deg;
-    right: 8%;
-    top: 12%;
-    animation-delay: 900ms;
-  }
-  .e3 {
-    --giro: 9deg;
-    left: 12%;
-    bottom: 6%;
-    animation-delay: 1300ms;
-  }
   .lado-form {
     display: grid;
     place-items: center;
@@ -444,7 +405,6 @@
       min-height: 280px;
     }
   }
-  .antetitulo,
   .nota {
     margin: 0;
     color: var(--color-tinta-suave);
