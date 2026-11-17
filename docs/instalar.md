@@ -8,7 +8,7 @@ Descarga el archivo de tu sistema desde la versión más reciente:
 |---|---|
 | Windows 10/11 (64 bits) | `assistant-chef-desktop-X.Y.Z-setup.exe` |
 | macOS con chip M (M1, M2, M3…) | `assistant-chef-desktop-X.Y.Z-arm64.dmg` |
-| Linux (64 bits) | `assistant-chef-desktop-X.Y.Z.AppImage` o `assistant-chef-desktop_X.Y.Z_amd64.deb` |
+| Linux (64 bits) | `assistant-chef-desktop-X.Y.Z.AppImage` o `assistant-chef-desktop-X.Y.Z-amd64.deb` |
 
 La app necesita internet para la cuenta y el chef. Funciona sin micrófono; la voz solo se activa en Cocinar cuando tú la enciendes.
 
@@ -42,7 +42,7 @@ Los Mac con procesador Intel no están incluidos por ahora.
 - **Debian/Ubuntu (.deb):**
 
   ```bash
-  sudo apt install ./assistant-chef-desktop_*_amd64.deb
+  sudo apt install ./assistant-chef-desktop-*-amd64.deb
   ```
 
 Para la voz «repetir» sin conexión hace falta `espeak-ng` (`sudo apt install espeak-ng`); sin él, la app muestra el texto.
