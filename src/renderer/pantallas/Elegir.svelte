@@ -112,7 +112,7 @@
         {#if conQue}<p class="con-que">Con {conQue}</p>{/if}
       </div>
 
-      <section class="ideas" aria-labelledby="titulo-ideas" aria-live="polite">
+      <section class="ideas sobre-amarillo" aria-labelledby="titulo-ideas" aria-live="polite">
         <ChefBlob pose="hablando" tamano={96} />
         <div>
           <h2 id="titulo-ideas">
@@ -164,7 +164,7 @@
             </li>
           {/each}
           {#each resultados as r, n (r.receta.id)}
-            <li>
+            <li class="entra" style="--i: {Math.min(n, 10)}">
               <button type="button" class="tarjeta" onclick={() => verReceta(r.receta.id)}>
                 <span class="foto">
                   {#if fotoDe(r.receta.imagen)}<img
@@ -383,8 +383,8 @@
     align-items: center;
     gap: var(--espacio-5);
     padding: var(--espacio-3) var(--espacio-6) var(--espacio-3) var(--espacio-3);
-    background: var(--color-acento-suave);
     border-radius: var(--radio-l);
+    animation: aparecer-escala 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   .ideas h2 {
     font-size: var(--texto-l);
@@ -417,8 +417,8 @@
       box-shadow var(--transicion);
   }
   .tarjeta:hover {
-    transform: translateY(-3px);
-    box-shadow: 0 0 0 var(--trazo) var(--color-tinta);
+    transform: translateY(-4px);
+    box-shadow: var(--sombra-tarjeta);
   }
   .foto {
     position: relative;
