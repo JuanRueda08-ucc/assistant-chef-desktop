@@ -65,7 +65,8 @@ const conPolloYArroz = preferencias({ ingredientes: ['pollo_muslo', 'arroz_blanc
 
 describe('buscarRecetas: filtros duros', () => {
   it('descarta las recetas que no están revisadas', () => {
-    const r = buscarRecetas(preferencias(), [arrozSemilla()], conExtra, [])
+    const borrador = { ...arrozSemilla(), estadoRevision: 'borrador' as const }
+    const r = buscarRecetas(preferencias(), [borrador], conExtra, [])
     expect(r.resultados).toEqual([])
     expect(r.descartadas).toEqual([{ recetaId: 'arroz_con_pollo', motivos: ['no_revisada'] }])
   })
@@ -148,7 +149,9 @@ describe('buscarRecetas: filtros duros', () => {
         tiempoMaxMin: 20,
         nivel: 'facil'
       }),
-      [arrozSemilla()].map((x) => conEtiquetas({ ...x, dificultad: 'avanzada' }, conExtra)),
+      [arrozSemilla()].map((x) =>
+        conEtiquetas({ ...x, dificultad: 'avanzada', estadoRevision: 'borrador' }, conExtra)
+      ),
       conExtra,
       []
     )

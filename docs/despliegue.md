@@ -84,6 +84,20 @@ CHEF_API_URL=https://<ref>.supabase.co/functions/v1/chef
 
 Reinicia `npm run dev`. Ya no hace falta `npm run server:dev`; sigue sirviendo para desarrollar el backend en local.
 
+## Publicar una versión de la app (0028)
+
+La app se descarga desde GitHub Releases. Para publicar una versión nueva desde `main` actualizado:
+
+```bash
+npm version patch
+```
+
+```bash
+git push --follow-tags
+```
+
+`npm version` sube el número de `package.json` (1.0.0 → 1.0.1) y crea la etiqueta `v1.0.1`. Al subirla, GitHub Actions compila Windows, macOS (chip M) y Linux y adjunta los instaladores a la versión. Se sigue en la pestaña **Actions** del repositorio. Usa `minor` o `major` para cambios mayores. Instrucciones para quien instala: `docs/instalar.md`.
+
 ## Mantenimiento
 
 - **Ver errores de la función:** Supabase → **Edge Functions → chef → Logs**. Las líneas rojas dicen qué falló, sin claves ni contraseñas.

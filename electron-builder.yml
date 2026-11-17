@@ -38,27 +38,35 @@ mac:
     - from: resources/voz/darwin-${arch}
       to: voz/darwin-${arch}
   entitlementsInherit: build/entitlements.mac.plist
+  # Sin certificado de Apple: firma ad hoc para que abra en Macs con chip M (tarea 19, 0028).
+  # Al primer arranque macOS avisa; se abre con clic derecho → Abrir (docs/instalar.md).
+  identity: '-'
+  hardenedRuntime: false
+  target:
+    - dmg
+    - zip
   extendInfo:
-    - NSCameraUsageDescription: Application requests access to the device's camera.
     - NSMicrophoneUsageDescription: El chef escucha tus órdenes solo mientras cocinas y activas el micrófono.
-    - NSDocumentsFolderUsageDescription: Application requests access to the user's Documents folder.
-    - NSDownloadsFolderUsageDescription: Application requests access to the user's Downloads folder.
   notarize: false
 dmg:
-  artifactName: ${name}-${version}.${ext}
+  artifactName: ${name}-${version}-${arch}.${ext}
 linux:
   extraResources:
     - from: resources/voz/linux-${arch}
       to: voz/linux-${arch}
   target:
     - AppImage
-    - snap
     - deb
   maintainer: Juan José Rueda
   category: Utility
+  artifactName: ${name}-${version}-${arch}.${ext}
 appImage:
   artifactName: ${name}-${version}.${ext}
 npmRebuild: false
+# Versiones en GitHub Releases (.github/workflows/version.yml): cada etiqueta vX.Y.Z publica
+# los instaladores de Windows, macOS y Linux en la versión de esa etiqueta.
 publish:
-  provider: generic
-  url: https://example.com/auto-updates
+  provider: github
+  owner: JuanRueda08-ucc
+  repo: assistant-chef-desktop
+  releaseType: release

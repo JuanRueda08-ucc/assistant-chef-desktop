@@ -8,7 +8,7 @@
   "tiempoActivoMin": 15,
   "dificultad": "facil",
   "origen": "revisada",
-  "estadoRevision": "borrador",
+  "estadoRevision": "revisada",
   "equipo": ["olla", "sarten"],
   "imagen": "recetas/pasta_atun.jpg",
   "ingredientes": [

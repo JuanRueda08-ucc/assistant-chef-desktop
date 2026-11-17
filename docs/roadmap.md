@@ -70,6 +70,6 @@ La repetición de la prueba personal (34) queda aplazada por decisión del autor
 - [x] 23. Chat de texto en Preparar y Elegir
 
 ## Entrega
-- [ ] 18. Semilla de 15–30 recetas revisadas con fotos licenciadas (18 recetas escritas en borrador y catálogo de 40 ingredientes el 2026-11-05; fotos de Pexels el 2026-11-08; falta la revisión del autor)
-- [ ] 19. Instaladores (electron-builder) para Windows, macOS y Linux
+- [x] 18. Semilla de 15–30 recetas revisadas con fotos licenciadas (18 recetas y 40 ingredientes; fotos de Pexels; aprobadas por el autor el 2026-11-17 para la versión 1.0.0)
+- [x] 19. Instaladores (electron-builder) para Windows, macOS y Linux: versiones en GitHub Releases con GitHub Actions al subir una etiqueta vX.Y.Z (0028, 2026-11-17). Sin firma de pago; macOS solo chip M
 - [ ] 20. Medir costo y latencia por sesión de cocina; prueba con ruido real

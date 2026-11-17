@@ -90,7 +90,10 @@ describe('voz:token IPC', () => {
       expect(JSON.parse(conversar.mock.calls[0]![0].contexto).catalogo).toEqual(
         expect.arrayContaining([expect.objectContaining({ id: 'pollo_muslo' })])
       )
-      expect(JSON.parse(conversar.mock.calls[0]![0].contexto).recetas).toEqual([])
+      // Las recetas revisadas de la semilla llegan como candidatas, con lo que falta de cada una.
+      const recetas = JSON.parse(conversar.mock.calls[0]![0].contexto).recetas
+      expect(recetas.length).toBeGreaterThan(0)
+      expect(recetas.every((r: { faltantes?: unknown }) => Array.isArray(r.faltantes))).toBe(true)
       guardarSesion(db, sesionNueva(), 'u1')
       await handler({}, { ...datos, pantalla: 'cocinar' })
       expect(conversar.mock.calls[1]![0].contexto).toContain('paso_actual:')

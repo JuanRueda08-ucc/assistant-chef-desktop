@@ -157,7 +157,7 @@ describe('repositorio de recetas', () => {
       tiempoActivoMin: 25,
       dificultad: 'facil',
       origen: 'revisada',
-      estadoRevision: 'borrador',
+      estadoRevision: 'revisada',
       dietas: ['sin_gluten', 'sin_lactosa'],
       alergenos: ['apio'],
       equipo: ['olla'],
@@ -224,6 +224,7 @@ describe('catálogo y búsqueda en la base', () => {
   })
 
   it('la receta en borrador queda descartada y se ofrece una generada', () => {
+    db.prepare("UPDATE recetas SET estado_revision = 'borrador'").run()
     const busqueda = buscarEnBase(db, preferencias)
     expect(busqueda.resultados).toEqual([])
     expect(busqueda.descartadas).toContainEqual({
@@ -244,7 +245,10 @@ describe('catálogo y búsqueda en la base', () => {
   })
 
   it('busca sobre los datos de la base, sustituciones incluidas', () => {
-    db.prepare("UPDATE recetas SET estado_revision = 'revisada' WHERE id = 'arroz_con_pollo'").run()
+    // Solo la de arroz con pollo revisada, para comprobar su cobertura y sus sustituciones.
+    db.prepare(
+      "UPDATE recetas SET estado_revision = 'borrador' WHERE id <> 'arroz_con_pollo'"
+    ).run()
     db.prepare(
       `INSERT INTO sustituciones (id, ingrediente_origen_id, ingrediente_destino_id, ratio, impacto, fuente)
        VALUES ('caldo_aceite', 'caldo_pollo', 'aceite_oliva', 1, 'Prueba.', 'revisada')`

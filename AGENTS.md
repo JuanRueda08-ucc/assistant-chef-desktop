@@ -116,6 +116,7 @@ Requiere Node 22 o superior y npm.
 | `npm run typecheck` | `tsc` para main/preload/shared, para `server/` (`tsconfig.server.json`) y `svelte-check` para el renderer |
 | `npm run build` | typecheck + compilación a `out/` |
 | `npm run build:win` / `build:mac` / `build:linux` | instaladores con electron-builder (tarea 19) |
+| `npm version patch` + `git push --follow-tags` | publica una versión en GitHub Releases: Actions compila Windows, macOS (chip M) y Linux (0028; ver `docs/despliegue.md`) |
 | `npm run server:dev` | backend local con recarga (`server/src/principal.ts`, puerto `SERVIDOR_PUERTO`, por defecto 8787) |
 | `npm run server:start` | backend local sin recarga |
 | `npm run supabase:funcion` | empaqueta el backend como Edge Function en `supabase/functions/chef/index.ts` |

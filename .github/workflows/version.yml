@@ -1,0 +1,79 @@
+# Publica una versión de Chef digital en GitHub Releases (tarea 19, decisión 0028).
+# Se dispara al subir una etiqueta vX.Y.Z que coincide con "version" de package.json:
+#   npm version patch   (o minor / major)
+#   git push --follow-tags
+# Cada sistema compila en su propia máquina: Windows (instalador .exe), macOS con chip M (.dmg y
+# .zip, firma ad hoc) y Linux (.AppImage y .deb). Los tres suben a la misma versión.
+name: Versión
+
+on:
+  push:
+    tags: ['v*.*.*']
+
+permissions:
+  contents: write
+
+env:
+  # Valores públicos que entran en la app (como en .env.example). Nunca pongas aquí un secreto.
+  CHEF_API_URL: https://cbnsxmucrapuuprkwpxc.supabase.co/functions/v1/chef
+  CHEF_SUPABASE_URL: https://cbnsxmucrapuuprkwpxc.supabase.co
+  CHEF_SUPABASE_CLAVE_PUBLICA: sb_publishable_rHLowOEaS25B4mVm08RgqQ_fv6rbj28
+
+jobs:
+  crear:
+    name: Crear la versión
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - name: Comprobar que la etiqueta coincide con package.json
+        run: |
+          esperada="v$(node -p "require('./package.json').version")"
+          if [ "$esperada" != "$GITHUB_REF_NAME" ]; then
+            echo "La etiqueta $GITHUB_REF_NAME no coincide con package.json ($esperada)." >&2
+            exit 1
+          fi
+      - name: Crear la versión si no existe
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: |
+          gh release view "$GITHUB_REF_NAME" >/dev/null 2>&1 || \
+            gh release create "$GITHUB_REF_NAME" --title "Chef digital $GITHUB_REF_NAME" --generate-notes
+
+  instaladores:
+    name: Instalador ${{ matrix.nombre }}
+    needs: crear
+    strategy:
+      fail-fast: false
+      matrix:
+        include:
+          - nombre: Windows
+            os: windows-latest
+            plataforma: win32-x64
+            argumentos: --win --x64
+          - nombre: macOS (chip M)
+            os: macos-latest
+            plataforma: darwin-arm64
+            argumentos: --mac --arm64
+          - nombre: Linux
+            os: ubuntu-latest
+            plataforma: linux-x64
+            argumentos: --linux --x64
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: npm
+      - name: Instalar dependencias
+        run: npm ci
+      - name: Tests
+        run: npm test
+      - name: Preparar la voz (Vosk)
+        run: npm run voz:preparar -- ${{ matrix.plataforma }}
+      - name: Compilar
+        run: npm run build
+      - name: Empaquetar y subir a la versión
+        env:
+          GH_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        run: npx electron-builder ${{ matrix.argumentos }} --publish always

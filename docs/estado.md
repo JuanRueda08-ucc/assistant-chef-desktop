@@ -21,6 +21,12 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-17 · Versiones descargables en GitHub Releases (19, 0028)
+- El autor quiere publicar la app para Windows, macOS y Linux, y volver a publicarla con cada cambio. Nuevo flujo `.github/workflows/version.yml`: al subir una etiqueta `vX.Y.Z` crea la versión y compila en tres máquinas (Windows x64, macOS arm64 con firma ad hoc y Linux x64 en AppImage y deb), que suben los instaladores. `electron-builder.yml` publica en GitHub y deja de generar snap. La versión pasa a 1.0.0.
+- El autor aprobó las 18 recetas (`estadoRevision: revisada`); los tests del filtro de borradores marcan ahora los suyos.
+- Instrucciones para quien instala en `docs/instalar.md`, con los avisos de Windows y macOS por no tener firma de pago. Cómo publicar: `docs/despliegue.md`.
+- Verificado: 557 tests, lint y formato. Instalador de Windows compilado aquí (`dist/assistant-chef-desktop-1.0.0-setup.exe`, 168 MB). La app empaquetada abierta con un perfil vacío y sin sonido muestra «Entra en tu cuenta»; tiene 40 ingredientes, 18 recetas revisadas y los recursos de voz. **No probado:** las compilaciones de macOS y Linux; se ven en la primera ejecución del flujo en GitHub.
+
 ### 2026-11-17 · Acceso con color y animación (50, 0027)
 - Después, el autor pidió quitar las etiquetas de ingredientes (y su sombra) de entrar, crear cuenta y recuperar: quedan solo el chef y la frase. Comparó tipografías (`plan/diseno/tipografias.html`: actual, Fraunces + Figtree, Fredoka + Nunito, Unbounded + Plus Jakarta Sans) y decidió **mantener Bricolage Grotesque + Figtree**.
 - El autor pidió dar color y animación a entrar y crear cuenta. `Acceso.svelte` pasa a dos mitades. A la izquierda va un bloque amarillo con una frase por modo, la palabra resaltada en un bloque negro (sin partirse), una pose del chef por modo (hablando, celebrando, escuchando, esperando) y etiquetas flotando. A la derecha, la tarjeta con pie amarillo y pestañas «Entrar / Crear cuenta» con indicador deslizante. El contenido cambia con una transición y los campos entran escalonados. Los 2 commits anteriores se subieron con permiso del autor.

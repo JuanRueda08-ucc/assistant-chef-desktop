@@ -8,7 +8,7 @@
   "tiempoActivoMin": 25,
   "dificultad": "media",
   "origen": "revisada",
-  "estadoRevision": "borrador",
+  "estadoRevision": "revisada",
   "equipo": ["sarten"],
   "imagen": "recetas/tortilla_papa.jpg",
   "ingredientes": [

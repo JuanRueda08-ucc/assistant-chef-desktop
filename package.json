@@ -1,6 +1,6 @@
 {
   "name": "assistant-chef-desktop",
-  "version": "0.1.0",
+  "version": "1.0.0",
   "private": true,
   "description": "Chef digital: asistente culinario de escritorio con voz, temporizadores y avatar",
   "main": "./out/main/index.js",
