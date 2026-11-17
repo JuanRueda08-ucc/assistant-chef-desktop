@@ -401,6 +401,7 @@
     font-family: var(--fuente-titulo);
     font-size: var(--texto-l);
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     box-shadow: var(--sombra-boton);
   }
   .secundario {

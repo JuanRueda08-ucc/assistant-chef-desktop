@@ -3,7 +3,7 @@
   import { USUARIO_LOCAL } from '@shared/types/cuenta'
   import type { ResumenReceta } from '@shared/types/ipc'
   import Boton from '../componentes/Boton.svelte'
-  import ChefBlob from '../componentes/ChefBlob.svelte'
+  import hablando from '../assets/chef/chef_hablando.png'
   import DesplegableReceta from '../componentes/DesplegableReceta.svelte'
   import Icono from '../componentes/Icono.svelte'
   import { app } from '../estado/app.svelte'
@@ -63,44 +63,51 @@
 </script>
 
 <main class="inicio">
-  <div class="dibujos" aria-hidden="true">
-    {#each DIBUJOS as d (d.icono)}
-      <span style:left="{d.x}%" style:top="{d.y}%" style:rotate="{d.giro}deg"
-        ><Icono nombre={d.icono} tamano={d.tam} /></span
-      >
-    {/each}
-  </div>
-
-  <section class="centro" aria-labelledby="titulo-inicio">
-    <div class="chef">
-      <ChefBlob pose="hablando" tamano={170} />
-      <p class="globo">{saludo}</p>
-    </div>
-    <h1 id="titulo-inicio">¿Listo para cocinar hoy?</h1>
-    <p class="sub">Dime qué tienes y te ayudo a elegir, paso a paso.</p>
-
-    <div class="acciones">
-      <Boton ancho onclick={() => app.irA('preparar')}>¡Sí, vamos!</Boton>
-      <div class="pareja">
-        <Boton variante="secundario" ancho onclick={() => app.abrirMisRecetas()}
-          ><Icono nombre="tecnica" />Mis recetas</Boton
+  <section class="escenario" aria-labelledby="titulo-inicio">
+    <div class="dibujos" aria-hidden="true">
+      {#each DIBUJOS as d, i (d.icono)}
+        <span
+          style:left="{d.x}%"
+          style:top="{d.y}%"
+          style:--giro="{d.giro}deg"
+          style:animation-delay="{i * 300}ms"
+          ><Icono nombre={d.icono} tamano={Math.round(d.tam * 0.7)} /></span
         >
-        <Boton variante="oscuro" ancho onclick={() => app.abrirConversacion()}
+      {/each}
+    </div>
+    <div class="texto">
+      <h1 id="titulo-inicio" class="entra">¿Listo para<br />cocinar hoy?</h1>
+      <p class="sub entra" style="--i: 1">Dime qué tienes y te ayudo a elegir, paso a paso.</p>
+      <div class="acciones entra" style="--i: 2">
+        <Boton variante="negro" onclick={() => app.irA('preparar')}>¡Sí, vamos!</Boton>
+        <Boton variante="blanco" onclick={() => app.abrirConversacion()}
           ><Icono nombre="microfono" />Hablar con el chef</Boton
         >
-      </div>
-    </div>
-
-    {#if enCurso?.recetaAdaptada}
-      <button type="button" class="en-curso" onclick={() => app.irA('cocinar')}>
-        <Icono nombre="olla" />
-        <span
-          >Tienes a medias <b>{enCurso.recetaAdaptada.titulo}</b> · paso {enCurso.pasoActual} de {enCurso
-            .recetaAdaptada.pasos.length}</span
+        <Boton variante="blanco" onclick={() => app.abrirMisRecetas()}
+          ><Icono nombre="tecnica" />Mis recetas</Boton
         >
-        <span class="seguir">Seguir</span>
-      </button>
-    {/if}
+      </div>
+      {#if enCurso?.recetaAdaptada}
+        <button
+          type="button"
+          class="en-curso entra"
+          style="--i: 3"
+          onclick={() => app.irA('cocinar')}
+        >
+          <Icono nombre="olla" />
+          <span
+            >Tienes a medias <b>{enCurso.recetaAdaptada.titulo}</b> · paso {enCurso.pasoActual} de {enCurso
+              .recetaAdaptada.pasos.length}</span
+          >
+          <span class="seguir">Seguir</span>
+        </button>
+      {/if}
+    </div>
+    <div class="chef">
+      <div class="circulo"></div>
+      <img src={hablando} alt="" />
+      <p class="globo">{saludo}</p>
+    </div>
   </section>
 
   {#if inspiracion.length > 0}
@@ -108,7 +115,7 @@
       <h2 id="titulo-inspiracion">Para inspirarte hoy</h2>
       <ul>
         {#each inspiracion as r, n (r.id)}
-          <li>
+          <li class="entra" style="--i: {n + 3}">
             <button
               type="button"
               class:activa={abierta === n}
@@ -136,102 +143,110 @@
     position: relative;
     display: flex;
     flex-direction: column;
-    justify-content: space-between;
     gap: var(--espacio-5);
-    padding: 0 var(--espacio-6) var(--espacio-6);
+    padding: var(--espacio-2) var(--espacio-6) var(--espacio-6);
     min-height: 0;
     overflow-y: auto;
   }
+  /* El saludo en un gran bloque amarillo (0027): el amarillo manda, el blanco acompaña. */
+  .escenario {
+    position: relative;
+    flex: 1;
+    min-height: 380px;
+    display: grid;
+    grid-template-columns: minmax(0, 1.2fr) minmax(0, 1fr);
+    align-items: center;
+    padding: var(--espacio-6) clamp(32px, 4vw, 56px);
+    border-radius: var(--radio-xl);
+    background: var(--color-escenario);
+    color: var(--color-sobre-acento);
+    overflow: hidden;
+    animation: aparecer-escala 600ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  /* Los dibujos rodean al chef, en la mitad derecha, sin cruzarse con el título. */
   .dibujos {
     position: absolute;
-    inset: 0 var(--espacio-6) 180px;
+    inset: 0 0 0 52%;
     pointer-events: none;
-    color: var(--color-tinta);
-    isolation: isolate;
   }
   .dibujos span {
     position: absolute;
     display: grid;
-  }
-  /* La mancha va a plena intensidad; solo el trazo se aclara. */
-  .dibujos span::before {
-    content: '';
-    position: absolute;
-    inset: 14%;
-    z-index: -1;
-    border-radius: 50%;
-    background: var(--color-acento-suave);
+    opacity: 0.16;
+    animation: flotar 6s ease-in-out infinite;
   }
   .dibujos :global(svg) {
-    opacity: 0.34;
     stroke-width: 1.4;
   }
-  .centro {
+  .texto {
     position: relative;
+    z-index: 2;
     display: flex;
     flex-direction: column;
-    align-items: center;
-    text-align: center;
-    gap: var(--espacio-3);
-  }
-  .chef {
-    position: relative;
-  }
-  .globo {
-    position: absolute;
-    left: 150px;
-    top: 4px;
-    margin: 0;
-    padding: var(--espacio-2) var(--espacio-4);
-    background: var(--color-superficie);
-    border: var(--trazo) solid var(--color-tinta);
-    border-radius: var(--radio-m) var(--radio-m) var(--radio-m) 4px;
-    font-weight: var(--peso-fuerte);
-    white-space: nowrap;
-    animation: aparecer 400ms 200ms cubic-bezier(0.2, 0.8, 0.2, 1) both;
-  }
-  @keyframes aparecer {
-    from {
-      opacity: 0;
-      transform: translateY(6px) scale(0.96);
-    }
+    gap: var(--espacio-4);
   }
   h1 {
-    font-size: 46px;
-    line-height: 1.05;
+    font-size: clamp(46px, 5vw, 68px);
+    line-height: 1;
+    letter-spacing: -0.03em;
   }
   .sub {
     margin: 0;
-    color: var(--color-tinta-suave);
-    font-size: var(--texto-m);
+    font-size: 20px;
   }
   .acciones {
-    width: min(560px, 100%);
     display: flex;
-    flex-direction: column;
+    flex-wrap: wrap;
     gap: var(--espacio-3);
     margin-top: var(--espacio-2);
   }
-  /* Los tres botones con la misma altura (pedido del autor). */
   .acciones :global(.boton) {
-    min-height: 60px;
+    min-height: 58px;
   }
-  .pareja {
+  .chef {
+    position: relative;
+    align-self: stretch;
     display: grid;
-    grid-template-columns: 1fr 1fr;
-    gap: var(--espacio-3);
+    place-items: center;
+  }
+  .circulo {
+    position: absolute;
+    width: min(380px, 32vw);
+    aspect-ratio: 1;
+    border-radius: 50%;
+    background: var(--color-escenario-circulo);
+  }
+  .chef img {
+    position: relative;
+    width: min(260px, 22vw);
+    animation: respirar 3.2s ease-in-out infinite;
+  }
+  .globo {
+    position: absolute;
+    right: 4%;
+    top: 6%;
+    z-index: 2;
+    margin: 0;
+    padding: var(--espacio-2) var(--espacio-4);
+    background: var(--color-pegatina);
+    color: var(--color-sobre-acento);
+    border: var(--trazo) solid var(--color-sobre-acento);
+    border-radius: var(--radio-m) var(--radio-m) 4px var(--radio-m);
+    font-weight: var(--peso-titulo);
+    white-space: nowrap;
+    animation: aparecer-escala 500ms 450ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   .en-curso {
     display: flex;
     align-items: center;
     gap: var(--espacio-3);
-    width: min(560px, 100%);
+    max-width: 560px;
     padding: var(--espacio-3) var(--espacio-4);
     font: inherit;
     text-align: left;
-    color: var(--color-tinta);
-    background: var(--color-superficie);
-    border: var(--trazo) solid var(--color-tinta);
+    color: var(--color-sobre-acento);
+    background: var(--color-escenario-boton);
+    border: var(--trazo) solid var(--color-sobre-acento);
     border-radius: var(--radio-boton);
     cursor: pointer;
   }
@@ -252,13 +267,14 @@
   }
   .inspiracion h2 {
     font-size: var(--texto-l);
+    line-height: 1.05;
   }
   .inspiracion ul {
     display: contents;
     list-style: none;
   }
   .inspiracion li {
-    height: 128px;
+    height: 136px;
   }
   .inspiracion button {
     position: relative;
@@ -269,15 +285,17 @@
     border-radius: var(--radio-l);
     overflow: hidden;
     font: inherit;
-    color: var(--color-tinta);
+    color: var(--color-sobre-acento);
     background: var(--color-relleno);
+    box-shadow: var(--sombra-tarjeta);
     cursor: pointer;
     transition:
       transform var(--transicion),
+      box-shadow var(--transicion),
       opacity var(--transicion);
   }
   .inspiracion button:hover {
-    transform: translateY(-3px);
+    transform: translateY(-4px) rotate(-1deg);
   }
   /* La pulsada lleva el trazo de tinta; las demás se apagan pero se pueden pulsar. */
   .inspiracion button.activa {
@@ -297,6 +315,10 @@
     height: 100%;
     object-fit: cover;
     display: block;
+    transition: transform 400ms ease;
+  }
+  .inspiracion button:hover img {
+    transform: scale(1.06);
   }
   .inspiracion li span {
     position: absolute;
@@ -304,7 +326,7 @@
     bottom: var(--espacio-2);
     padding: 4px var(--espacio-3);
     border-radius: var(--radio-m);
-    background: var(--color-superficie);
+    background: var(--color-pegatina);
     font-size: var(--texto-xs);
     font-weight: var(--peso-fuerte);
   }

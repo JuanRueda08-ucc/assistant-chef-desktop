@@ -103,7 +103,7 @@
       <Boton variante="secundario" onclick={() => app.cerrarMiCuenta()}>Volver</Boton>
     </div>
 
-    <header class="hola">
+    <header class="hola sobre-amarillo">
       <img src={hablando} alt="" />
       <h1>Hola, {usuario?.nombre || 'cocinero'}</h1>
       <p>
@@ -120,7 +120,7 @@
       </p>
     {/if}
 
-    <section class="seccion" class:abierta={abierta === 'nombre'}>
+    <section class="seccion entra" style="--i: 1" class:abierta={abierta === 'nombre'}>
       <button
         type="button"
         class="fila"
@@ -144,7 +144,7 @@
       {/if}
     </section>
 
-    <section class="seccion" class:abierta={abierta === 'uso'}>
+    <section class="seccion entra" style="--i: 2" class:abierta={abierta === 'uso'}>
       <button
         type="button"
         class="fila"
@@ -191,7 +191,7 @@
       {/if}
     </section>
 
-    <section class="seccion" class:abierta={abierta === 'contrasena'}>
+    <section class="seccion entra" style="--i: 3" class:abierta={abierta === 'contrasena'}>
       <button
         type="button"
         class="fila"
@@ -237,7 +237,7 @@
       {/if}
     </section>
 
-    <section class="seccion">
+    <section class="seccion entra" style="--i: 4">
       <button type="button" class="fila" onclick={() => void app.salir()}>
         <span class="t"
           ><strong>Cerrar sesión</strong><small>Tus chats y recetas siguen en tu cuenta</small
@@ -247,7 +247,7 @@
       </button>
     </section>
 
-    <section class="seccion peligro" class:abierta={abierta === 'borrar'}>
+    <section class="seccion peligro entra" style="--i: 5" class:abierta={abierta === 'borrar'}>
       <button
         type="button"
         class="fila"
@@ -318,15 +318,35 @@
     align-self: flex-start;
   }
   .hola {
+    position: relative;
     display: flex;
     flex-direction: column;
     align-items: center;
     gap: var(--espacio-2);
     text-align: center;
-    padding-bottom: var(--espacio-2);
+    padding: var(--espacio-5) var(--espacio-5) var(--espacio-6);
+    border-radius: var(--radio-xl);
+    overflow: hidden;
+    animation: aparecer-escala 560ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  /* Círculo detrás del chef, como en el saludo de Inicio. */
+  .hola::before {
+    content: '';
+    position: absolute;
+    width: 230px;
+    height: 230px;
+    border-radius: 50%;
+    background: var(--color-escenario-circulo);
+    top: -40px;
+    left: 50%;
+    transform: translateX(-50%);
+  }
+  .hola > :global(*) {
+    position: relative;
   }
   .hola img {
-    width: 120px;
+    width: 130px;
+    animation: respirar 3.2s ease-in-out infinite;
   }
   .hola h1 {
     font-size: 38px;
@@ -352,6 +372,17 @@
     background: var(--color-superficie);
     border-radius: var(--radio-l);
     overflow: hidden;
+    transition:
+      transform var(--transicion),
+      box-shadow var(--transicion);
+  }
+  .seccion:not(.abierta):hover {
+    transform: translateY(-2px);
+    box-shadow: 0 6px 0 var(--color-acento);
+  }
+  /* La fila abierta lleva una banda amarilla a la izquierda. */
+  .seccion.abierta {
+    box-shadow: inset 6px 0 0 var(--color-acento);
   }
   .fila {
     width: 100%;
@@ -409,6 +440,7 @@
     height: 100%;
     border-radius: inherit;
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
   }
   .detalle {
     margin: 0;

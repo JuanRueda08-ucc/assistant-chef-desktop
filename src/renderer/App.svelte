@@ -14,9 +14,18 @@
   import MiCuenta from './pantallas/MiCuenta.svelte'
   import Preparar from './pantallas/Preparar.svelte'
   import Retomar from './pantallas/Retomar.svelte'
+  import Bienvenida from './pantallas/Bienvenida.svelte'
+  import Carga from './componentes/Carga.svelte'
 
+  // Pantalla de carga (0027): se ve mientras arranca la app, como poco un instante.
+  let cargando = $state(true)
   onMount(() => {
-    app.arrancar()
+    void Promise.all([app.arrancar(), new Promise((r) => setTimeout(r, 1100))]).finally(() => {
+      cargando = false
+    })
+  })
+  $effect(() => {
+    document.documentElement.dataset.tema = app.tema
   })
 
   // Guarda la despensa, las preferencias y las alergias poco después de cada cambio.
@@ -86,6 +95,8 @@
     <main></main>
   {:else if !usuario}
     <Acceso />
+  {:else if app.bienvenidaPendiente}
+    <Bienvenida />
   {:else if app.verMiCuenta}
     <MiCuenta />
   {:else if app.verMisRecetas}
@@ -106,6 +117,7 @@
   {#if chatDisponible}<ChatChef />{/if}
   {#if usuario}<MenuLateral /><AvisoTemporizador />{/if}
 </div>
+{#if cargando}<Carga />{/if}
 
 <style>
   .app {
@@ -167,9 +179,11 @@
     background: var(--color-tinta);
   }
   .ir-inicio img {
-    width: 36px;
-    height: 36px;
+    width: 38px;
+    height: 38px;
     object-fit: contain;
+    border-radius: 50%;
+    background: var(--color-escenario-circulo);
   }
   .derecha {
     justify-self: end;
@@ -205,6 +219,7 @@
     height: 42px;
     border-radius: 50%;
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     object-fit: contain;
   }
   .abrir-chat[aria-expanded='true'] {
@@ -214,5 +229,7 @@
   }
   .app > :global(main) {
     min-height: 0;
+    /* Cada pantalla entra subiendo un poco al montarse (0027). */
+    animation: subir 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
 </style>

@@ -21,6 +21,21 @@
   --color-tomate-fondo: #fffaf8; /* zona de borrar la cuenta */
   --color-tomate-borde: #e3b3a6; /* borde discontinuo de esa zona (decorativo) */
 
+  /* «Punch» amarillo y modos claro/oscuro (0027): el amarillo manda y el blanco es secundario. */
+  --color-sobre-acento: #1d1d1b; /* texto sobre amarillo, igual en los dos modos */
+  --color-escenario: #ffc83d; /* bloques grandes amarillos: saludo, bienvenida, carga, cabeceras */
+  --color-escenario-circulo: #ffd970; /* círculos decorativos sobre el amarillo */
+  --color-lateral: #ffc83d; /* menú lateral y columnas laterales */
+  --color-lateral-texto: #1d1d1b;
+  --color-lateral-suave: rgba(255, 255, 255, 0.55); /* tarjetas dentro del lateral */
+  --color-lateral-activo: #1d1d1b; /* opción elegida del lateral */
+  --color-lateral-activo-texto: #ffffff;
+  --color-tarjeta-elegida: #fff3cc; /* ingrediente o tarjeta marcada */
+  --sombra-tarjeta: 0 8px 0 var(--color-acento); /* «pie» amarillo de fotos y tarjetas */
+  --color-pegatina: #ffffff; /* etiquetas blancas sobre el amarillo (iguales en los dos modos) */
+  --color-escenario-tenue: rgba(29, 29, 27, 0.25); /* puntos y detalles apagados sobre amarillo */
+  --color-escenario-boton: rgba(255, 255, 255, 0.55); /* botón secundario sobre amarillo */
+
   /* Tipografía: Bricolage Grotesque para títulos y números grandes; Figtree para el texto. */
   --fuente-titulo: 'Bricolage Grotesque Variable', system-ui, sans-serif;
   --fuente-texto: 'Figtree Variable', system-ui, sans-serif;
@@ -63,6 +78,32 @@
   --transicion: 140ms cubic-bezier(0.2, 0.8, 0.2, 1);
 }
 
+/* Modo oscuro (0027): se elige en el menú o en «Mi cuenta» y se recuerda en este equipo. */
+:root[data-tema='oscuro'] {
+  color-scheme: dark;
+  --color-fondo: #151513;
+  --color-superficie: #23231f;
+  --color-tinta: #f3f1ea;
+  --color-tinta-suave: #bdb9ae;
+  --color-acento-suave: #3b3219;
+  --color-panel-suave: #2c2b26;
+  --color-borde-control: #8c887f;
+  --color-separador: #34332d;
+  --color-relleno: #2f2e29;
+  --color-hierba: #86d3a8;
+  --color-hierba-suave: #1d3528;
+  --color-tomate: #ff8f75;
+  --color-tomate-fondo: #2a1a16;
+  --color-tomate-borde: #6e3b30;
+  --color-lateral: #0d0d0c;
+  --color-lateral-texto: #e9e7df;
+  --color-lateral-suave: #22221e;
+  --color-lateral-activo: #ffc83d;
+  --color-lateral-activo-texto: #1d1d1b;
+  --color-tarjeta-elegida: #3b3219;
+  --sombra-boton: inset 0 -4px 0 rgba(0, 0, 0, 0.35);
+}
+
 * {
   box-sizing: border-box;
 }
@@ -100,12 +141,67 @@ h3 {
   }
 }
 
-/* Quien pide menos movimiento ve los cambios sin animación. */
-@media (prefers-reduced-motion: reduce) {
-  *,
-  *::before,
-  *::after {
-    transition-duration: 0ms !important;
-    animation-duration: 0ms !important;
+/* Animaciones compartidas (0027). Las pantallas las usan con `animation: subir …`. */
+@keyframes subir {
+  from {
+    opacity: 0;
+    transform: translateY(18px);
   }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes aparecer-escala {
+  from {
+    opacity: 0;
+    transform: scale(0.92);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+@keyframes respirar {
+  0%,
+  100% {
+    transform: translateY(0) rotate(-1deg);
+  }
+  50% {
+    transform: translateY(-8px) rotate(1deg);
+  }
+}
+@keyframes flotar {
+  0%,
+  100% {
+    transform: translateY(0) rotate(var(--giro, 0deg));
+  }
+  50% {
+    transform: translateY(-10px) rotate(var(--giro, 0deg));
+  }
+}
+/* Entrada escalonada: cada elemento con `style="--i: n"` llega un poco después. */
+.entra {
+  animation: subir 520ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  animation-delay: calc(var(--i, 0) * 60ms);
+}
+
+/* Zona amarilla (0027): todo lo de dentro se adapta al amarillo en los dos modos. Los botones
+   amarillos pasan a negros con letra amarilla, y lo blanco sigue blanco. */
+.sobre-amarillo {
+  --color-tinta: #1d1d1b;
+  --color-tinta-suave: #4d4636;
+  --color-superficie: #ffffff;
+  --color-relleno: rgba(255, 255, 255, 0.6);
+  --color-panel-suave: rgba(255, 255, 255, 0.6);
+  --color-acento-suave: #ffffff;
+  --color-separador: rgba(29, 29, 27, 0.14);
+  --color-borde-control: #1d1d1b;
+  --color-acento: #1d1d1b;
+  --color-sobre-acento: #ffc83d;
+  --color-hierba: #1f5a3f;
+  --color-hierba-suave: rgba(255, 255, 255, 0.6);
+  --color-tomate: #8f2f1d;
+  background: var(--color-escenario);
+  color: var(--color-tinta);
 }

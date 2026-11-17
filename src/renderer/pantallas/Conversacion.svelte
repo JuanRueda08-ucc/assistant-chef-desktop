@@ -85,7 +85,7 @@
 </script>
 
 <main class="conversacion">
-  <nav class="historial" aria-label="Tus chats con el chef">
+  <nav class="historial sobre-amarillo" aria-label="Tus chats con el chef">
     <button
       type="button"
       class="nuevo"
@@ -459,9 +459,9 @@
     flex-direction: column;
     gap: var(--espacio-2);
     padding: var(--espacio-4);
-    background: var(--color-superficie);
     border-radius: var(--radio-l);
     overflow: hidden;
+    animation: subir 480ms cubic-bezier(0.16, 1, 0.3, 1) both;
   }
   .nuevo {
     display: inline-flex;
@@ -473,6 +473,7 @@
     font-weight: var(--peso-fuerte);
     color: var(--color-tinta);
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     box-shadow: var(--sombra-boton);
     border: 0;
     border-radius: var(--radio-boton);
@@ -648,6 +649,7 @@
     margin: 0;
     padding: var(--espacio-3) var(--espacio-5);
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     border-radius: var(--radio-l) var(--radio-l) 6px var(--radio-l);
     font-size: 19px;
     font-weight: 600;
@@ -755,6 +757,7 @@
   }
   .accion.principal {
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     box-shadow: var(--sombra-boton);
   }
   .accion:not(:disabled):hover {
@@ -955,7 +958,7 @@
   }
   .hablar.escuchando {
     background: var(--color-acento);
-    color: var(--color-tinta);
+    color: var(--color-sobre-acento);
     opacity: 1;
     animation: latido 1.2s ease-in-out infinite;
   }
@@ -967,7 +970,7 @@
   .enviar {
     width: 52px;
     background: var(--color-acento);
-    color: var(--color-tinta);
+    color: var(--color-sobre-acento);
     box-shadow: var(--sombra-boton);
   }
   .hablar:not(:disabled):hover,

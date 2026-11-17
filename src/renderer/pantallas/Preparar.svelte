@@ -240,10 +240,11 @@
 
     {#if visibles.length > 0}
       <div class="rejilla" role="group" aria-label="Ingredientes">
-        {#each visibles as ingrediente (ingrediente.id)}
+        {#each visibles as ingrediente, i (ingrediente.id)}
           <button
             type="button"
-            class="ficha"
+            class="ficha entra"
+            style="--i: {Math.min(i, 12)}"
             aria-pressed={marcados.has(ingrediente.id)}
             onclick={() => alternar(prefs.ingredientes, ingrediente.id)}
           >
@@ -270,7 +271,7 @@
     {/if}
   </section>
 
-  <aside class="preferencias" aria-labelledby="titulo-lista">
+  <aside class="preferencias sobre-amarillo" aria-labelledby="titulo-lista">
     <div class="cuerpo">
       <section class="bloque">
         <div class="fila">
@@ -535,13 +536,17 @@
     padding: 0 var(--espacio-4);
     border: 0;
     border-radius: var(--radio-boton);
-    background: var(--color-relleno);
+    background: var(--color-acento-suave);
     color: var(--color-tinta);
     cursor: pointer;
-    transition: transform var(--transicion);
+    transition:
+      transform var(--transicion),
+      background-color var(--transicion);
   }
   .categoria:hover {
     transform: translateY(-1px);
+    background: var(--color-acento);
+    color: var(--color-sobre-acento);
   }
   .categoria[aria-pressed='true'] {
     background: var(--color-tinta);
@@ -553,7 +558,7 @@
     padding: 0 6px;
     border-radius: var(--radio-pildora);
     background: var(--color-acento);
-    color: var(--color-tinta);
+    color: var(--color-sobre-acento);
     font-size: 12px;
     display: grid;
     place-items: center;
@@ -582,13 +587,15 @@
     transition: transform var(--transicion);
   }
   .ficha:hover {
-    transform: translateY(-2px);
+    transform: translateY(-3px);
+    box-shadow: 0 6px 0 var(--color-acento);
   }
   .ficha:active {
     transform: translateY(1px);
   }
   .ficha[aria-pressed='true'] {
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     box-shadow: var(--sombra-boton);
   }
   .marca {
@@ -596,7 +603,8 @@
     width: 30px;
     height: 30px;
     border-radius: 50%;
-    background: var(--color-relleno);
+    background: var(--color-acento);
+    color: var(--color-sobre-acento);
     display: grid;
     place-items: center;
   }
@@ -617,7 +625,7 @@
   .preferencias {
     position: relative;
     overflow: hidden;
-    background: var(--color-superficie);
+    animation: subir 520ms 80ms cubic-bezier(0.16, 1, 0.3, 1) both;
     border-radius: var(--radio-xl);
     display: flex;
     flex-direction: column;
@@ -712,6 +720,7 @@
     border: 0;
     border-radius: var(--radio-boton);
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     box-shadow: var(--sombra-boton);
     color: var(--color-tinta);
     cursor: pointer;

@@ -660,6 +660,7 @@
   }
   .control[aria-pressed='true'] .circulo {
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     border-color: var(--color-tinta);
   }
   .controles-voz small {
@@ -756,6 +757,7 @@
   }
   .progreso .actual button {
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
   }
   .herramientas {
     display: flex;
@@ -806,6 +808,7 @@
   }
   .esfera.llena {
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
   }
   .esfera b {
     width: 62px;
@@ -820,7 +823,7 @@
   }
   .en-marcha.listo .esfera b {
     background: var(--color-acento);
-    color: var(--color-tinta);
+    color: var(--color-sobre-acento);
   }
   .reloj-texto {
     display: flex;
@@ -974,6 +977,7 @@
   }
   .accion.principal {
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     box-shadow: var(--sombra-boton);
     font-size: 26px;
     min-height: var(--alto-boton-cocina);

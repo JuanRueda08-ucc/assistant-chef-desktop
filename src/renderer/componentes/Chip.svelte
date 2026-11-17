@@ -41,6 +41,7 @@
   }
   .chip[aria-pressed='true'] {
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     border-color: var(--color-tinta);
   }
 </style>

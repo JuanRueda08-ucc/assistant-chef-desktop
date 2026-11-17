@@ -176,6 +176,7 @@
     height: 44px;
     border-radius: 50%;
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     object-fit: contain;
   }
   h2 {
@@ -281,6 +282,7 @@
   }
   .icono.escuchando {
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
   }
   .icono.enviar {
     background: var(--color-tinta);

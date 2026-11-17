@@ -21,6 +21,11 @@ La semilla sigue en `borrador`: Cocinar se prueba desde DevTools con `window.api
 
 ## Registro
 
+### 2026-11-17 · Más amarillo, modo claro y oscuro, carga, bienvenida y animaciones (50, 0027)
+- Día de la entrega. El autor pidió más «punch» visual: el amarillo como protagonista, una pantalla de carga, una bienvenida y animaciones. Revisó las maquetas `plan/diseno/punch-visual.html` y eligió tener las dos direcciones como modo claro (A «Girasol») y oscuro (B «Tinta y girasol»). Descartó la carga «C(O)CINANDO».
+- Hecho: tokens nuevos y modo oscuro en `tokens.css` (`data-tema` en `<html>`, `app.tema`, `localStorage`), clase `.sobre-amarillo`, `Carga.svelte`, `Bienvenida.svelte` (`app.bienvenidaPendiente`), Inicio con bloque amarillo, menú lateral rehecho con interruptor de modo y tarjeta de cuenta, despensa con panel amarillo y fichas cálidas, columna de chats y cabecera de «Mi cuenta» en amarillo, variantes `negro` y `blanco` de `Boton` y animaciones de entrada.
+- Verificado: tipos, lint, formato y 557 tests. En la app compilada, sin sonido, sin cuenta y con el chef de prueba: carga, los tres pasos de la bienvenida, Inicio, menú en claro y oscuro, despensa con tres ingredientes, chat y «Mi cuenta» en oscuro, con capturas. **Sin rehacer a fondo:** Elegir, Cocinar y Mis recetas, que solo cambian por los tokens.
+
 ### 2026-11-10 · Pantalla «Mi cuenta» (49, 0026)
 - El autor eligió la opción C, «Una columna», entre tres maquetas (`plan/diseno/mi-cuenta.html`, capturas en `plan/diseno/capturas-mi-cuenta/`). `pantallas/MiCuenta.svelte` se abre con «Ver mi cuenta» en el menú, que deja de mostrar el uso.
 - Cuenta en main: `cambiarNombre` (`PUT /user` con `data.nombre`), `cambiarContrasena` (vuelve a entrar con la actual y sigue con los tokens nuevos), `comprobarContrasena` y `olvidar`. Canales `cuenta:cambiar-nombre`, `cuenta:cambiar-contrasena` y `cuenta:borrar`, con esquemas en `shared/esquemas/cuenta.ts`.

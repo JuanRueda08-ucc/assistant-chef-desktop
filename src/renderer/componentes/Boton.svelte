@@ -5,7 +5,8 @@
   // Principal: amarillo, uno por pantalla. Oscuro: la acción destacada de una franja amarilla.
   // Secundario: relleno suave, para acciones de menor peso.
   interface Props {
-    variante?: 'principal' | 'secundario' | 'oscuro'
+    /** `negro` y `blanco` van sobre el amarillo: no cambian con el modo oscuro (0027). */
+    variante?: 'principal' | 'secundario' | 'oscuro' | 'negro' | 'blanco'
     /** `submit` para el botón que envía un formulario (Intro en un campo lo pulsa). */
     tipo?: 'button' | 'submit'
     ancho?: boolean
@@ -53,7 +54,7 @@
   }
   .principal {
     background: var(--color-acento);
-    color: var(--color-tinta);
+    color: var(--color-sobre-acento);
     box-shadow: var(--sombra-boton);
     font-size: 18px;
     min-height: 56px;
@@ -66,6 +67,16 @@
   .secundario {
     background: var(--color-relleno);
     color: var(--color-tinta);
+  }
+  .negro {
+    background: var(--color-sobre-acento);
+    color: var(--color-escenario);
+    box-shadow: var(--sombra-boton);
+    font-size: 18px;
+  }
+  .blanco {
+    background: var(--color-pegatina);
+    color: var(--color-sobre-acento);
   }
   .boton:not(:disabled):active {
     box-shadow: none;

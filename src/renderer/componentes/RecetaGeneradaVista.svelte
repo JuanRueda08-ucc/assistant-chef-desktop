@@ -144,6 +144,7 @@
     padding: 6px var(--espacio-3);
     border-radius: var(--radio-pildora);
     background: var(--color-acento);
+    color: var(--color-sobre-acento);
     border: var(--borde) solid var(--color-tinta);
     font-weight: var(--peso-fuerte);
     font-size: var(--texto-s);

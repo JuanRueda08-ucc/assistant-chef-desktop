@@ -43,6 +43,22 @@ export type Pantalla = 'preparar' | 'elegir' | 'cocinar'
 // Turnos y chats con el chef: tipos compartidos con main, que los guarda por cuenta (0025).
 export type { ChatChef, TurnoConversacion } from '@shared/types/chats'
 
+/** localStorage puede fallar (perfil sin permisos): sin él, la app sigue con los valores por defecto. */
+function leerLocal(clave: string): string | null {
+  try {
+    return localStorage.getItem(clave)
+  } catch {
+    return null
+  }
+}
+function guardarLocal(clave: string, valor: string): void {
+  try {
+    localStorage.setItem(clave, valor)
+  } catch {
+    // Sin almacenamiento local, la preferencia dura hasta cerrar la app.
+  }
+}
+
 export const PREFERENCIAS_INICIALES: Preferencias = {
   ingredientes: [],
   ingredientesSinIdentificar: [],
@@ -690,9 +706,30 @@ class EstadoApp {
   async arrancar(): Promise<void> {
     this.cuenta = await window.api.cuenta.estado()
     if (this.cuenta.usuario) {
+      this.comprobarBienvenida()
       await this.cargar()
       void this.actualizarUso()
     }
+  }
+
+  // --- Tema y bienvenida (0027): preferencias de este equipo, en localStorage ---------------
+  /** Modo claro (Girasol) u oscuro (Tinta y girasol). */
+  tema = $state<'claro' | 'oscuro'>(leerLocal('chef.tema') === 'oscuro' ? 'oscuro' : 'claro')
+  cambiarTema(tema: 'claro' | 'oscuro'): void {
+    this.tema = tema
+    guardarLocal('chef.tema', tema)
+  }
+  /** La bienvenida de tres pasos, solo la primera vez que una cuenta entra en este equipo. */
+  bienvenidaPendiente = $state(false)
+  private comprobarBienvenida(): void {
+    const id = this.cuenta?.usuario?.id
+    this.bienvenidaPendiente = !!id && leerLocal(`chef.bienvenida.${id}`) !== 'vista'
+  }
+  terminarBienvenida(): void {
+    const id = this.cuenta?.usuario?.id
+    if (id) guardarLocal(`chef.bienvenida.${id}`, 'vista')
+    this.bienvenidaPendiente = false
+    this.enInicio = true
   }
 
   /** Pregunta al backend cuánto queda hoy; si no responde, se deja de mostrar. */
@@ -704,6 +741,7 @@ class EstadoApp {
   /** Tras entrar o verificar el correo, con la sesión ya guardada en main. */
   async alEntrar(estado: EstadoCuenta): Promise<void> {
     this.cuenta = estado
+    this.comprobarBienvenida()
     await this.cargar()
     void this.actualizarUso()
   }

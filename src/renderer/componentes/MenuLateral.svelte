@@ -94,37 +94,43 @@
       }}><Icono nombre="tecnica" /><span>Mis recetas</span></button
     >
 
-    <section class="cuenta" aria-labelledby="titulo-cuenta">
-      <h2 id="titulo-cuenta">Mi cuenta</h2>
-      {#if usuario && !sinCuenta}
-        <p class="nombre">{usuario.nombre}</p>
-        <p class="correo">{usuario.email}</p>
-        <button
-          type="button"
-          class="opcion"
-          aria-current={app.verMiCuenta ? 'page' : undefined}
-          onclick={() => app.abrirMiCuenta()}
-          ><Icono nombre="personas" /><span>Ver mi cuenta</span></button
+    <div class="tema" role="group" aria-label="Modo de color">
+      <button
+        type="button"
+        aria-pressed={app.tema === 'claro'}
+        onclick={() => app.cambiarTema('claro')}>☀ Claro</button
+      >
+      <button
+        type="button"
+        aria-pressed={app.tema === 'oscuro'}
+        onclick={() => app.cambiarTema('oscuro')}>☾ Oscuro</button
+      >
+    </div>
+
+    <section class="cuenta" aria-label="Mi cuenta">
+      <button
+        type="button"
+        class="tarjeta"
+        aria-current={app.verMiCuenta ? 'page' : undefined}
+        onclick={() => app.abrirMiCuenta()}
+      >
+        <span class="inicial" aria-hidden="true"
+          >{(usuario?.nombre || 'C').slice(0, 1).toUpperCase()}</span
         >
+        <span class="quien"
+          ><strong>{sinCuenta ? 'Sin cuenta' : usuario?.nombre}</strong><small
+            >Ver mi cuenta ›</small
+          ></span
+        >
+      </button>
+      {#if usuario && !sinCuenta}
         <button
           type="button"
-          class="opcion"
+          class="salir"
           onclick={() => {
             cerrar()
             void app.salir()
-          }}><Icono nombre="atras" /><span>Cerrar sesión</span></button
-        >
-      {:else}
-        <p class="correo">
-          Modo de desarrollo sin cuenta de Supabase: tu despensa y tus recetas se guardan en este
-          equipo.
-        </p>
-        <button
-          type="button"
-          class="opcion"
-          aria-current={app.verMiCuenta ? 'page' : undefined}
-          onclick={() => app.abrirMiCuenta()}
-          ><Icono nombre="personas" /><span>Ver mi cuenta</span></button
+          }}>Cerrar sesión</button
         >
       {/if}
     </section>
@@ -138,8 +144,8 @@
     z-index: 30;
     border: 0;
     padding: 0;
-    background: rgba(29, 29, 27, 0.35);
-    animation: aparecer 160ms ease-out;
+    background: rgba(29, 29, 27, 0.45);
+    animation: aparecer 200ms ease-out;
   }
   .menu {
     position: fixed;
@@ -151,10 +157,43 @@
     display: flex;
     flex-direction: column;
     gap: var(--espacio-2);
-    padding: var(--espacio-4);
-    background: var(--color-superficie);
-    box-shadow: 0 0 40px rgba(0, 0, 0, 0.2);
-    animation: entrar 200ms cubic-bezier(0.2, 0.8, 0.2, 1);
+    padding: var(--espacio-5) var(--espacio-4);
+    background: var(--color-lateral);
+    color: var(--color-lateral-texto);
+    box-shadow: 0 0 60px rgba(0, 0, 0, 0.3);
+    overflow: hidden;
+    animation: entrar 320ms cubic-bezier(0.16, 1, 0.3, 1);
+  }
+  /* Círculo decorativo, como el del saludo. */
+  .menu::after {
+    content: '';
+    position: absolute;
+    width: 340px;
+    height: 340px;
+    border-radius: 50%;
+    background: var(--color-lateral-suave);
+    right: -170px;
+    bottom: -110px;
+    pointer-events: none;
+  }
+  .menu > :global(*) {
+    position: relative;
+    z-index: 1;
+  }
+  .menu > .opcion {
+    animation: subir 420ms cubic-bezier(0.16, 1, 0.3, 1) both;
+  }
+  .menu > .opcion:nth-of-type(2) {
+    animation-delay: 40ms;
+  }
+  .menu > .opcion:nth-of-type(3) {
+    animation-delay: 80ms;
+  }
+  .menu > .opcion:nth-of-type(4) {
+    animation-delay: 120ms;
+  }
+  .menu > .opcion:nth-of-type(5) {
+    animation-delay: 160ms;
   }
   @keyframes entrar {
     from {
@@ -170,15 +209,17 @@
     display: flex;
     align-items: center;
     gap: var(--espacio-3);
-    padding-bottom: var(--espacio-3);
+    padding-bottom: var(--espacio-4);
     font-family: var(--fuente-titulo);
     font-weight: var(--peso-titulo);
     font-size: var(--texto-l);
   }
   .cabeza img {
-    width: 40px;
-    height: 40px;
+    width: 44px;
+    height: 44px;
     object-fit: contain;
+    border-radius: 50%;
+    background: var(--color-escenario-circulo);
   }
   .cabeza span {
     flex: 1;
@@ -190,8 +231,8 @@
     place-items: center;
     border: 0;
     border-radius: var(--radio-boton);
-    background: var(--color-relleno);
-    color: var(--color-tinta);
+    background: var(--color-lateral-suave);
+    color: var(--color-lateral-texto);
     cursor: pointer;
   }
   .opcion {
@@ -202,18 +243,25 @@
     min-height: 56px;
     padding: 0 var(--espacio-4);
     font: inherit;
-    font-weight: var(--peso-fuerte);
+    font-weight: var(--peso-titulo);
+    font-size: var(--texto-m);
     text-align: left;
-    color: var(--color-tinta);
+    color: var(--color-lateral-texto);
     background: transparent;
     border: 0;
-    border-radius: var(--radio-boton);
+    border-radius: var(--radio-m);
     cursor: pointer;
-    transition: background-color var(--transicion);
+    transition:
+      background-color var(--transicion),
+      transform var(--transicion);
   }
-  .opcion:hover,
+  .opcion:hover {
+    background: var(--color-lateral-suave);
+    transform: translateX(4px);
+  }
   .opcion[aria-current='page'] {
-    background: var(--color-relleno);
+    background: var(--color-lateral-activo);
+    color: var(--color-lateral-activo-texto);
   }
   .opcion span {
     display: flex;
@@ -222,29 +270,97 @@
   .opcion small {
     font-size: var(--texto-xs);
     font-weight: 600;
-    color: var(--color-tinta-suave);
+    opacity: 0.8;
   }
   .destacada {
-    background: var(--color-acento-suave);
+    background: var(--color-lateral-suave);
+  }
+  .tema {
+    margin-top: auto;
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 4px;
+    padding: 4px;
+    border-radius: var(--radio-m);
+    background: var(--color-lateral-suave);
+  }
+  .tema button {
+    min-height: 40px;
+    border: 0;
+    border-radius: 12px;
+    font: inherit;
+    font-weight: var(--peso-fuerte);
+    font-size: var(--texto-s);
+    background: transparent;
+    color: var(--color-lateral-texto);
+    cursor: pointer;
+  }
+  .tema button[aria-pressed='true'] {
+    background: var(--color-lateral-activo);
+    color: var(--color-lateral-activo-texto);
   }
   .cuenta {
-    margin-top: auto;
-    padding-top: var(--espacio-4);
-    border-top: var(--borde) solid var(--color-separador);
+    display: flex;
+    flex-direction: column;
+    gap: var(--espacio-2);
   }
-  .cuenta h2 {
-    font-size: var(--texto-m);
-    margin-bottom: var(--espacio-2);
+  .tarjeta {
+    display: flex;
+    align-items: center;
+    gap: var(--espacio-3);
+    padding: var(--espacio-3);
+    border: 0;
+    border-radius: var(--radio-l);
+    background: var(--color-lateral-suave);
+    color: var(--color-lateral-texto);
+    font: inherit;
+    text-align: left;
+    cursor: pointer;
+    transition: transform var(--transicion);
   }
-  .cuenta p {
-    margin: 0 0 var(--espacio-2);
+  .tarjeta:hover {
+    transform: translateY(-2px);
   }
-  .nombre {
-    font-weight: var(--peso-fuerte);
+  .tarjeta[aria-current='page'] {
+    box-shadow: inset 0 0 0 var(--trazo) var(--color-lateral-texto);
   }
-  .correo {
+  .inicial {
+    width: 46px;
+    height: 46px;
+    flex: none;
+    display: grid;
+    place-items: center;
+    border-radius: 50%;
+    background: var(--color-lateral-activo);
+    color: var(--color-lateral-activo-texto);
+    font-family: var(--fuente-titulo);
+    font-weight: var(--peso-titulo);
+    font-size: 20px;
+  }
+  .quien {
+    display: flex;
+    flex-direction: column;
+    min-width: 0;
+  }
+  .quien strong {
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+  }
+  .quien small {
     font-size: var(--texto-s);
-    color: var(--color-tinta-suave);
-    line-height: 1.4;
+    opacity: 0.8;
+  }
+  .salir {
+    align-self: flex-start;
+    border: 0;
+    background: none;
+    color: var(--color-lateral-texto);
+    font: inherit;
+    font-weight: var(--peso-fuerte);
+    font-size: var(--texto-s);
+    text-decoration: underline;
+    padding: var(--espacio-1) var(--espacio-2);
+    cursor: pointer;
   }
 </style>
